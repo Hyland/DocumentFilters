@@ -1,0 +1,140 @@
+.idf-background {
+	overflow: auto;
+}
+div.perceptive-viewer-toolbar
+{
+ 	position: fixed;
+ 	z-index: 100;
+ 	left: 0px;
+ 	top: 0px;
+ 	width: 100%;
+ 	height: 65px;
+ 	background-color: rgba(0,0,0,0.4);
+ 	text-align: center;
+ 	-moz-user-select: none; 
+ 	-webkit-user-select: none; 
+ 	-ms-user-select:none; 
+ 	user-select:none;
+}
+div.perceptive-viewer-details {
+	position: fixed;
+	z-index: 100;
+ 	right: 0px;
+ 	top: 65px;
+ 	width: 280px;
+ 	bottom: 0px;
+ 	background-color: rgba(0,0,0,0.5);
+ 	font-family: Arial;
+ 	font-size: 10pt;
+ 	color: white;
+ 	padding-left: 8px;
+ 	padding-right: 8px;
+ 	padding-top: 8px;
+ 	overflow-y: auto;
+}
+div.perceptive-viewer-details div.section {
+	font-size: 120%;
+	border-bottom: solid 1px white;
+	margin-bottom: 20px;
+}
+div.perceptive-viewer-details div.item {
+	padding-bottom: 10px;
+	clear: both;
+	color: #BCBCBC;
+}
+div.perceptive-viewer-details div.caption, div.perceptive-viewer-details div.value {
+	float: left;
+	width: 50%;
+}
+
+div.perceptive-viewer-toolbar-button, div.perceptive-viewer-toolbar-menu {
+	min-width: 45px;
+	padding-left: 4px;
+	padding-right: 4px;
+	height: 65px;
+	color: #EEEEEE;
+	line-height: 65px;
+	text-align: center;
+	display:inline-block;
+	position: relative;
+	white-space: nowrap;
+}
+div.perceptive-viewer-toolbar-button span 
+{
+	font-family: Arial;
+	font-size: 10pt;
+}
+div.perceptive-viewer-toolbar-button select {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	filter: alpha(opacity=0);
+	opacity: 0;
+
+}
+div.perceptive-viewer-toolbar-tip {
+	position: absolute;
+	background-color: rgba(0,0,0,0.6);
+	white-space: nowrap;
+	height: 12pt;
+	line-height: 12pt;
+	padding: 3px;
+	font-family: Arial;
+	font-size: 8pt;
+	display: none;
+	left: 0px;
+	min-width: 45px;
+}
+div.perceptive-viewer-toolbar-spacer {
+	width: 25px;
+	display:inline-block;
+}
+
+div.perceptive-viewer-toolbar-button:hover, div.perceptive-viewer-toolbar-menu:hover {
+	background-color: rgba(255,255,255,0.1);
+}
+div.perceptive-viewer-toolbar-button:hover div.perceptive-viewer-toolbar-tip {
+	display: block;
+} 
+.idf-background {
+	-moz-user-select: none; 
+	-webkit-user-select: none; 
+	-ms-user-select:none; 
+	user-select:none;
+}
+div.idf-r {
+	-moz-user-select: text; 
+	-webkit-user-select: text; 
+	-ms-user-select:text; 
+	user-select:text;	
+}
+div.idf-page div.error {
+	color: red;
+	text-align: center;
+	padding-top: 150px;
+	font-family: Arial;
+	font-weight: bold;
+}
+div.idf-page div.async-loading {
+	text-align: center;
+	padding-top: 90px;
+	color: rgba(0,0,0,0.5);
+}
+
+@media print {
+	div.perceptive-viewer-toolbar, div.perceptive-viewer-details {
+		display: none;
+	}
+	body.idf-background { 
+		background-color: white;
+	}
+	div.idf-page {
+		border: 0 !important;
+		-moz-box-shadow: none; 
+		-webkit-box-shadow: none;
+		box-shadow: none;
+	}
+
+}

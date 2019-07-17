@@ -1,0 +1,18 @@
+<meta http-equiv="x-ua-compatible" content="IE=edge" >
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+
+<script src="perceptive-viewer-utils.js"></script>
+<link href="perceptive-viewer-utils.css" rel="stylesheet">
+
+<script>
+var documentViewer;
+$(function() {
+	documentViewer = new perceptive.viewer();
+	documentViewer
+		.prepare()
+		.installToolbar()
+		.installDetailsPanel();
+});
+</script>
