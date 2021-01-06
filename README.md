@@ -17,4 +17,4 @@ You will need either an evaluation copy, or full copy of the Document Filters wh
 
 - Web Site: [www.documentfilters.com](http://www.documentfilters.com)
 - Documentation: [docs.hyland.com](https://docs.hyland.com/Portal_Public/Products/en/Document_Filters.htm)
-- FAQ: https://www.hyland.com/en/platform/product-suite/document-filters/faq
+- FAQ: https://authoring.hyland.com/en/platform/product-suite/document-filters/resources/faq
