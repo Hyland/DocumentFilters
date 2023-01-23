@@ -1,31 +1,29 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29025.244
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToTIFF", "vb.net\ConvertDocumentToTIFF.vbproj", "{1AA43DF1-88CA-4F69-8ECF-5B42FBAE5EE7}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToTIFF", "vb.net\ConvertDocumentToTIFF\ConvertDocumentToTIFF.vbproj", "{1AA43DF1-88CA-4F69-8ECF-5B42FBAE5EE7}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToHDHTML", "vb.net\ConvertDocumentToHDHTML.vbproj", "{ECB8FBEF-1245-43FB-8E2C-132ACCB45BA6}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToHDHTML", "vb.net\ConvertDocumentToHDHTML\ConvertDocumentToHDHTML.vbproj", "{ECB8FBEF-1245-43FB-8E2C-132ACCB45BA6}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToThumbnail", "vb.net\ConvertDocumentToThumbnail.vbproj", "{A047BCCA-869E-49D7-9EB5-7B38377BE2F4}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToThumbnail", "vb.net\ConvertDocumentToThumbnail\ConvertDocumentToThumbnail.vbproj", "{A047BCCA-869E-49D7-9EB5-7B38377BE2F4}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToPDF", "vb.net\ConvertDocumentToPDF.vbproj", "{D13546B8-C235-4795-885C-EC7799DCB0AF}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToPDF", "vb.net\ConvertDocumentToPDF\ConvertDocumentToPDF.vbproj", "{D13546B8-C235-4795-885C-EC7799DCB0AF}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToPNG", "vb.net\ConvertDocumentToPNG.vbproj", "{0520CDEC-84BF-4D28-B571-1345FC988C73}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToPNG", "vb.net\ConvertDocumentToPNG\ConvertDocumentToPNG.vbproj", "{0520CDEC-84BF-4D28-B571-1345FC988C73}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocument", "vb.net\ConvertDocument.vbproj", "{D210DD62-0528-4C97-97DD-55066DA44278}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocument", "vb.net\ConvertDocument\ConvertDocument.vbproj", "{D210DD62-0528-4C97-97DD-55066DA44278}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToTIFFFromMemory", "vb.net\ConvertDocumentToTIFFFromMemory.vbproj", "{56DF020D-237B-4A85-99DA-8F327C996860}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToTIFFFromMemory", "vb.net\ConvertDocumentToTIFFFromMemory\ConvertDocumentToTIFFFromMemory.vbproj", "{56DF020D-237B-4A85-99DA-8F327C996860}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToTIFFStream", "vb.net\ConvertDocumentToTIFFStream.vbproj", "{7EE3B892-7237-4745-ABF8-DBF733AFA30D}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToTIFFStream", "vb.net\ConvertDocumentToTIFFStream\ConvertDocumentToTIFFStream.vbproj", "{7EE3B892-7237-4745-ABF8-DBF733AFA30D}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToInteractiveHDHTML", "vb.net\ConvertDocumentToInteractiveHDHTML.vbproj", "{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertDocumentToStructuredXML", "vb.net\ConvertDocumentToStructuredXML\ConvertDocumentToStructuredXML.vbproj", "{0EA463AD-0542-42B0-A7F7-D50542E2B91A}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertDocumentToStructuredXML", "vb.net\ConvertDocumentToStructuredXML.vbproj", "{0EA463AD-0542-42B0-A7F7-D50542E2B91A}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "GetDocumentWords", "vb.net\GetDocumentWords\GetDocumentWords.vbproj", "{C06D7758-7BC9-4AE3-97CE-3AD11F5B2C9D}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GetDocumentWords", "vb.net\GetDocumentWords.vbproj", "{C06D7758-7BC9-4AE3-97CE-3AD11F5B2C9D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyland.DocumentFilters", "csharp\Hyland.DocumentFilters\Hyland.DocumentFilters.csproj", "{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DfSamplesCommon", "vb.net\DfSamplesCommon\DfSamplesCommon.vbproj", "{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -167,22 +165,6 @@ Global
 		{7EE3B892-7237-4745-ABF8-DBF733AFA30D}.Release|x86.Build.0 = Release|x86
 		{7EE3B892-7237-4745-ABF8-DBF733AFA30D}.Release|zAny CPU.ActiveCfg = Release|Any CPU
 		{7EE3B892-7237-4745-ABF8-DBF733AFA30D}.Release|zAny CPU.Build.0 = Release|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|x64.ActiveCfg = Debug|x64
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|x64.Build.0 = Debug|x64
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|x86.ActiveCfg = Debug|x86
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|x86.Build.0 = Debug|x86
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|zAny CPU.ActiveCfg = Debug|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Debug|zAny CPU.Build.0 = Debug|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|x64.ActiveCfg = Release|x64
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|x64.Build.0 = Release|x64
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|x86.ActiveCfg = Release|x86
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|x86.Build.0 = Release|x86
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|zAny CPU.ActiveCfg = Release|Any CPU
-		{ECB8FBEF-1245-43FB-8E2C-332ACCB45BA6}.Release|zAny CPU.Build.0 = Release|Any CPU
 		{0EA463AD-0542-42B0-A7F7-D50542E2B91A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0EA463AD-0542-42B0-A7F7-D50542E2B91A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EA463AD-0542-42B0-A7F7-D50542E2B91A}.Debug|x64.ActiveCfg = Debug|x64
@@ -215,22 +197,22 @@ Global
 		{C06D7758-7BC9-4AE3-97CE-3AD11F5B2C9D}.Release|x86.Build.0 = Release|x86
 		{C06D7758-7BC9-4AE3-97CE-3AD11F5B2C9D}.Release|zAny CPU.ActiveCfg = Release|Any CPU
 		{C06D7758-7BC9-4AE3-97CE-3AD11F5B2C9D}.Release|zAny CPU.Build.0 = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x64.ActiveCfg = Debug|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x64.Build.0 = Debug|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x86.Build.0 = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|zAny CPU.ActiveCfg = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|zAny CPU.Build.0 = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x64.ActiveCfg = Release|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x64.Build.0 = Release|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x86.ActiveCfg = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x86.Build.0 = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|zAny CPU.ActiveCfg = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|zAny CPU.Build.0 = Release|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|x64.ActiveCfg = Debug|x64
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|x64.Build.0 = Debug|x64
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|x86.ActiveCfg = Debug|x86
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|x86.Build.0 = Debug|x86
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|zAny CPU.ActiveCfg = Debug|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Debug|zAny CPU.Build.0 = Debug|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|x64.ActiveCfg = Release|x64
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|x64.Build.0 = Release|x64
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|x86.ActiveCfg = Release|x86
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|x86.Build.0 = Release|x86
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|zAny CPU.ActiveCfg = Release|Any CPU
+		{8666ED2C-331C-4894-8DF2-6ECEC1395F1D}.Release|zAny CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

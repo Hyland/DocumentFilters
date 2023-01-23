@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hyland.DocumentFilters" Version="22.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="22.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="22.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="22.4.0" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="../DocumentFiltersLicense.vb" Link="DocumentFiltersLicense.vb"/>
+	</ItemGroup>
+
+</Project>

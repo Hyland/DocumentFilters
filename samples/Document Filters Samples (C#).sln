@@ -1,35 +1,33 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocument", "csharp\ConvertDocument\ConvertDocument.csproj", "{39CEBEDF-F5A0-43FC-B3C6-94303435A3BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocument", "csharp\ConvertDocument\ConvertDocument.csproj", "{39CEBEDF-F5A0-43FC-B3C6-94303435A3BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToHDHTML", "csharp\ConvertDocumentToHDHTML\ConvertDocumentToHDHTML.csproj", "{C251D65A-4F71-427A-9D04-CE3F35F2AFC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToHDHTML", "csharp\ConvertDocumentToHDHTML\ConvertDocumentToHDHTML.csproj", "{C251D65A-4F71-427A-9D04-CE3F35F2AFC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToInteractiveHDHTML", "csharp\ConvertDocumentToInteractiveHDHTML\ConvertDocumentToInteractiveHDHTML.csproj", "{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToPDF", "csharp\ConvertDocumentToPDF\ConvertDocumentToPDF.csproj", "{6E753DBE-9D72-4C1D-AA57-569F06B0BFCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToPDF", "csharp\ConvertDocumentToPDF\ConvertDocumentToPDF.csproj", "{6E753DBE-9D72-4C1D-AA57-569F06B0BFCD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToPNG", "csharp\ConvertDocumentToPNG\ConvertDocumentToPNG.csproj", "{7DC14B1E-CEFA-4E0D-8A49-BD19A2F88A63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToPNG", "csharp\ConvertDocumentToPNG\ConvertDocumentToPNG.csproj", "{7DC14B1E-CEFA-4E0D-8A49-BD19A2F88A63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToPostscript", "csharp\ConvertDocumentToPostscript\ConvertDocumentToPostscript.csproj", "{682995E6-FF8E-454B-89A6-D6CEAFE1C400}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToPostscript", "csharp\ConvertDocumentToPostscript\ConvertDocumentToPostscript.csproj", "{682995E6-FF8E-454B-89A6-D6CEAFE1C400}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToStructuredXML", "csharp\ConvertDocumentToStructuredXML\ConvertDocumentToStructuredXML.csproj", "{E37A73AB-D850-4C45-A645-1087D2DDA112}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToStructuredXML", "csharp\ConvertDocumentToStructuredXML\ConvertDocumentToStructuredXML.csproj", "{E37A73AB-D850-4C45-A645-1087D2DDA112}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToSVG", "csharp\ConvertDocumentToSVG\ConvertDocumentToSVG.csproj", "{019E5B99-7335-4C53-816B-85B6E78FC0D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToSVG", "csharp\ConvertDocumentToSVG\ConvertDocumentToSVG.csproj", "{019E5B99-7335-4C53-816B-85B6E78FC0D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToThumbnail", "csharp\ConvertDocumentToThumbnail\ConvertDocumentToThumbnail.csproj", "{764F4617-1F97-45F7-AECC-0EDC85326B95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToThumbnail", "csharp\ConvertDocumentToThumbnail\ConvertDocumentToThumbnail.csproj", "{764F4617-1F97-45F7-AECC-0EDC85326B95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToTIFF", "csharp\ConvertDocumentToTIFF\ConvertDocumentToTIFF.csproj", "{61863387-B5B6-4FAC-BD39-57E24770987A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToTIFF", "csharp\ConvertDocumentToTIFF\ConvertDocumentToTIFF.csproj", "{61863387-B5B6-4FAC-BD39-57E24770987A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToTIFFFromMemory", "csharp\ConvertDocumentToTIFFFromMemory\ConvertDocumentToTIFFFromMemory.csproj", "{FDFFF3B9-3B13-4ADD-9D1F-05FE35B36806}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToTIFFFromMemory", "csharp\ConvertDocumentToTIFFFromMemory\ConvertDocumentToTIFFFromMemory.csproj", "{FDFFF3B9-3B13-4ADD-9D1F-05FE35B36806}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToTIFFStream", "csharp\ConvertDocumentToTIFFStream\ConvertDocumentToTIFFStream.csproj", "{645C785C-0986-41E3-9CBF-9E56DCF2CC9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToTIFFStream", "csharp\ConvertDocumentToTIFFStream\ConvertDocumentToTIFFStream.csproj", "{645C785C-0986-41E3-9CBF-9E56DCF2CC9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetDocumentWords", "csharp\GetDocumentWords\GetDocumentWords.csproj", "{E52DB0CB-696B-47BA-A6D5-7E305A291BF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetDocumentWords", "csharp\GetDocumentWords\GetDocumentWords.csproj", "{E52DB0CB-696B-47BA-A6D5-7E305A291BF8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyland.DocumentFilters", "csharp\Hyland.DocumentFilters\Hyland.DocumentFilters.csproj", "{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DfSamplesCommon", "csharp\DfSamplesCommon\DfSamplesCommon.csproj", "{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,18 +63,6 @@ Global
 		{C251D65A-4F71-427A-9D04-CE3F35F2AFC8}.Release|x64.Build.0 = Release|x64
 		{C251D65A-4F71-427A-9D04-CE3F35F2AFC8}.Release|x86.ActiveCfg = Release|x86
 		{C251D65A-4F71-427A-9D04-CE3F35F2AFC8}.Release|x86.Build.0 = Release|x86
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Debug|x64.ActiveCfg = Debug|x64
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Debug|x64.Build.0 = Debug|x64
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Debug|x86.ActiveCfg = Debug|x86
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Debug|x86.Build.0 = Debug|x86
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Release|x64.ActiveCfg = Release|x64
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Release|x64.Build.0 = Release|x64
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Release|x86.ActiveCfg = Release|x86
-		{C251D65A-4F71-427A-9D04-CF3F35F2AFC8}.Release|x86.Build.0 = Release|x86
 		{6E753DBE-9D72-4C1D-AA57-569F06B0BFCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6E753DBE-9D72-4C1D-AA57-569F06B0BFCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E753DBE-9D72-4C1D-AA57-569F06B0BFCD}.Debug|x64.ActiveCfg = Debug|x64
@@ -197,18 +183,18 @@ Global
 		{E52DB0CB-696B-47BA-A6D5-7E305A291BF8}.Release|x64.Build.0 = Release|x64
 		{E52DB0CB-696B-47BA-A6D5-7E305A291BF8}.Release|x86.ActiveCfg = Release|x86
 		{E52DB0CB-696B-47BA-A6D5-7E305A291BF8}.Release|x86.Build.0 = Release|x86
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x64.ActiveCfg = Debug|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x64.Build.0 = Debug|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Debug|x86.Build.0 = Debug|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x64.ActiveCfg = Release|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x64.Build.0 = Release|x64
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x86.ActiveCfg = Release|Any CPU
-		{E059ADEB-875A-4F7F-97B0-FEF1B7C35529}.Release|x86.Build.0 = Release|Any CPU
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Debug|x64.ActiveCfg = Debug|x64
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Debug|x64.Build.0 = Debug|x64
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Debug|x86.ActiveCfg = Debug|x86
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Debug|x86.Build.0 = Debug|x86
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Release|x64.ActiveCfg = Release|x64
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Release|x64.Build.0 = Release|x64
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Release|x86.ActiveCfg = Release|x86
+		{5ECBCFFA-3E74-4011-9B81-FC8ED389244D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

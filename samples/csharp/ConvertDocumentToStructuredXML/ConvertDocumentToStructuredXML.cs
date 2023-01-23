@@ -1,5 +1,5 @@
 ﻿/*
-   (c) 2019 Hyland Software, Inc. and its affiliates. All rights reserved.
+   (c) 2022 Hyland Software, Inc. and its affiliates. All rights reserved.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -45,7 +45,7 @@ namespace DocFilters
 			}
 
 			m_filters = new DocumentFilters();
-			m_filters.Initialize("{ENTER LICENSE KEY}", ".");
+			m_filters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".");
 
 			List< string > fileList = new List< string >();
 			for (int i = 0; i < args.Length; i++)
@@ -119,7 +119,7 @@ namespace DocFilters
 		private void ShowHelp()
 		{
 			System.Console.WriteLine("Document Filters 11: ConvertDocumentToStructuredXML C# Example");
-			System.Console.WriteLine("(c) 2019 Hyland Software, Inc.");
+			System.Console.WriteLine("(c) 2022 Hyland Software, Inc.");
 			System.Console.WriteLine("");
 			System.Console.WriteLine("ConvertDocumentToStructuredXML [options] filename");
 			System.Console.WriteLine("");
