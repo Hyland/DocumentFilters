@@ -14,7 +14,7 @@
 #
 
 #****************************************************************************
-#* Document Filters Example - Convert a document to a series of PNG images
+#* Document Filters Example - Convert a document to HiDef XML
 #****************************************************************************/
 
 import os, sys, argparse, DocumentFiltersLicense

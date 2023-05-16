@@ -14,7 +14,7 @@
 #
 
 #****************************************************************************
-#* Document Filters Example - Convert a document to a series of PNG images
+#* Document Filters Example - Return a documents file type
 #****************************************************************************/
 
 import os, sys, argparse, DocumentFiltersLicense

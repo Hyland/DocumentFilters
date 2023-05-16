@@ -14,7 +14,7 @@
 #
 
 #****************************************************************************
-#* Document Filters Example - Convert a document to a series of PNG images
+#* Document Filters Example - Convert a document to Hi-Def HTML5
 #****************************************************************************/
 
 import os, sys, argparse, DocumentFiltersLicense

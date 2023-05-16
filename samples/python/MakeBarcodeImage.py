@@ -14,7 +14,7 @@
 #
 
 #****************************************************************************
-#* Document Filters Example - Convert a document to a series of PNG images
+#* Document Filters Example - Create a barcode image.
 #****************************************************************************/
 
 import os, sys, argparse, DocumentFiltersLicense

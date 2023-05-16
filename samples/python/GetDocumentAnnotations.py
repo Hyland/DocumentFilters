@@ -14,7 +14,7 @@
 #
 
 #****************************************************************************
-#* Document Filters Example - Convert a document to a series of PNG images
+#* Document Filters Example - Extract annotations for a document
 #****************************************************************************/
 
 import os, sys, argparse, DocumentFiltersLicense
