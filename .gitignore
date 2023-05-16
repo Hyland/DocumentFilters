@@ -7,4 +7,5 @@
 **/obj/*
 **/obj_net2.0/*
 **/*.bak
+**/CMakeSettings.json
 .vs

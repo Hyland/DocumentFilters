@@ -1,5 +1,5 @@
 #
-#(c) 2019 Hyland Software, Inc. and its affiliates. All rights reserved.
+#(c) 2022 Hyland Software, Inc. and its affiliates. All rights reserved.
 #
 #THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 #ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -17,78 +17,60 @@
 #* Document Filters Example - Convert a document (and sub-documents) to classic HTML
 #****************************************************************************/
 
-from __future__ import unicode_literals
-import os
-import sys
-import DocumentFiltersLicense
-import DocumentFiltersUtils
-from ISYS11dfpython import *
+import os, sys, argparse, DocumentFiltersLicense
+from DocumentFilters import *
 
-global DocumentFilters
+api = DocumentFilters()
 
-def ProcessDocument(Extractor, OutFolder, ErrStream):
-	MaxCharsPerGetText = 4096
-	try:
-		DocType = Extractor.getFileType()
-		ErrStream.write("DocType: " + str(DocType) + ", " + Extractor.getFileType(IGR_FORMAT_LONG_NAME) 
-              + ", SupportsText: " + str(Extractor.getSupportsText()) 
-              + ", SupportsSubFiles: " + str(Extractor.getSupportsSubFiles()) + "\n")
 
-		if Extractor.getSupportsText():
-			Extractor.Open(IGR_BODY_AND_META | IGR_FORMAT_HTML, "")
-			if not os.path.exists(OutFolder):
-				os.makedirs(OutFolder)
+def ProcessFile(filename, outputFile, console):
+	outputDir = os.path.dirname(outputFile)
 
-			OutStream = open(OutFolder + os.sep + "index.html", "wb")
-			while not(Extractor.getEOF()):
-				S = Extractor.GetText(MaxCharsPerGetText).encode('utf8')
-				OutStream.write(S)
-			OutStream.close()
-			ImgExtractor = Extractor.GetFirstImage()
-			while not(ImgExtractor is None):
-				ErrStream.write("Processing (IMAGE): " + ImgExtractor.getID() + " -> " + ImgExtractor.getName() + "\n")
-				ImgExtractor.CopyTo(OutFolder + os.sep + ImgExtractor.getName())
-				ImgExtractor.Close()
-				ImgExtractor = Extractor.GetNextImage()
+	with api.GetExtractor(filename) as file:
+		MaxCharsPerGetText = 4096
+		try:
+			DocType = file.getFileType()
+			console.write("DocType: " + str(DocType) + ", " + file.getFileType(IGR_FORMAT_LONG_NAME) 
+				+ ", SupportsText: " + str(file.getSupportsText()) 
+				+ ", SupportsSubFiles: " + str(file.getSupportsSubFiles()) + "\n")
 
-		if Extractor.getSupportsSubFiles():
-			SubExtractor = Extractor.GetFirstSubFile()
-			while not(SubExtractor is None):
-				ErrStream.write("Processing (SUBFILE): " + SubExtractor.getID() + " -> " + SubExtractor.getName() + "\n")
-				ProcessDocument(SubExtractor, OutFolder + os.sep + SubExtractor.getName(), ErrStream)
-				SubExtractor = Extractor.GetNextSubFile()
-	except Exception as e:
-		ErrStream.write("ProcessDocument: " + str(e) + "\n")
-	Extractor.Close()
+			if file.getSupportsText():
+				file.Open(IGR_BODY_AND_META | IGR_FORMAT_HTML, "")
 
-def ProcessFile(Filename, OutFolder, ErrStream):
-	ErrStream.write("Processing (FILE): " + Filename + "\n")
-	try:
-		Extractor = DocumentFilters.GetExtractor(open(Filename, 'rb'))
-		ProcessDocument(Extractor, OutFolder, ErrStream)
-	except Exception as e:
-		ErrStream.write("ProcessFile: " + str(e) + "\n")
-		
-def ShowHelp():
-	sys.stdout.write("Document Filters 11: ConvertDocumentToClassicHTML Python Example\n")
-	sys.stdout.write("(c) 2019 Hyland Software, Inc.\n")
-	sys.stdout.write("ALL RIGHTS RESERVED\n")
-	sys.stdout.write("\n")
-	sys.stdout.write("Usage: " + sys.argv[0] + " DocFileName OutFolder\n")
-	sys.exit(0)
+				# Extract the HTML body of the document
+				htmlStream = open(outputFile, "wb")
+				while not file.getEOF():
+					htmlStream.write(file.GetText(MaxCharsPerGetText, stripControlCodes=True).encode('utf8'))
+				htmlStream.close()
 
-if len(sys.argv) < 3:
-	ShowHelp()
+				# Extract any embedded images
+				for image in file.Images:
+					with image:
+						console.write("Processing (IMAGE): " + image.getID() + " -> " + image.getName() + "\n")
+						image.CopyTo(os.path.join(outputDir, image.getName()))
 
-# Prepare and Initialize Engine
-DocumentFilters = DocumentFilters()
+		except Exception as e:
+			console.write("ProcessDocument: " + str(e) + "\n")
+
 try:
-	DocumentFilters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".")
+	parser = argparse.ArgumentParser(description='Convert Document to Classic HTML.')
+	parser.add_argument('file', metavar='file', type=str, nargs='?', help='filename of file to convert')
+	parser.add_argument('-o', '--output', dest='output', action='store', help='output file to create')
+	parser.add_argument('-l', '--library', dest='library_path', action='store', help='path to the Document Filters libraries')
+	parser.add_argument('--license-key', dest='license_key', action='store', help='license key for Document Filters')
+
+	args = parser.parse_args()
+	if args.file is None: raise Exception("filename cannot be empty")
+	if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".html"
+	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
+	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
+
+	# Prepare and Initialize Engine
+	api.Initialize(args.license_key, ".", args.library_path)
+
+	# Get Extractor and Convert Document
+	ProcessFile(args.file, args.output, sys.stderr)
 except Exception as e:
 	sys.stderr.write(str(e) + "\n")
 	exit(1)
 
-# Get Extractor and Convert Document
-Filename = sys.argv[1]
-OutFolder = sys.argv[2]
-ProcessFile(Filename, OutFolder, sys.stderr)

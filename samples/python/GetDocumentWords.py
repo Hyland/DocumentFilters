@@ -1,90 +1,65 @@
 #
-#(c) 2019 Hyland Software, Inc. and its affiliates. All rights reserved.
+# (c) 2022 Hyland Software, Inc. and its affiliates. All rights reserved.
 #
-#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-#ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-#WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-#ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-#(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-#ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-#(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-#SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
 #****************************************************************************
-#* Document Filters Example - List a document's Pages and Words
+#* Document Filters Example - Extract words from a document.
 #****************************************************************************/
 
-from __future__ import unicode_literals
-import sys
-import DocumentFiltersLicense
-import DocumentFiltersUtils
-from ISYS11dfpython import *
+import os, sys, argparse, DocumentFiltersLicense
+from DocumentFilters import *
 
-global DocumentFilters
+api = DocumentFilters()
 
-def ProcessFile(Filename, ErrStream):
-	ErrStream.write("Processing (FILE): " + Filename + "\n")
+def ProcessFile(filename, console):
+	console.write("Processing (FILE): " + filename + "\n")
 
-	try:
-		Extractor = DocumentFilters.GetExtractor(DocumentFiltersUtils.ToUnicodeString(Filename))
-		DocType = Extractor.getFileType()
-		ErrStream.write("DocType: " + str(DocType) + ", " + Extractor.getFileType(IGR_FORMAT_LONG_NAME) 
-              + ", SupportsText: " + str(Extractor.getSupportsText()) 
-              + ", SupportsSubFiles: " + str(Extractor.getSupportsSubFiles()) + "\n")
-		Extractor.Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE)
+	with api.GetExtractor(filename) as file:
+		docType = file.getFileType()
+		console.write("DocType: " + str(docType) + ", " + file.getFileType(IGR_FORMAT_LONG_NAME) 
+              + ", SupportsText: " + str(file.getSupportsText()) 
+              + ", SupportsSubFiles: " + str(file.getSupportsSubFiles()) + "\n")
+		file.Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE)
 		
-		for pageIndex in range(Extractor.GetPageCount()):
-			try:
-				Page = Extractor.GetPage(pageIndex)
-				progressString = ("Page " + str(pageIndex + 1) + 
-								"[width" + str(Page.GetWidth()) + 
-								"; height: " + str(Page.GetHeight()) + "]\n")
-				DocumentFiltersUtils.OutputStringToConsole(progressString)
+		pageIndex = 0
+		for page in file.Pages:
+			with page:
+				console.write(f"Page {pageIndex + 1}. [{page.Width}, height: {page.Height}]\n")
 
-				wordIndex = 1
-				Word = Page.GetFirstWord()
-				while not (Word is None):
-					outputString = ( 
-						str(wordIndex) + ". " +
-						Word.GetText() +
-						" [x: " + str(Word.GetX()) +
-						"; y: " + str(Word.GetY()) + 
-						"; width: " + str(Word.GetWidth()) + 
-						"; height: " + str(Word.GetHeight()) +
-						"; character: " + str(Word.GetCharacterOffset()) + "]\n")
-					DocumentFiltersUtils.OutputStringToConsole(outputString)
-					wordIndex = wordIndex + 1
-					Word = Page.GetNextWord()
-				sys.stdout.write("\n")
-			finally:
-				Page.Close()
-	except Exception as e:
-		ErrStream.write("ProcessFile: " + str(e) + "\n")
-	finally:
-		Extractor.Close()
+				wordIndex = 0
+				for word in page.Words:
+					console.write(f"  {wordIndex + 1}. [x: {word.X}, y: {word.Y}, width: {word.Width}, height: {word.Height}, character: {word.CharacterOffset}]\n")
+					wordIndex += 1
 
-def ShowHelp():
-	sys.stdout.write("Document Filters 11: GetDocumentWords Python Example\n")
-	sys.stdout.write("(c) 2019 Hyland Software, Inc.\n")
-	sys.stdout.write("ALL RIGHTS RESERVED\n")
-	sys.stdout.write("\n")
-	sys.stdout.write("Usage: " + sys.argv[0] + " DocFileName\n")
-	sys.exit(0)
+				pageIndex += 1
 
-if len(sys.argv) < 2:
-	ShowHelp()
-
-# Prepare and Initialize Engine
-DocumentFilters = DocumentFilters()
 try:
-	DocumentFilters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".")
+	parser = argparse.ArgumentParser(description='Get Document Words')
+	parser.add_argument('file', metavar='file', type=str, nargs='?', help='filename of file to convert')
+	parser.add_argument('-l', '--library', dest='library_path', action='store', help='Path to the Document Filters libraries')
+	parser.add_argument('--license-key', dest='license_key', action='store', help='License key for Document Filters')
+	
+	args = parser.parse_args()
+	if args.file is None: raise Exception("filename cannot be empty")
+	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
+	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
+
+	# Prepare and Initialize Engine
+	api.Initialize(args.license_key, ".", args.library_path)
+
+	# Get Extractor and Convert Document
+	ProcessFile(args.file, sys.stdout)
 except Exception as e:
 	sys.stderr.write(str(e) + "\n")
 	exit(1)
-
-# Get Extractor and Process Document
-Filename = sys.argv[1]
-ProcessFile(Filename, sys.stderr)

@@ -1,5 +1,5 @@
 /*
-   (c) 2019 Hyland Software, Inc. and its affiliates. All rights reserved.
+   (c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -144,7 +144,7 @@ public class ConvertDocument
 	protected void ShowHelp()
 	{
 		System.out.println("Document Filters 11: ConvertDocument Java Example");
-		System.out.println("(c) 2019 Hyland Software, Inc.");
+		System.out.println("(c) 2023 Hyland Software, Inc.");
 		System.out.println("");
 		System.out.println("Usage: ConvertDocument [options] filename");
 		System.out.println("");

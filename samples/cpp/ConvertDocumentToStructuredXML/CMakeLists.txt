@@ -1,0 +1,4 @@
+cmake_minimum_required(VERSION 3.15)
+
+add_executable (ConvertDocumentToStructuredXML "ConvertDocumentToStructuredXML.cpp")
+target_link_libraries (ConvertDocumentToStructuredXML PUBLIC DocumentFiltersSamples)
