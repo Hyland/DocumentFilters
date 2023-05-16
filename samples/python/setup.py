@@ -8,7 +8,7 @@ import os
 try:
   DF_VERSION=os.environ['ISYS_BUILD_PRODUCT_VERSION']
 except KeyError:
-  DF_VERSION = '22.2'
+  DF_VERSION = '23.2'
 
 setup(name='DocumentFilters',
       version=DF_VERSION,
