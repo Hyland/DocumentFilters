@@ -1,9 +1,6 @@
 ---------------------------------
-Document Filters 11.4 C++ Samples
+Document Filters C++ Samples
 ---------------------------------
-
-June, 2019
---------------
 
 The C++ sample applications illustrate the following common tasks:
 
@@ -27,4 +24,4 @@ The C++ sample applications illustrate the following common tasks:
   - Converting a document to a High Definition, searchable, watermarked Adobe PDF
   - Converting a document to Structured XML (with DOM)
 
-(c) 2019 Hyland Software, Inc. and its affiliates. All rights reserved.
+(c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.

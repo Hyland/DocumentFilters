@@ -1,5 +1,5 @@
 ﻿/*
-   (c) 2022 Hyland Software, Inc. and its affiliates. All rights reserved.
+   (c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -115,7 +115,7 @@ namespace DocFilters
 		private void ShowHelp()
 		{
 			System.Console.WriteLine("Document Filters 11: ConvertDocumentToTIFFStream C# Example");
-			System.Console.WriteLine("(c) 2022 Hyland Software, Inc.");
+			System.Console.WriteLine("(c) 2023 Hyland Software, Inc.");
 			System.Console.WriteLine("");
 			System.Console.WriteLine("ConvertDocumentToTIFFStream filename [> OutFilename]");
 			System.Console.WriteLine("");

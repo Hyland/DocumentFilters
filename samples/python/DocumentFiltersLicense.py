@@ -1,5 +1,5 @@
 #/*
-#(c) 2019 Hyland Software, Inc. and its affiliates. All rights reserved.
+#(c) 2022 Hyland Software, Inc. and its affiliates. All rights reserved.
 
 #THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 #ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -16,5 +16,6 @@
 #/****************************************************************************
 #* Document Filters License Key
 #****************************************************************************/
+import os
 
-LICENSE_KEY =  "******"
+LICENSE_KEY = os.environ.get('DF_LICENSE') 
