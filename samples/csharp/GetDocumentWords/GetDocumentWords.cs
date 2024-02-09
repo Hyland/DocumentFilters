@@ -1,5 +1,5 @@
 ﻿/*
-   (c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.
+   (c) 2024 Hyland Software, Inc. and its affiliates. All rights reserved.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -13,117 +13,54 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using Hyland.DocumentFilters;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace DocFilters
 {
 
-	class Program
-	{
-		private DocumentFilters m_filters;
-		private TextWriter m_stdout;
-		private TextWriter m_stderr;
+    class Program
+    {
+        private readonly DocumentFilters m_docfilters = new();
 
-		public Program()
-		{
-			m_stdout = System.Console.Out;
-			m_stderr = System.Console.Error;
-		}
+        [Argument(0)]
+        public List<string> Files { get; set; } = new();
 
-		public void Run(string[] args)
-		{
-			if (args.Length == 0)
-			{
-				ShowHelp();
-				return;
-			}
+        private void ProcessFile(string filename)
+        {
+            Console.Error.WriteLine("Processing " + filename);
+            try
+            {
+                using Extractor doc = m_docfilters.OpenExtractor(filename, OpenMode.Paginated);
 
-			m_filters = new DocumentFilters();
-			m_filters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".");
+                for (int pageIndex = 0; pageIndex < doc.GetPageCount(); pageIndex++)
+                {
+                    using Page page = doc.GetPage(pageIndex);
 
-			List< string > fileList = new List< string >();
-			for (int i = 0; i < args.Length; i++)
-			{
-				String arg = args[i];
+                    Console.WriteLine($"Page {pageIndex + 1,-16}[width: {page.Width,3}; height: {page.Height,3}; words: {page.WordCount,3}]");
 
-				if (String.Compare(arg, "-h", true) == 0 || String.Compare(arg, "--help", true) == 0)
-				{
-					ShowHelp();
-					return;
-				}
-				else
-				{
-					fileList.Add(arg);
-				}
-			}
+                    foreach (Word word in page.Words)
+                    {
+                        Console.WriteLine($"{word.WordIndex,3}. {word.Text,-15} [x: {word.X,4}; y: {word.Y,4}; width: {word.Width,3}; height: {word.Height,3}; character: {word.CharacterOffset,4}]");
+                    }
+                    Console.WriteLine("");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error Processing " + filename);
+                Console.Error.WriteLine("   - " + e.ToString());
+            }
+        }
+        public void OnExecute()
+        {
+            m_docfilters.Initialize(DocumentFiltersLicense.Get(), ".");
 
-			foreach (string filename in fileList)
-			{
-				ProcessFile(filename, m_filters.GetExtractor(filename));
-			}
-
-			m_stdout.Close();
-		}
-
-		private void ProcessFile(string filename, Extractor item)
-		{
-			m_stderr.WriteLine("Processing " + filename);
-			try
-			{
-				item.Open(isys_docfilters.IGR_BODY_AND_META | isys_docfilters.IGR_FORMAT_IMAGE);
-
-				for (int pageIndex = 0; pageIndex < item.GetPageCount(); pageIndex++)
-				{
-					Hyland.DocumentFilters.Page page = item.GetPage(pageIndex);
-					Hyland.DocumentFilters.Word word;
-					try
-					{
-						System.Console.WriteLine(String.Format("Page {0,-16}[width: {1,3}; height: {2,3}; words: {3,3}]", pageIndex + 1, page.Width, page.Height, page.WordCount));
-
-						for (word = page.FirstWord; word != null; word = page.NextWord)
-						{
-							System.Console.WriteLine(String.Format("{0,3}. {1,-15} [x: {2,4}; y: {3,4}; width: {4,3}; height: {5,3}; character: {6,4}]",
-							                                       word.WordIndex, word.Text, word.X, word.Y, word.Width, word.Height, word.CharacterOffset));
-						}
-						System.Console.WriteLine("");
-					}
-					finally
-					{
-						page.Close();
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				m_stderr.WriteLine("Error Processing " + filename);
-				m_stderr.WriteLine("   - " + e.ToString());
-			}
-			finally
-			{
-				item.Close();
-			}
-		}
-
-		private void ShowHelp()
-		{
-			System.Console.WriteLine("Document Filters 11: GetDocumentWords C# Example");
-			System.Console.WriteLine("(c) 2023 Hyland Software, Inc.");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("GetDocumentWords [options] filename");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("options");
-			System.Console.WriteLine(" -h, --help                this help");
-		}
-
-		static void Main(string[] args)
-		{
-			Program prog = new Program();
-			prog.Run(args);
-		}
-	}
+            foreach (string file in Files)
+                ProcessFile(file);
+        }
+        public static int Main(string[] args)
+                => CommandLineApplication.Execute<Program>(args);
+    }
 
 }

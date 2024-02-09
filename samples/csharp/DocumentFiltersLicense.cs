@@ -1,5 +1,5 @@
 /*
-(c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.
+(c) 2024 Hyland Software, Inc. and its affiliates. All rights reserved.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -17,7 +17,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * Document Filters License Key
 ****************************************************************************/
 
-public class DocumentFiltersLicense
+public partial class DocumentFiltersLicense
 {
     public static string LICENSE_KEY = "*****";
 }
