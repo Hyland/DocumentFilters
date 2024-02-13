@@ -47,18 +47,6 @@ namespace DocFilters
                 Console.Error.WriteLine("   - " + e.ToString());
             }
         }
-
-        private void ShowHelp()
-        {
-            Console.WriteLine("Document Filters: ConvertDocumentToPDF C# Example");
-            Console.WriteLine("(c) 2024 Hyland Software, Inc.");
-            Console.WriteLine("");
-            Console.WriteLine("ConvertDocumentToPDF [options] filename");
-            Console.WriteLine("");
-            Console.WriteLine("options");
-            Console.WriteLine(" -h, --help                this help");
-            Console.WriteLine(" -o, --output [folder]     the folder to save the output files, defaults to current directory");
-        }
         public void OnExecute()
         {
             m_docfilters.Initialize(DocumentFiltersLicense.Get(), ".");

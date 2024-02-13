@@ -1,0 +1,29 @@
+{
+  "us_phone": {
+    "regex": "\\b((\\+|\\b)[1l][\\-\\. ])?\\(?\\b[\\dOlZSB]{3,5}([\\-\\. ]|\\) ?)[\\dOlZSB]{3}[\\-\\. ][\\dOlZSB]{4}\\b",
+    "category": "phone_number"
+  },
+  "fr_phone": {
+    "regex": "\\b([0O]?[1lI][1lI])?[3E][3E][0O]?[\\dOIlZEASB]{9}\\b",
+    "category": "phone_number"
+  },
+  "de_phone": {
+    "regex": "\\b[\\d\\w]\\d{2}[\\d\\w]{6}\\d[\\d\\w]\\b",
+    "category": "phone_number"
+  },
+  "uk_phone": {
+    "regex": "\\b([0O]?[1lI][1lI])?[4A][4A][\\dOIlZEASB]{10,11}\\b",
+    "category": "phone_number"
+  },
+  "us_address": {
+    "name": "",
+    "regex": "\\b\\d{1,8}\\b[\\s\\S]{10,100}?\\b(AK|AL|AR|AZ|CA|CO|CT|DC|DE|FL|GA|HI|IA|ID|IL|IN|KS|KY|LA|MA|MD|ME|MI|MN|MO|MS|MT|NC|ND|NE|NH|NJ|NM|NV|NY|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VA|VT|WA|WI|WV|WY)\\b\\s\\d{5}\\b",
+    "category": "address"
+  },
+  "email": {
+    "regex": "\\b[a-z0-9._%\\+\\-—|]+@[a-z0-9.\\-—|]+\\.[a-z|]{2,6}\\b"
+  },
+  "email_user": {
+    "regex": "(?<redact>[a-z0-9._%\\+\\-—|]+)@[a-z0-9.\\-—|]+\\.[a-z|]{2,6}"
+  }
+}
