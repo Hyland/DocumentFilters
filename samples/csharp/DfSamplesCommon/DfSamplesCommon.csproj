@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hyland.DocumentFilters" Version="23.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="23.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux-x64" Version="23.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="23.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters" Version="24.1.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="24.1.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-x64" Version="24.1.0" />
+    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="24.1.0" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.0" />
   </ItemGroup>
 
