@@ -17,32 +17,32 @@ Explore the contents to leverage the power of Document Filters in your document 
 
 To get started on your own project, check out the [Getting Started](https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html) section in the documentation.
 
-## Projects
+## Projects and Files
 
-| Name                            | Description                                                                                                           |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| CombineDocuments                | Combines multiple documents into a single multi-page document, with the ability to create an optional thumbnail page. |
-| ConvertDocument                 | Converts documents to either text or flow-html. Additionally, sub-files can also be processed.                        |
-| ConvertDocumentToHDHTML         | Converts documents to high-definition, paginated HTML.                                                                |
-| ConvertDocumentToPDF            | Converts documents to PDF format.                                                                                     |
-| ConvertDocumentToPNG            | Converts documents to PNG format.                                                                                     |
-| ConvertDocumentToPostscript     | Converts documents to Postscript format.                                                                              |
-| ConvertDocumentToStructuredXML  | Converts documents to structured XML.                                                                                 |
-| ConvertDocumentToSVG            | Converts documents to SVG format.                                                                                     |
-| ConvertDocumentToThumbnail      | Converts documents to thumbnail images.                                                                               |
-| ConvertDocumentToTIFF           | Converts documents to TIFF format.                                                                                    |
-| ConvertDocumentToTIFFFromMemory | Converts documents to TIFF format from memory.                                                                        |
-| ConvertDocumentToTIFFStream     | Converts documents to TIFF format using streams.                                                                      |
-| ConvertDocumentWithComments     | Converts documents to a multi-page PDF, with comments shown in either the margin or on new pages.                     |
-| CreateBarcode                   | Demonstrates create 1D and 2D bar codes                                                                               |
-| ExtractAnnotations              | Extracts annotations from documents.                                                                                  |
-| ExtractForms                    | Extracts forms from documents.                                                                                        |
-| ExtractSubfiles                 | Extracts subfiles from documents or archive, with support for password protected files.                               |
-| GetDocumentWords                | Retrieves words from documents.                                                                                       |
-| LocalizeMetadata                | Localizes metadata within documents, mapping rendered metadata to either English, French, German or Korean.           |
-| MarkupAnnotationsDemo           | Demonstrates marking up annotations in documents.                                                                     |
-| RedactionDemo                   | Demonstrates redacting content in a document based on various different rule type.                                    |
-| UpdateForm                      | Updates form data within a PDF document.                                                                              |
-| DfSamplesCommon                 | Common functionality for Document Filters samples.                                                                    |
-
+| Name                                                                 | Description                                                                                                           |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [CombineDocuments](./CombineDocuments)                               | Combines multiple documents into a single multi-page document, with the ability to create an optional thumbnail page. |
+| [ConvertDocument](./ConvertDocument)                                 | Converts documents to either text or flow-html. Additionally, sub-files can also be processed.                        |
+| [ConvertDocumentToHDHTML](./ConvertDocumentToHDHTML)                 | Converts documents to high-definition, paginated HTML.                                                                |
+| [ConvertDocumentToPDF](./ConvertDocumentToPDF)                       | Converts documents to PDF format.                                                                                     |
+| [ConvertDocumentToPNG](./ConvertDocumentToPNG)                       | Converts documents to PNG format.                                                                                     |
+| [ConvertDocumentToPostscript](./ConvertDocumentToPostscript)         | Converts documents to Postscript format.                                                                              |
+| [ConvertDocumentToStructuredXML](./ConvertDocumentToStructuredXML)   | Converts documents to structured XML.                                                                                 |
+| [ConvertDocumentToSVG](./ConvertDocumentToSVG)                       | Converts documents to SVG format.                                                                                     |
+| [ConvertDocumentToThumbnail](./ConvertDocumentToThumbnail)           | Converts documents to thumbnail images.                                                                               |
+| [ConvertDocumentToTIFF](./ConvertDocumentToTIFF)                     | Converts documents to TIFF format.                                                                                    |
+| [ConvertDocumentToTIFFFromMemory](./ConvertDocumentToTIFFFromMemory) | Converts documents to TIFF format from memory.                                                                        |
+| [ConvertDocumentToTIFFStream](./ConvertDocumentToTIFFStream)         | Converts documents to TIFF format using streams.                                                                      |
+| [ConvertDocumentWithComments](./ConvertDocumentWithComments)         | Converts documents to a multi-page PDF, with comments shown in either the margin or on new pages.                     |
+| [CreateBarcode](./CreateBarcode)                                     | Demonstrates create 1D and 2D bar codes                                                                               |
+| [ExtractAnnotations](./ExtractAnnotations)                           | Extracts annotations from documents.                                                                                  |
+| [ExtractForms](./ExtractForms)                                       | Extracts forms from documents.                                                                                        |
+| [ExtractSubfiles](./ExtractSubfiles)                                 | Extracts subfiles from documents or archive, with support for password protected files.                               |
+| [GetDocumentWords](./GetDocumentWords)                               | Retrieves words from documents.                                                                                       |
+| [LocalizeMetadata](./LocalizeMetadata)                               | Localizes metadata within documents, mapping rendered metadata to either English, French, German or Korean.           |
+| [MarkupAnnotationsDemo](./MarkupAnnotationsDemo)                     | Demonstrates marking up annotations in documents.                                                                     |
+| [RedactionDemo](./RedactionDemo)                                     | Demonstrates redacting content in a document based on various different rule type.                                    |
+| [UpdateForm](./UpdateForm)                                           | Updates form data within a PDF document.                                                                              |
+| [DfSamplesCommon](./DfSamplesCommon)                                 | Common functionality for Document Filters samples.                                                                    |
+| [DocumentFiltersLicense.cs](./DocumentFiltersLicense.cs)             | Update with your Document Filters License Code                                                                        |
 
