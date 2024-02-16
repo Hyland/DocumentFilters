@@ -46,3 +46,25 @@ To get started on your own project, check out the [Getting Started](https://docs
 | [DfSamplesCommon](./DfSamplesCommon)                                 | Common functionality for Document Filters samples.                                                                    |
 | [DocumentFiltersLicense.cs](./DocumentFiltersLicense.cs)             | Update with your Document Filters License Code                                                                        |
 
+## Getting Started
+
+The .NET projects are compatible with win-x64, win-x64, linux-x64, linux-musl-x64, osx-x64, and osx-arm64.
+
+The samples are configured to pull Document Filters from NuGet. This is configured in the `DfSamplesCommon` projects.
+
+To compile all samples from the command line, execute:
+
+```bash
+cd samples/csharp
+dotnet build 
+```
+
+Each sample is compiled into its own directory, with binaries generated in `${PROJECT}/bin/${CONFIGURATION}/net6.0`.
+
+To build all the samples and copy them to a single directory, run:
+
+```bash
+dotnet publish -o bin
+```
+
+Alternatively, you can open the sln in Visual Studio or the folder in VS Code.
