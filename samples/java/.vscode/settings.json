@@ -1,0 +1,18 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "cSpell.words": [
+        "docfilters",
+        "documentfilters",
+        "Hyland",
+        "isys",
+        "Seekable",
+        "subfiles"
+    ],
+    "java.dependency.packagePresentation": "hierarchical",
+    "java.import.maven.enabled": false,
+    "gradle.autoDetect": "on",
+    "gradle.debug": true,
+    "java.gradle.buildServer.enabled": "on",
+    "java.gradle.buildServer.openBuildOutput": "openOnBuildStart",
+    "java.server.launchMode":"Standard"
+}
