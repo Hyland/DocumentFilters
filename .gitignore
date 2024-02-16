@@ -8,4 +8,5 @@
 **/obj_net2.0/*
 **/*.bak
 **/CMakeSettings.json
+**/.sarif
 .vs

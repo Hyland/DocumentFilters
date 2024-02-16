@@ -1,12 +1,19 @@
 {
     "cSpell.words": [
+        "dlopen",
         "docfilters",
         "HDHTML",
         "Horz",
         "Hyland",
         "isys",
         "LTRB",
+        "runtimes",
         "Subfile",
         "subfiles"
-    ]
+    ],
+    "markdownlint.config": {
+        "MD033":false,
+        "MD041":false,
+        "MD036": false
+    }
 }

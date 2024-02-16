@@ -1,5 +1,3 @@
-
-
 <div align="center">
 
 # Hyland Document Filters
@@ -12,18 +10,22 @@ Providing developers with everything needed for file inspection, extraction, and
 
 ---
 
-Hyland’s Document Filters SDK gives software developers the tools they need to embed rich document processing into their applications. Document Filters is the ideal toolkit to enable file inspection and processing. 
+Hyland’s Document Filters SDK gives software developers the tools they need to embed rich document processing into their applications. Document Filters is the ideal toolkit to enable file inspection and processing.
 
 **Deeply inspect content and data**
+
 Identify and extract every document, email, archive and container format while analyzing all text and data associated with your content.
 
 **Render and annotate content**
+
 Seamlessly manipulate and render high-definition content in a web-safe format with tools to apply precise redaction marks, annotations and more.
 
 **Transform and output content**
+
 Export content and easily convert it for use in other locations. Replicate original files and combine pages from different documents to create packets.
 
 **Leverage the most advanced document filtering platform**
+
 Deploy seamlessly across 31 software platforms and architectures, and work with nearly any programming language to identify more than 600 file formats.
 
 In this repository, you'll find the shared libraries and DLLs for releases published since version 23.2. If you're searching for the SDK installers that include samples and documentation, kindly obtain them from the Hyland Community website.
@@ -32,35 +34,35 @@ In this repository, you'll find the shared libraries and DLLs for releases publi
 
 Document Filters is callable from C#, Java, Python, C/C++ or any language that supports calling C APIs.
 
-To begin, you will need either an evaluation license, or full a license code for Document Filters. You can request an evaluation license from [Hyland Software](http://www.documentfilters.com) by selecting **Request Free Trial**. 
+To begin, you will need either an evaluation license, or full a license code for Document Filters. You can request an evaluation license from [Hyland Software](http://www.documentfilters.com) by selecting **Request Free Trial**.
 
 <table width=100% border=0 style="max-width: 800px">
   <tbody>
     <tr>
       <td>
-        <img align="left" width=52px src="https://user-images.githubusercontent.com/371009/230673036-fad1e8e6-5d48-49b1-a9c1-6f9834e0d165.png">
+        <img align="left" width=52px src="https://user-images.githubusercontent.com/371009/230673036-fad1e8e6-5d48-49b1-a9c1-6f9834e0d165.png" alt="C#">
         <div>
           <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html">Using DocFilters in C#</a> &nbsp<br/>
         </div>
       </td>
       <td>
-        <img align="left" width=52px src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg">
+        <img align="left" width=52px src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python">
         <div>
           <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_python_api_application.html">Using DocFilters in Python</a>
         </div>
       </td>
       <td>
-        <img align="left" width=52px height=52px src="https://upload.wikimedia.org/wikipedia/en/3/30/Java_programming_language_logo.svg" alt="Java logo">
+        <img align="left" width=52px height=52px src="https://upload.wikimedia.org/wikipedia/en/3/30/Java_programming_language_logo.svg" alt="Java">
         <div>
           <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_java_api_application.html">Using DocFilters in Java</a>
         </div>
       </td>
       <td>
-        <img align="left" width=52px src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" style="padding-right:3pt">
+        <img align="left" width=52px src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" style="padding-right:3pt" alt="C++">
         <div>
           <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_class_wrapper_around_native_library_functions_application.html">Using DocFilters in C++</a> &nbsp<br/>
         </div>
-      </td>      
+      </td>
     </tr>
   </tbody>
 </table>
@@ -92,13 +94,13 @@ Check more samples here: [C#](./samples/csharp/README.md) | [Java](./samples/jav
 
 Sample Code: MIT License | Release Binaries: Commercial License
 
-Here you'll find a collection of sample code that is covered under the MIT 
-License. This means that you are free to use, modify, and distribute the sample 
+Here you'll find a collection of sample code that is covered under the MIT
+License. This means that you are free to use, modify, and distribute the sample
 code in accordance with the terms specified in the MIT License.
 
-However, please note that the release binaries provided in this repository are 
-governed by a different commercial license. These binaries are intended for 
-users who require pre-compiled and ready-to-use versions of our software. The commercial license grants specific permissions and restrictions for the use of 
+However, please note that the release binaries provided in this repository are
+governed by a different commercial license. These binaries are intended for
+users who require pre-compiled and ready-to-use versions of our software. The commercial license grants specific permissions and restrictions for the use of
 the release binaries.
 
 Please see the [LICENSE](LICENSE.md) for details.
