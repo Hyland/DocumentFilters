@@ -17,7 +17,7 @@
 #* Document Filters Example - Combine one or more documents
 #****************************************************************************/
 
-import os, sys, argparse, DocumentFiltersLicense
+import os, sys, argparse, DocumentFiltersSample
 import shutil
 from DocumentFilters import *
 
@@ -60,11 +60,9 @@ try:
 	parser.add_argument('--license-key', dest='license_key', action='store', help='License key for Document Filters')
 	
 	args = parser.parse_args()
-	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
-	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
 
 	# Prepare and Initialize Engine
-	api.Initialize(args.license_key, ".", args.library_path)
+	DocumentFiltersSample.InitializeAPI(api, args)
 
 	# Get Extractor and Convert Document
 	Process(args, sys.stdout)

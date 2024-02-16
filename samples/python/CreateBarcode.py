@@ -17,9 +17,7 @@
 #* Document Filters Example - Create a barcode image.
 #****************************************************************************/
 
-import os, sys, argparse, DocumentFiltersLicense
-from xml.dom.minidom import Document
-import shutil
+import os, sys, argparse, traceback, DocumentFiltersSample
 from DocumentFilters import *
 
 api = DocumentFilters()
@@ -71,14 +69,14 @@ try:
 	parser.add_argument('--license-key', dest='license_key', action='store', help='License key for Document Filters')
 	
 	args = parser.parse_args()
-	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
-	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
 
 	# Prepare and Initialize Engine
-	api.Initialize(args.license_key, ".", args.library_path)
+	DocumentFiltersSample.InitializeAPI(api, args)
 
 	# Get Extractor and Convert Document
 	Process(args, sys.stdout)
 except Exception as e:
-	sys.stderr.write(str(e) + "\n")
+	trace_info = traceback.extract_tb(e.__traceback__)
+	sys.stderr.write(f'{e}\n  => {trace_info[-1].filename}:{trace_info[-1].lineno}\n')
+	raise
 	exit(1)

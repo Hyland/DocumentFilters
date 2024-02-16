@@ -14,49 +14,46 @@
 #
 
 #****************************************************************************
-#* Document Filters Example - Extract words from a document.
+#* Document Filters Example - Extract annotations for a document
 #****************************************************************************/
 
-import os, sys, argparse, DocumentFiltersLicense
+import os, sys, argparse, DocumentFiltersSample
+import shutil
 from DocumentFilters import *
 
 api = DocumentFilters()
 
 def ProcessFile(filename, console):
 	console.write("Processing (FILE): " + filename + "\n")
-
 	with api.GetExtractor(filename) as file:
-		docType = file.getFileType()
-		console.write("DocType: " + str(docType) + ", " + file.getFileType(IGR_FORMAT_LONG_NAME) 
-              + ", SupportsText: " + str(file.getSupportsText()) 
-              + ", SupportsSubFiles: " + str(file.getSupportsSubFiles()) + "\n")
-		file.Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE)
-		
-		pageIndex = 0
+		file.Open(IGR_FORMAT_IMAGE)
+
+		result = {}
+
+		page: DocumentFilters.Page
 		for page in file.Pages:
 			with page:
-				console.write(f"Page {pageIndex + 1}. [{page.Width}, height: {page.Height}]\n")
+				# console.write(f"page {page.PageIndex + 1}\n")
 
-				wordIndex = 0
-				for word in page.Words:
-					console.write(f"  {wordIndex + 1}. [x: {word.X}, y: {word.Y}, width: {word.Width}, height: {word.Height}, character: {word.CharacterOffset}]\n")
-					wordIndex += 1
+				result[page.PageIndex + 1] = []
 
-				pageIndex += 1
+				anno: DocumentFilters.Annotation
+				for anno in page.Annotations:
+					result[page.PageIndex + 1].append(anno)
+
+		console.write(json.dumps(result, indent=2, cls=DocumentFilters.Annotations.Encoder) + "\n")
 
 try:
-	parser = argparse.ArgumentParser(description='Get Document Words')
+	parser = argparse.ArgumentParser(description='Get Document Type')
 	parser.add_argument('file', metavar='file', type=str, nargs='?', help='filename of file to convert')
 	parser.add_argument('-l', '--library', dest='library_path', action='store', help='Path to the Document Filters libraries')
 	parser.add_argument('--license-key', dest='license_key', action='store', help='License key for Document Filters')
 	
 	args = parser.parse_args()
 	if args.file is None: raise Exception("filename cannot be empty")
-	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
-	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
 
 	# Prepare and Initialize Engine
-	api.Initialize(args.license_key, ".", args.library_path)
+	DocumentFiltersSample.InitializeAPI(api, args)
 
 	# Get Extractor and Convert Document
 	ProcessFile(args.file, sys.stdout)
