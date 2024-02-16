@@ -51,22 +51,22 @@ void ProcessDocument(Perceptive::Extractor *Extractor, const std::string &OutFol
 		OutStream << std::endl;
 		OutStream.close();
 		
-		std::auto_ptr<Perceptive::SubFile> ImgExtractor(Extractor->GetFirstImage());
+		std::unique_ptr<Perceptive::SubFile> ImgExtractor(Extractor->GetFirstImage());
 		while (ImgExtractor.get())
 		{
 			std::cerr << "Processing (IMAGE): " << ImgExtractor->getID() << " -> " << ImgExtractor->getName() << std::endl;
 			ImgExtractor->CopyTo(Perceptive::JoinFilename(OutFolder, Perceptive::MakeSafeFilename(ImgExtractor->getName())));
-			ImgExtractor = std::auto_ptr<Perceptive::SubFile>(Extractor->GetNextImage());
+			ImgExtractor = std::unique_ptr<Perceptive::SubFile>(Extractor->GetNextImage());
 		}
 	}
 	if (Extractor->getSupportsSubFiles())
 	{
-		std::auto_ptr<Perceptive::SubFile> SubExtractor(Extractor->GetFirstSubFile());
+		std::unique_ptr<Perceptive::SubFile> SubExtractor(Extractor->GetFirstSubFile());
 		while (SubExtractor.get())
 		{
 			std::cerr << "Processing (SUBFILE): " << SubExtractor->getID() << " -> " << SubExtractor->getName() << std::endl;
 			ProcessDocument(SubExtractor.get(), Perceptive::JoinFilename(OutFolder, Perceptive::MakeSafeFilename(SubExtractor->getName())));
-			SubExtractor = std::auto_ptr<Perceptive::SubFile>(Extractor->GetNextSubFile());
+			SubExtractor = std::unique_ptr<Perceptive::SubFile>(Extractor->GetNextSubFile());
 		}
 	}
 }
@@ -76,7 +76,7 @@ void process_file(const std::string &filename, const std::string &OutFolder)
 	std::cerr << "Processing (FILE): " << filename << std::endl;
 	try
 	{
-		std::auto_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(new Perceptive::FileStream(filename)));
+		std::unique_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(new Perceptive::FileStream(filename)));
 		ProcessDocument(Extractor.get(), OutFolder);
 	}
 	catch(std::exception &e)

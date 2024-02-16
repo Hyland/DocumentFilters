@@ -79,14 +79,14 @@ void process_document(Perceptive::Extractor *Extractor)
 	if (Extractor->getSupportsSubFiles())
 	{
 		// Recursively process any sub-documents / attachments...
-		std::auto_ptr<Perceptive::SubFile> SubExtractor(Extractor->GetFirstSubFile());
+		std::unique_ptr<Perceptive::SubFile> SubExtractor(Extractor->GetFirstSubFile());
 		while (SubExtractor.get())
 		{
 			std::cerr << "Processing (SUBFILE): " << SubExtractor->getID() << " -> " << SubExtractor->getName() << std::endl;
 			std::cout << "<subdocument>" << std::endl;
 			process_document(SubExtractor.get());
 			std::cout << "</subdocument>" << std::endl;
-			SubExtractor = std::auto_ptr<Perceptive::SubFile>(Extractor->GetNextSubFile());
+			SubExtractor = std::unique_ptr<Perceptive::SubFile>(Extractor->GetNextSubFile());
 		}
 	}
 }
@@ -94,7 +94,7 @@ void process_document(Perceptive::Extractor *Extractor)
 void process_file(const std::string &filename)
 {
 	std::cerr << "Processing (FILE): " << filename << std::endl;
-	std::auto_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(new Perceptive::FileStream(filename)));
+	std::unique_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(new Perceptive::FileStream(filename)));
 
 	std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
 	std::cout << "<document>" << std::endl;

@@ -32,7 +32,7 @@ void process_file(const std::string &filename, const std::string outfile)
 {
 	std::cerr << "Processing (FILE): " << filename << std::endl;
 
-	std::auto_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
+	std::unique_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
 
 	int DocType = extractor->getFileType();
 	std::cerr << "DocType: " << DocType << ", " << Perceptive::GetFileTypeName(DocType)
@@ -43,11 +43,11 @@ void process_file(const std::string &filename, const std::string outfile)
 	// Create seekable, readable, writable, in-memory stream
 	Perceptive::MemOutputStream mem_stream;
 
-	std::auto_ptr<Perceptive::Canvas> canvas(DocumentFilters.MakeOutputCanvas(&mem_stream, IGR_DEVICE_IMAGE_TIF, ""));
+	std::unique_ptr<Perceptive::Canvas> canvas(DocumentFilters.MakeOutputCanvas(&mem_stream, IGR_DEVICE_IMAGE_TIF, ""));
 
 	int pageNum = 1;
 	int pageCount = extractor->getPageCount();
-	for (std::auto_ptr<Perceptive::Page> page(extractor->GetFirstPage()); page.get(); page.reset(extractor->GetNextPage()))
+	for (std::unique_ptr<Perceptive::Page> page(extractor->GetFirstPage()); page.get(); page.reset(extractor->GetNextPage()))
 	{
 		std::cerr << "Rendering Page " << pageNum++ << " of " << pageCount << std::endl;
 		canvas->RenderPage(page.get());
