@@ -11,9 +11,7 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
-    // system(libs.com.documentfilters.documentfilters)
     api(files("./lib/ISYS11df.jar"))
 }
 

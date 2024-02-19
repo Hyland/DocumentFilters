@@ -3,6 +3,7 @@
  */
 
 rootProject.name = "docfilters-samples"
+
 include(":docfilters-sample")
 include(":convert-document-to-tiff")
 include(":extract-document-words")

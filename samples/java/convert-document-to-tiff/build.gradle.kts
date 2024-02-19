@@ -22,4 +22,14 @@ tasks.withType<Jar> {
     })
 }
 
+tasks.register<Copy>("copyJars") {
+    from("${buildDir}/libs")
+    include("**/*.jar")
+    into("../libs")
+}
+
+tasks.named<Jar>("jar") {
+    dependsOn("copyJars")
+}
+
 description = "Convert Document to TIFF"

@@ -2,3 +2,5 @@
 .gradle
 buildSrc
 **/build/*
+libs/*
+runtimes/*

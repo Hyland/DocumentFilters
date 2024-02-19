@@ -90,7 +90,7 @@ public class ConvertDocumentToTIFF {
 		}
 
 		docFilters = new DocumentFilters();
-		docFilters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".");
+		docFilters.Initialize(DocumentFiltersSample.GetLicense(), ".");
 
 		for (int i = 0; i < args.length; i++) {
 			String arg = args[i];

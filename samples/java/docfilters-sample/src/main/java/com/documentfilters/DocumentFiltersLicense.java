@@ -18,10 +18,9 @@ package com.documentfilters;
 import java.lang.String;
 
 /****************************************************************************
-* Perceptive Document Filters License Key
-****************************************************************************/
+ * Document Filters License Key
+ ****************************************************************************/
 
-class DocumentFiltersLicense
-{
+class DocumentFiltersLicense {
   public static String LICENSE_KEY = "******";
 };
