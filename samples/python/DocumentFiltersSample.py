@@ -1,7 +1,9 @@
 import os, platform, zipfile, urllib.request, fnmatch, DocumentFiltersLicense
 from DocumentFilters import *
 
-DF_VERSION='23.3'
+DF_VERSION='24.1'
+with open('../DF_VERSION.txt', 'r') as version_file:
+    DF_VERSION=version_file.read().strip()
 
 def GetLicenseCode(settings):
     res = None
@@ -47,7 +49,7 @@ def GetRuntimePath(settings):
             dest_archive=f'runtimes/{DF_VERSION}/{artifact}.zip'
             dest_dir=f'runtimes/{DF_VERSION}/{artifact}'
             if not os.path.exists(dest_dir):
-                print(f"Downloading Document Filters binaries for {artifact} from GitHub...")
+                print(f"Downloading Document Filters {DF_VERSION} binaries for {artifact} from GitHub...")
                 os.makedirs(dest_dir, exist_ok=True)
                 if not os.path.exists(dest_archive):
                     urllib.request.urlretrieve(url, dest_archive)

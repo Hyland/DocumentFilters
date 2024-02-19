@@ -1,5 +1,5 @@
 $ARTIFACT = "windows-intel-msvc-64"
-$VERSION = "23.3"
+$VERSION = Get-Content "../DF_VERSION.txt"
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RUNTIME_DIR = Join-Path $SCRIPT_DIR "runtimes"
 

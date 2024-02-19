@@ -2,7 +2,7 @@
 
 PLATFORM="$(uname -s)-$(uname -m)"
 ARTIFACT=""
-VERSION="23.3"
+VERSION="$(cat "../DF_VERSION.txt")"
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 RUNTIME_DIR="${SCRIPT_DIR}/runtimes"
 
@@ -23,8 +23,8 @@ else
     exit 1
 fi
 
-ARTIFACT_URL="https://github.com/HylandSoftware/DocumentFilters/releases/download/v23.3/${ARTIFACT}.zip"
-ASSETS_URL="https://github.com/HylandSoftware/DocumentFilters/releases/download/v23.3/assets.zip"
+ARTIFACT_URL="https://github.com/HylandSoftware/DocumentFilters/releases/download/v${VERSION}/${ARTIFACT}.zip"
+ASSETS_URL="https://github.com/HylandSoftware/DocumentFilters/releases/download/v${VERSION}/assets.zip"
 
 mkdir -p "${RUNTIME_DIR}"
 
