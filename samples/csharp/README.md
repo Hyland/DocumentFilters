@@ -48,9 +48,16 @@ To get started on your own project, check out the [Getting Started](https://docs
 
 ## Getting Started
 
-The .NET projects are compatible with win-x64, win-x64, linux-x64, linux-musl-x64, osx-x64, and osx-arm64.
+To run the sample applications, ensure you have a valid Document Filters
+license key. You can provide this key by either modifying the
+DocumentFiltersLicense.cs file or setting it in an environment variable named
+`DF_LICENSE_KEY`.
 
-The samples are configured to pull Document Filters from NuGet. This is configured in the `DfSamplesCommon` projects.
+The .NET projects are compatible with win-x64, win-x64, linux-x64,
+linux-musl-x64, osx-x64, and osx-arm64.
+
+The samples are configured to pull Document Filters from NuGet. This is
+configured in the `DfSamplesCommon` projects.
 
 To compile all samples from the command line, execute:
 
@@ -59,7 +66,8 @@ cd samples/csharp
 dotnet build 
 ```
 
-Each sample is compiled into its own directory, with binaries generated in `${PROJECT}/bin/${CONFIGURATION}/net6.0`.
+Each sample is compiled into its own directory, with binaries generated in
+`${PROJECT}/bin/${CONFIGURATION}/net6.0`.
 
 To build all the samples and copy them to a single directory, run:
 

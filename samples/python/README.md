@@ -9,11 +9,13 @@ Document Filters.
 
 The Document Filters Sample GitHub Repository includes:
 
-- Samples for converting documents to different formats such as PDF, PNG, SVG, and more.
+- Samples for converting documents to different formats such as PDF, PNG, SVG,
+  and more.
 - Utilities for common tasks like extracting words from documents.
 - A shared common library for Document Filters samples.
 
-Explore the contents to leverage the power of Document Filters in your document processing projects.
+Explore the contents to leverage the power of Document Filters in your document
+processing projects.
 
 To get started on your own project, check out the [Getting
 Started](https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_python_api_application.html)
@@ -41,13 +43,14 @@ section in the documentation.
 
 ## Getting Started
 
-To run the sample applications, ensure you possess a valid Document Filters
+To run the sample applications, ensure you have a valid Document Filters
 license key. You can provide this key by either modifying the
 DocumentFiltersLicense.py file or setting it in an environment variable named
 DF_LICENSE_CODE. Alternatively, you can pass the license code directly to the
 samples by specifying `--license-key`.
 
-With a license key in hand, the samples can be run by passing to the python interpreter:
+With a license key in hand, the samples can be run by passing to the python
+interpreter:
 
 ```bash
 python ./ConvertDocumentToPDF.py "file.docx"
@@ -88,6 +91,9 @@ python setup.sh install --user
 
 `libISYS11df.so: cannot open shared object file: No such file or directory`
 
-If you see an error similar to above, it means that Python was unable to locate the Document Filters Shared Libraries. Standard dlopen rules are used to locate the libraries.
+If you see an error similar to above, it means that Python was unable to locate
+the Document Filters Shared Libraries. Standard dlopen rules are used to locate
+the libraries.
 
-This can often be worked around by adding the path containing the libraries to the LD_LIBRARY_PATH environment variable.
+This can often be worked around by adding the path containing the libraries to
+the LD_LIBRARY_PATH environment variable.
