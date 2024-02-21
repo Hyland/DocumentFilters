@@ -17,7 +17,7 @@
 #* Document Filters Example - Convert a document to a multi-page TIFF
 #****************************************************************************/
 
-import os, sys, argparse, DocumentFiltersLicense
+import os, sys, argparse, DocumentFiltersSample
 from DocumentFilters import *
 
 api = DocumentFilters()
@@ -55,11 +55,9 @@ try:
 	args = parser.parse_args()
 	if args.file is None: raise Exception("filename cannot be empty")
 	if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".tif"
-	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
-	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
 
 	# Prepare and Initialize Engine
-	api.Initialize(args.license_key, ".", args.library_path)
+	DocumentFiltersSample.InitializeAPI(api, args)
 
 	# Get Extractor and Convert Document
 	ProcessFile(args.file, args.output, sys.stderr, "")

@@ -197,7 +197,8 @@ class DocumentFiltersBase(object):
     def _Call(method, *args):
         ecb = Error_Control_Block()
         a1 = args[:] + ( ctypes.byref(ecb), )
-        return DocumentFiltersBase._Check(method(*a1), ecb)
+        res = method(*a1)
+        return DocumentFiltersBase._Check(res, ecb)
 
     @staticmethod
     def _Check(errorCode, ecb):
@@ -2187,6 +2188,20 @@ class DocumentFilters(DocumentFiltersBase):
         class ActionLocalize:
             def __init__(self, internal):
                 self._internal: IGR_Open_Callback_Action_Localize = internal
+            
+            @property
+            def StringId(self) -> int: return self._internal.string_id
+
+            @property
+            def Original(self) -> str: return DocumentFiltersBase._FromUTF16(self._internal.original)
+
+            @property
+            def Replacement(self) -> str: return DocumentFiltersBase._FromUTF16(self._internal.replacement)
+
+            @Replacement.setter
+            def Replacement(self, value): 
+                if value is not None:
+                    DocumentFiltersBase._ToUTF16Array(self._internal.replacement, value)
 
         @property
         def Action(self) -> int: return self._action
@@ -2219,6 +2234,12 @@ class DocumentFilters(DocumentFiltersBase):
                     self._docHandle = documentHandle
                     self._getter = getter
 
+                def __exit__(self, exception_type, exception_value, traceback):
+                    self.close()
+
+                def __del__(self):
+                    self.close()
+
                 def __next__(self):
                     result = DocumentFilters.Extractor._NextSubFile(self._handle, self._docHandle, self.API.IGR_Subfiles_Next, self._getter)
                     if result == None:
@@ -2227,6 +2248,11 @@ class DocumentFilters(DocumentFiltersBase):
 
                 def next(self):
                     return self.__next__()
+                
+                def close(self):
+                    if self._handle is not None:
+                        DocumentFiltersBase._Call(self.API.IGR_Subfiles_Close, self._handle)
+                        self._handle = None                    
 
         def __init__(self):
             self._handle = IGR_LONG(0)
@@ -2240,11 +2266,16 @@ class DocumentFilters(DocumentFiltersBase):
             self._subfilesEnumerator = None
             self._imageEnumerator = None
             self._FPtr_IGR_OPEN_CALLBACK = None
+            self._localize = {}
+            self._localizer: 'Callable[[int, str], str]' = None
 
         def __enter__(self):
             return self
 
         def __exit__(self, exception_type, exception_value, traceback):
+            self.Close()
+
+        def __del__(self):
             self.Close()
 
         @staticmethod
@@ -2296,8 +2327,9 @@ class DocumentFilters(DocumentFiltersBase):
             return DocumentFilters.Extractor.FromStream(io.BytesIO(bytes))
 
         def _from_filename(self, filename):
-            self._stream = ctypes.POINTER(IGR_Stream)()
-            DocumentFiltersBase._Call(self.API.IGR_Make_Stream_From_File, DocumentFiltersBase._ToUTF16(filename), 0, ctypes.byref(self._stream))
+            strm = ctypes.POINTER(IGR_Stream)()
+            DocumentFiltersBase._Call(self.API.IGR_Make_Stream_From_File, DocumentFiltersBase._ToUTF16(filename), 0, ctypes.byref(strm))          
+            self._stream = strm
 
         def _from_stream(self, stream):
             self._stream = ctypes.cast(stream, ctypes.POINTER(IGR_Stream))
@@ -2311,15 +2343,19 @@ class DocumentFilters(DocumentFiltersBase):
             return self._handle.value
 
         def Close(self, closeStream = True):
+            if self._subfilesEnumerator is not None:
+                DocumentFiltersBase._Call(self.API.IGR_Subfiles_Close, self._subfilesEnumerator)
+                self._subfilesEnumerator = None
+            if self._imageEnumerator is not None:
+                DocumentFiltersBase._Call(self.API.IGR_Subfiles_Close, self._imageEnumerator)
+                self._imageEnumerator = None
             if self._handle.value > 0:
                 DocumentFiltersBase._Call(self.API.IGR_Close_File, self._handle)
                 self._handle = IGR_LONG(0)
             if closeStream and self._stream != None:
                 self._stream.contents.Close(self._stream)
-                self._stream = ctypes.POINTER(IGR_Stream)()
+                self._stream = None
             self._eof = False
-            self._subfilesEnumerator = None
-            self._imageEnumerator = None
             self._FPtr_IGR_OPEN_CALLBACK = None
         
         def _getOpenCallback(self, callback):
@@ -2334,11 +2370,20 @@ class DocumentFilters(DocumentFiltersBase):
                     callbackRequest._localize = DocumentFilters.OpenCallback.ActionLocalize(IGR_Open_Callback_Action_Localize.from_address(payload))
                 
                 result = None
+                if action == IGR_OPEN_CALLBACK_ACTION_LOCALIZE:
+                    if len(self._localize) > 0:
+                        callbackRequest._localize.Replacement = self._localize.get(callbackRequest._localize.Original)
+                    if self._localizer is not None:
+                        callbackRequest._localize.Replacement = self._localizer(callbackRequest._localize.StringId, callbackRequest._localize.Original)
+
+                if callback is None:
+                    result = IGR_OK
 
                 # Handle exceptions raised from user-provided callback
                 # - Not handling these results in "Exception ignored on calling ctypes callback function" output from ctypes
                 try:
-                    result = callback(callbackRequest)
+                    if callback is not None:
+                        result = callback(callbackRequest)
                 except Exception as error:
                     # `Exception` is the base class of all non-fatal exceptions.  It doesn't seem like we want to 
                     # handle `BaseException`, which includes fatal exceptions used to indicate that the program should terminate.
@@ -2355,7 +2400,8 @@ class DocumentFilters(DocumentFiltersBase):
                 except TypeError as error:
                     print(f"Return value from user-provided IGR_OPEN_CALLBACK cannot be interpreted as an integer. Handling as if IGR_E_ERROR was returned. Exception details: error={error}, type(error)={type(error)}")
                     return IGR_E_ERROR
-            if callback == None:
+                
+            if callback == None and len(self._localize) == 0 and self._localizer is None:
                 return None
             else:
                 return IGR_OPEN_CALLBACK(__IGR_Open_Callback)
@@ -2584,6 +2630,18 @@ class DocumentFilters(DocumentFiltersBase):
         @property
         def RootBookmark(self):
             return self.GetRootBookmark()
+
+        @property
+        def Localize(self): return self._localize
+
+        @property
+        def Localizer(self) -> 'Callable[[int, str], str]': 
+            return self._localizer
+
+        @Localizer.setter
+        def Localizer(self, value: 'Callable[[int, str], str]'): 
+            self._localizer = value        
+
 
     class SubFile(Extractor):
         def __init__(self, docHandle, id, name, size, date, extractor):

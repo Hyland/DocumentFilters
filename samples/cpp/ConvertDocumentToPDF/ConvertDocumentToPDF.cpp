@@ -32,7 +32,7 @@ void process_file(const std::string &filename, const std::string& outfile)
 {
 	std::cerr << "Processing (FILE): " << filename << std::endl;
 
-	std::auto_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
+	std::unique_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
 
 	int DocType = extractor->getFileType();
 	std::cerr << "DocType: " << DocType << ", " << Perceptive::GetFileTypeName(DocType)
@@ -41,10 +41,10 @@ void process_file(const std::string &filename, const std::string& outfile)
 	extractor->Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE);
 
 
-	std::auto_ptr<Perceptive::Canvas> canvas(DocumentFilters.MakeOutputCanvas(outfile, IGR_DEVICE_IMAGE_PDF, ""));
+	std::unique_ptr<Perceptive::Canvas> canvas(DocumentFilters.MakeOutputCanvas(outfile, IGR_DEVICE_IMAGE_PDF, ""));
 
 	int pageNum = 1, pageCount = extractor->getPageCount();
-	for (std::auto_ptr<Perceptive::Page> page(extractor->GetFirstPage()); page.get(); page.reset(extractor->GetNextPage()))
+	for (std::unique_ptr<Perceptive::Page> page(extractor->GetFirstPage()); page.get(); page.reset(extractor->GetNextPage()))
 	{
 		std::cerr << "Rendering Page " << pageNum++ << " of " << pageCount << std::endl;
 		canvas->RenderPage(page.get());
