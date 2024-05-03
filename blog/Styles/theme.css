@@ -1,0 +1,67 @@
+/* Colors used for themes */
+:root {
+    --dark-theme-body-background: #444745;
+    --dark-theme-text: #FFFFFF;
+    --dark-theme-content-background: #191C1A;
+    --dark-theme-link: #66A185;
+    --dark-theme-dropdown-option: #191C1A;
+    --light-theme-body-background: #FFFFFF;
+    --light-theme-text: #191C1A;
+    --light-theme-content-background: #F8F7F2;
+    --light-theme-link: #006334;
+    --light-theme-dropdown-option: #F8F7F2;
+}
+
+/* Dark theme styles for the overall page */
+.dark-theme {
+    background: var(--dark-theme-content-background); /* Sets the background color for dark theme */
+    color: var(--dark-theme-text); /* Sets the text color for dark theme */
+}
+  
+/* Dark theme styles for links */
+.dark-theme a {
+    color: var(--dark-theme-link); /* Sets the color for links in dark theme */
+}
+
+/* Dark theme styles for main headings (h1) */
+.dark-theme h1 {
+    color: var(--dark-theme-text); /* Ensures the main headings use the dark theme text color */
+}
+
+/* Dark theme styles for subheadings (h2) */
+.dark-theme h2 {
+    color: var(--dark-theme-text); /* Ensures the subheadings use the dark theme text color */
+}
+
+/* Dark theme styles for the body element */
+.dark-theme-body {
+    background: var(--dark-theme-body-background); /* Sets the background color for the body in dark theme */
+    color: var(--dark-theme-text); /* Sets the text color for the body in dark theme */
+}
+
+/* Light theme styles for the overall page */
+.light-theme {
+    background: var(--light-theme-content-background); /* Sets the background color for light theme */
+    color: var(--light-theme-text); /* Sets the text color for light theme */
+}
+
+/* Light theme styles for links */
+.light-theme a {
+    color: var(--light-theme-link); /* Sets the color for links in light theme */
+}
+
+/* Light theme styles for main headings (h1) */
+.light-theme h1 {
+    color: var(--light-theme-text); /* Ensures the main headings use the light theme text color */
+}
+
+/* Light theme styles for subheadings (h2) */
+.light-theme h2 {
+    color: var(--light-theme-text); /* Ensures the subheadings use the light theme text color */
+}
+
+/* Light theme styles for the body element */
+.light-theme-body {
+    background: var(--light-theme-body-background); /* Sets the background color for the body in light theme */
+    color: var(--light-theme-text); /* Sets the text color for the body in light theme */
+}

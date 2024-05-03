@@ -1,0 +1,69 @@
+/* Document Filters Blog Stylesheet */
+
+/* Styling for the title section */
+.title {
+  text-align: center;
+}
+
+/* Remove margin from subtitle */
+.title h3 {
+  margin: 0;
+}
+
+/* Grid layout for blog tiles */
+.tile-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+/* Styling for individual tiles */
+.tile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #444745;
+  border-radius: 8px;
+}
+
+/* Styling for images within tiles */
+.tile img {
+  border-radius: 4px;
+  max-width: 300px;
+  width: 100%;
+}
+
+/* Remove margin from blog post titles within tiles */
+.tile-description h3 {
+  margin: 0;
+}
+
+/* Remove margin from blog post descriptions within tiles */
+.tile-description p {
+  margin: 0;
+}
+
+/* Media query for devices with a max-width of 800px */
+@media (max-width: 800px) {
+  .tile-container {
+    grid-template-columns: 1fr; /* Stack tiles on smaller screens */
+  }
+
+  .tile {
+    grid-template-columns: 1fr; /* Full width for the description on smaller screens */
+  }
+
+  .tile img {
+    display: none; /* Hide the image and free up space on smaller screens */
+  }
+}
+
+/* Media query for devices with a max-width of 1000px */
+@media (max-width: 1000px) {
+  .tile img {
+    max-width: 200px; /* Adjust image size on medium screens */
+  }
+}

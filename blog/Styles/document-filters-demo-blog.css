@@ -1,0 +1,132 @@
+/* Document Filters Demo Blog Stylesheet */
+
+/* Base styles for the body and html elements */
+body, html {
+  font: 1.0625rem/1.5 Segoe UI,"Segoe UI Web Regular","Segoe UI Regular WestEuropean","Segoe UI",Tahoma,Arial,Roboto,"Helvetica Neue",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  font-size: 100%; /* Establishes a base font-size for rem units */
+  margin: 0; /* Resets the default margin to prevent unexpected spacing */
+}
+
+/* Container for the grid layout */
+.grid-container {
+  display: grid; /* Enables a grid layout for child elements */
+  height: 100%; /* Sets the container height to fill the entire viewport */
+  grid-template-columns: 1fr 65% 1fr; /* Creates a three-column layout with the middle column wider */
+  grid-template-rows: auto; /* Allows row height to adjust to content size */
+  gap: 2vw; /* Sets a consistent gap between grid items */
+  padding: 2vw; /* Adds padding around the entire grid container */
+}
+
+/* Styles for the main content area */
+.content {
+  grid-column: 2; /* Centers the content in the middle column */
+  grid-row: 1 / 3; /* Allows the content to span two rows for more space */
+  display: grid; /* Establishes a nested grid for additional layout control */
+  grid-template-rows: auto 1fr; /* Defines the row structure within the content area */
+  padding: 1.5vw; /* Adds padding inside the content area for spacing */
+  border-radius: 4px; /* Rounds the corners of the content box for aesthetics */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Applies a shadow for a 3D effect */
+}
+
+/* Styles for video and image elements within the content area */
+.content video,
+.content img {
+  width: 100%; /* Ensures videos and images fill the width of the content area */
+  height: auto; /* Maintains the original aspect ratio of media */
+}
+
+/* Styles for the header section */
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* 1st column for logo, 2nd for space, 3rd for theme dropdown */
+  align-items: center; /* Vertically center the logo and theme selector */
+  gap: 0.5rem; /* Add spacing between logo and theme selector */
+}
+
+/* Styles for the logo image */
+.logo {
+	display: block; /* Sets the logo to block-level for layout control */
+	max-height: 40px; /* Restricts the logo's height to maintain design consistency */
+}
+
+/* Theme dropdown container alignment and spacing */
+.theme-dropdown {
+  justify-self: end; /* Aligns the dropdown to the right within its grid cell */
+  align-items: center; /* Centers the dropdown vertically within its container */
+  gap: 0.5rem; /* Sets the space between child elements of the dropdown */
+}
+
+/* Styles for the theme selection dropdown */
+#theme-select {
+  padding: 0.5rem; /* Adds padding inside the dropdown for better touch target */
+  border-radius: 4px; /* Rounds the corners of the dropdown for a smoother appearance */
+  cursor: pointer; /* Changes the cursor to a pointer to indicate it's clickable */
+}
+
+/* Styles for the inner content area */
+.inner-content {
+	grid-row: 2; /* Places the inner content in the second row of the content grid */
+  width: 75%; /* Sets the width of the inner content relative to the parent */
+  margin: 0 auto; /* Centers the inner content horizontally within the parent */
+  font-size: 1rem; /* Sets the font size for text within the inner content */
+}
+
+/* Styles for hyperlinks */
+a {
+  text-decoration: none; /* Removes the default underline from links */
+  display: inline-block; /* Allows block-level properties like margin and padding */
+}
+
+/* Hover and focus states for hyperlinks */
+a:hover,
+a:focus {
+  text-decoration: underline; /* Adds an underline on hover/focus for clarity */
+}
+
+/* Placeholder styles for left and right columns */
+.left-column {
+  /* Currently empty. Add styles here for the left column if needed. */
+}
+.right-column {
+  /* Currently empty. Add styles here for the right column if needed. */
+}
+
+/* Styles for the main heading (h1) */
+h1 {
+  text-align: center; /* Aligns the heading text to the center */
+  display: block; /* Sets the heading to block-level for layout purposes */
+  width: 100%; /* Ensures the heading spans the full width of its container */
+  margin: 0; /* Removes default margin for precise control over spacing */
+  padding-bottom: 10px; /* Adds space below the heading for separation */
+}
+
+.anchor-link, .anchor-link:hover, .anchor-link:active, .anchor-link:visited, .anchor-link:focus {
+  text-decoration: none; /* Ensures links in the navigation don't have an underline */
+  color: inherit; /* Keeps link colors consistent with surrounding text */
+  display: block; /* Sets links to block-level for layout purposes */
+  width: -moz-fit-content; /* Adjusts the width of the link to its content for Mozilla browsers */
+  width: fit-content; /* Adjusts the width of the link to its content */
+}
+
+/* Media query for devices with a max-width of 800px */
+@media (max-width: 800px) {
+  .inner-content {
+    width: 85%; /* Increases the width for smaller screens for better readability */
+  }
+  .left-column, .right-column {
+    display: none; /* Hides the left and right columns on smaller screens for simplicity */
+  }
+  .grid-container {
+    grid-template-columns: 1fr; /* Switches to a single column layout for smaller screens */
+  }
+  .content {
+    grid-column: 1; /* Adjusts the content column to fill the new single column layout */
+  }
+  .header {
+    text-align: center; /* Centers the header content for a balanced look */
+  }
+  .logo {
+    display: block; /* Ensures the logo is block-level for layout control */
+    margin: 0 auto; /* Centers the logo horizontally */
+  }
+}
