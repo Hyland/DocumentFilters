@@ -31,7 +31,7 @@ void process_file(const std::string &filename)
 {
 	std::cerr << "Processing (FILE): " << filename << std::endl;
 
-	std::auto_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(filename));
+	std::unique_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(filename));
 
 	int doc_type = Extractor->getFileType();
 	std::cerr << "DocType: " << doc_type << ", " << Perceptive::GetFileTypeName(doc_type)
@@ -39,8 +39,8 @@ void process_file(const std::string &filename)
 		<< ", SupportsSubFiles: " << Extractor->getSupportsSubFiles() << std::endl;
 	Extractor->Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE);
 
-	std::auto_ptr<Perceptive::Page> Page;
-	std::auto_ptr<Perceptive::Word> Word;
+	std::unique_ptr<Perceptive::Page> Page;
+	std::unique_ptr<Perceptive::Word> Word;
 
 	int pageNum = 1;
 	for (Page.reset(Extractor->GetFirstPage()); Page.get(); Page.reset(Extractor->GetNextPage()))

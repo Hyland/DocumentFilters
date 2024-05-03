@@ -30,7 +30,7 @@ Perceptive::DocumentFilters DocumentFilters;
 void process_file(const std::string &filename, const std::string &out_filename)
 {
 	std::cerr << "Processing (FILE): " << filename << std::endl;
-	std::auto_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
+	std::unique_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
 
 	int DocType = extractor->getFileType();
 	std::cerr << "DocType: " << DocType << ", " << Perceptive::GetFileTypeName(DocType)
@@ -40,10 +40,10 @@ void process_file(const std::string &filename, const std::string &out_filename)
 	// Open the document, but only require the 1st page the be layed out
 	extractor->Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE, "LIMIT_PAGES=1");
 
-	std::auto_ptr<Perceptive::Page> Page(extractor->GetFirstPage());
+	std::unique_ptr<Perceptive::Page> Page(extractor->GetFirstPage());
 
 	// Create a PNG canvas, scaling the output to be 100 pixels wide
-	std::auto_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(out_filename, IGR_DEVICE_IMAGE_PNG, "GRAPHIC_WIDTH=100"));
+	std::unique_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(out_filename, IGR_DEVICE_IMAGE_PNG, "GRAPHIC_WIDTH=100"));
 
 	Canvas->RenderPage(Page.get());
 }

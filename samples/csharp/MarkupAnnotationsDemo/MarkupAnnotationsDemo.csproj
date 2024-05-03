@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DfSamplesCommon\DfSamplesCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\colorful_flower.png" />
+    <None Remove="Resources\media-import-audio-cd.svg" />
+    <None Remove="Resources\Newsletter.docx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\colorful_flower.png" />
+    <EmbeddedResource Include="Resources\media-import-audio-cd.svg" />
+    <EmbeddedResource Include="Resources\Newsletter.docx" />
+  </ItemGroup>
+
+</Project>

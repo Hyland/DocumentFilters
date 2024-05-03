@@ -86,6 +86,7 @@ try:
 	if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".pdf"
 	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
 	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
+	if args.license_key is None: raise Exception("License key must be provided.")
 
 	# Prepare and Initialize Engine
 	api.Initialize(args.license_key, ".", args.library_path)

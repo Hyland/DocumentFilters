@@ -1,5 +1,5 @@
 ﻿/*
-   (c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.
+   (c) 2024 Hyland Software, Inc. and its affiliates. All rights reserved.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -13,168 +13,103 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using Hyland.DocumentFilters;
+using McMaster.Extensions.CommandLineUtils;
+using System.Text;
 
 namespace ConvertDocument
 {
 
-	class Program
-	{
-		private DocumentFilters m_filters;
-		private bool m_html;
-		private bool m_subFiles;
-		private string m_outputFile;
-		private TextWriter m_stdout;
-		private TextWriter m_stderr;
+    class Program
+    {
+        private readonly DocumentFilters m_docfilters = new();
 
-		public Program()
-		{
-			m_stdout = System.Console.Out;
-			m_stderr = System.Console.Error;
-		}
+        [Option("--html", "process file as html with images saved to current directory", CommandOptionType.NoValue)]
+        public bool Html { get; set; }
 
-		public void Run(string[] args)
-		{
-			if (args.Length == 0)
-			{
-				ShowHelp();
-				return;
-			}
+        [Option("-s|--subfiles", "process subfiles of file", CommandOptionType.NoValue)]
+        public bool SubFiles { get; set; }
 
-			m_filters = new DocumentFilters();
-			m_filters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".");
+        [Option("-o|--output", "output filename", CommandOptionType.SingleValue)]
+        public string OutputFile { get; set; }
 
-			List< string > fileList = new List< string >();
+        [Argument(0)]
+        public List<string> Files { get; set; } = new();
 
-			for (int i = 0; i < args.Length; i++)
-			{
-				String arg = args[i];
+        private void ProcessFile(string filename, TextWriter output)
+        {
+            using (Extractor doc = m_docfilters.GetExtractor(filename))
+                ProcessFile(filename, doc, output);
+        }
 
-				if (String.Compare(arg, "--html", true) == 0)
-				{
-					m_html = true;
-				}
-				else if (String.Compare(arg, "--text", true) == 0 || String.Compare(arg, "-t", true) == 0)
-				{
-					m_html = false;
-				}
-				else if (String.Compare(arg, "--subfiles", true) == 0 || String.Compare(arg, "-s", true) == 0)
-				{
-					m_subFiles = true;
-				}
-				else if (String.Compare(arg, "--output", true) == 0 || String.Compare(arg, "-o", true) == 0)
-				{
-					m_outputFile = args[++i];
-				}
-				else if (String.Compare(arg, "-h", true) == 0 || String.Compare(arg, "--help", true) == 0)
-				{
-					ShowHelp();
-					return;
-				}
-				else
-				{
-					fileList.Add(arg);
-				}
-			}
+        private void ProcessFile(string filename, Extractor doc, TextWriter output)
+        {
+            Console.Error.WriteLine("Processing " + filename);
+            try
+            {
+                int flags = isys_docfilters.IGR_BODY_AND_META;
+                if (Html)
+                    flags |= isys_docfilters.IGR_FORMAT_HTML;
 
-			if (m_outputFile != null)
-			{
-				m_stdout = new StreamWriter(File.Open(m_outputFile, FileMode.Create), Encoding.UTF8);
-			}
+                doc.Open(flags);
 
-			foreach (string filename in fileList)
-			{
-				ProcessFile(filename, m_filters.GetExtractor(filename));
-			}
+                // Extract the text and return it to stdout
+                while (!doc.getEOF())
+                {
+                    string t = doc.GetText(4096);
+                    // Cleanup the text
+                    t = t.Replace('\u000E', '\n');
+                    t = t.Replace('\r', '\n');
+                    output.Write(t);
+                }
+                output.WriteLine("");
 
-			m_stdout.Close();
-		}
+                // Extract the HTML generated images into the current folder
+                if (Html)
+                {
+                    foreach (SubFile image in doc.Images)
+                    {
+                        Console.Error.WriteLine("Extracting image " + image.getName());
+                        image.CopyTo(image.getName());
+                        image.Close();
+                    }
+                }
 
-		private void ProcessFile(string filename, Extractor item)
-		{
-			m_stderr.WriteLine("Processing " + filename);
-			try
-			{
-				int flags = isys_docfilters.IGR_BODY_AND_META;
-				if (m_html)
-				{
-					flags |= isys_docfilters.IGR_FORMAT_HTML;
-				}
+                // Extract the sub files (if any) and process recursively
+                if (SubFiles)
+                {
+                    foreach (SubFile subfile in doc.SubFiles)
+                    {
+                        using (subfile)
+                            ProcessFile(filename + ">" + subfile.getName(), subfile, output);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error Processing " + filename);
+                Console.Error.WriteLine("   - " + e.ToString());
+            }
+        }
 
-				item.Open(flags);
+        public void OnExecute()
+        {
+            m_docfilters.Initialize(DocumentFiltersLicense.Get(), ".");
 
-				// Extract the text and return it to stdout
-				while (!item.getEOF())
-				{
-					String t = item.GetText(4096);
-					// Cleanup the text
-					t = t.Replace('\u000E', '\n');
-					t = t.Replace('\r', '\n');
-					m_stdout.Write(t);
-				}
-				m_stdout.WriteLine("");
+            TextWriter output = Console.Out;
 
-				// Extract the HTML generated images into the current folder
-				if (m_html)
-				{
-					SubFile image = item.GetFirstImage();
-					while (image != null)
-					{
-						m_stderr.WriteLine("Extracting image " + image.getName());
-						image.CopyTo(image.getName());
-						image.Close();
-						// Move onto the next image
-						image = item.GetNextImage();
-					}
-				}
+            if (!string.IsNullOrWhiteSpace(OutputFile))
+                output = new StreamWriter(File.Open(OutputFile, FileMode.Create), Encoding.UTF8);
 
-				// Extract the sub files (if any) and process recursively
-				if (m_subFiles)
-				{
-					SubFile child = item.GetFirstSubFile();
-					while (child != null)
-					{
-						ProcessFile(filename + ">" + child.getName(), child);
-						// Move onto the next sub file
-						child = item.GetNextSubFile();
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				m_stderr.WriteLine("Error Processing " + filename);
-				m_stderr.WriteLine("   - " + e.ToString());
-			}
-			finally
-			{
-				item.Close();
-			}
-		}
+            foreach (string file in Files)
+                ProcessFile(file, output);
 
-		private void ShowHelp()
-		{
-			System.Console.WriteLine("Document Filters 11: ConvertDocument C# Example");
-			System.Console.WriteLine("(c) 2023 Hyland Software, Inc.");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("ConvertDocument [options] filename");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("options");
-			System.Console.WriteLine(" -h, --help                this help");
-			System.Console.WriteLine(" -t, --text                output as plain text");
-			System.Console.WriteLine("     --html                output as HTML text, images stored in current directory");
-			System.Console.WriteLine(" -o, --output [filename]   write the output to the specified file");
-			System.Console.WriteLine(" -s, --subfiles            process subfiles");
-		}
+            if (output != Console.Out)
+                output.Close();
+        }
 
-		static void Main(string[] args)
-		{
-			Program prog = new Program();
-			prog.Run(args);
-		}
-	}
+        public static int Main(string[] args)
+                => CommandLineApplication.Execute<Program>(args);
+    }
 
 }

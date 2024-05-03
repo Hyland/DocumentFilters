@@ -1,4 +1,6 @@
-# Samples
+# License
+
+## Samples License
 
 MIT License
 
@@ -22,20 +24,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-# Release Artifacts
+## Release Artifacts License
 
 &copy; HYLAND SOFTWARE, INC. 2023
 
-IMPORTANT READ THIS NOTICE CAREFULLY BEFORE USING THE SDK. 
+IMPORTANT READ THIS NOTICE CAREFULLY BEFORE USING THE SDK.
 
-BY DOWNLOADING, INSTALLING, USING, OR OTHERWISE ACCESSING THE SDK, YOU 
-ACKNOWLEDGE THAT: (i) YOU HAVE READ THIS NOTICE, (ii) YOU UNDERSTAND IT, 
-(iii) YOU AGREE TO COMPLY WITH IT, (iv) YOU ARE AT LEAST 18 YEARS OF AGE; 
-AND (v) YOU ARE NOT BARRED FROM RECEIVING THE SDK UNDER THE LAWS OF THE UNITED 
-STATES OR OTHER COUNTRIES. 
+BY DOWNLOADING, INSTALLING, USING, OR OTHERWISE ACCESSING THE SDK, YOU
+ACKNOWLEDGE THAT: (i) YOU HAVE READ THIS NOTICE, (ii) YOU UNDERSTAND IT,
+(iii) YOU AGREE TO COMPLY WITH IT, (iv) YOU ARE AT LEAST 18 YEARS OF AGE;
+AND (v) YOU ARE NOT BARRED FROM RECEIVING THE SDK UNDER THE LAWS OF THE UNITED
+STATES OR OTHER COUNTRIES.
 
-IF YOU DO NOT AGREE, DO NOT LOAD THE SDK ONTO YOUR DEVICE OR MAKE ANY USE OF THE 
-SDK. 
+IF YOU DO NOT AGREE, DO NOT LOAD THE SDK ONTO YOUR DEVICE OR MAKE ANY USE OF THE
+SDK.
 
 This Document Filters Software Development Kit (SDK) is made available by Hyland
 Software, Inc., 28500 Clemens Road, Westlake, Ohio 44145 (Hyland).
@@ -46,5 +48,5 @@ enter into an OEM Agreement with Hyland.  You are not permitted to use the SDK
 if you, your employer, or other entity you represent have not entered into an
 OEM Agreement.  
 
-To enter into an OEM Agreement, contact Hyland at 
-https://www.hyland.com/en/company/contact-us
+To enter into an OEM Agreement, contact Hyland at
+[https://www.hyland.com/en/company/contact-us](https://www.hyland.com/en/company/contact-us)

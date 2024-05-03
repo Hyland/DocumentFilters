@@ -1,5 +1,5 @@
 ﻿/*
-   (c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.
+   (c) 2024 Hyland Software, Inc. and its affiliates. All rights reserved.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -13,121 +13,51 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using Hyland.DocumentFilters;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace DocFilters
 {
 
-	class Program
-	{
-		private DocumentFilters m_filters;
-		private TextWriter m_stdout;
-		private TextWriter m_stderr;
+    class Program
+    {
+        private readonly DocumentFilters m_docfilters = new();
 
-		public Program()
-		{
-			m_stdout = System.Console.Out;
-			m_stderr = System.Console.Error;
-		}
+        [Argument(0)]
+        public List<string> Files { get; set; } = new();
 
-		public void Run(string[] args)
-		{
-			if (args.Length == 0)
-			{
-				ShowHelp();
-				return;
-			}
+        private void ProcessFile(string filename)
+        {
+            using MemoryStream outStream = new();
 
-			m_filters = new DocumentFilters();
-			m_filters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".");
+            Console.Error.WriteLine("Processing " + filename);
+            try
+            {
+                using Extractor doc = m_docfilters.OpenExtractor(filename, OpenMode.Paginated);
+                using Canvas canvas = m_docfilters.MakeOutputCanvas(outStream, isys_docfilters.IGR_DEVICE_IMAGE_TIF, "");
 
-			List< string > fileList = new List< string >();
-			for (int i = 0; i < args.Length; i++)
-			{
-				String arg = args[i];
+                canvas.RenderPages(doc);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error Processing " + filename);
+                Console.Error.WriteLine("   - " + e.ToString());
+            }
+            finally
+            {
+                Console.Error.WriteLine(outStream.Length + " bytes written to stream");
+            }
+        }
 
-				if (String.Compare(arg, "-h", true) == 0 || String.Compare(arg, "--help", true) == 0)
-				{
-					ShowHelp();
-					return;
-				}
-				else
-				{
-					fileList.Add(arg);
-				}
-			}
+        public void OnExecute()
+        {
+            m_docfilters.Initialize(DocumentFiltersLicense.Get(), ".");
 
-			foreach (string filename in fileList)
-			{
-				BinaryWriter outFile = new BinaryWriter(Console.OpenStandardOutput());
-				ProcessFile(filename, outFile, m_filters.GetExtractor(filename));
-			}
-
-			m_stdout.Close();
-		}
-
-		private void ProcessFile(string filename, BinaryWriter outFile, Extractor item)
-		{
-			m_stderr.WriteLine("Processing " + filename);
-			try
-			{
-				item.Open(isys_docfilters.IGR_BODY_AND_META | isys_docfilters.IGR_FORMAT_IMAGE);
-				CustomStream outStream = new CustomStream(new MemoryStream());
-				Hyland.DocumentFilters.Canvas canvas = m_filters.MakeOutputCanvas(outStream, isys_docfilters.IGR_DEVICE_IMAGE_TIF, "");
-				try
-				{
-					for (int pageIndex = 0; pageIndex < item.GetPageCount(); pageIndex++)
-					{
-						Hyland.DocumentFilters.Page page = item.GetPage(pageIndex);
-						try
-						{
-							canvas.RenderPage(page);
-						}
-						finally
-						{
-							page.Close();
-						}
-					}
-				}
-				finally
-				{
-					canvas.Close();
-					// Write in-memory stream contents to existing open file (e.g. stdout)
-					long BytesWritten = outStream.writeTo(outFile);
-					m_stderr.WriteLine(BytesWritten + " bytes written to outFile");
-				}
-			}
-			catch (Exception e)
-			{
-				m_stderr.WriteLine("Error Processing " + filename);
-				m_stderr.WriteLine("   - " + e.ToString());
-			}
-			finally
-			{
-				item.Close();
-			}
-		}
-
-		private void ShowHelp()
-		{
-			System.Console.WriteLine("Document Filters 11: ConvertDocumentToTIFFStream C# Example");
-			System.Console.WriteLine("(c) 2023 Hyland Software, Inc.");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("ConvertDocumentToTIFFStream filename [> OutFilename]");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("options");
-			System.Console.WriteLine(" -h, --help                this help");
-		}
-
-		static void Main(string[] args)
-		{
-			Program prog = new Program();
-			prog.Run(args);
-		}
-	}
+            foreach (string file in Files)
+                ProcessFile(file);
+        }
+        public static int Main(string[] args)
+                => CommandLineApplication.Execute<Program>(args);
+    }
 
 }

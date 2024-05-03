@@ -53,12 +53,12 @@ void process_document(Perceptive::Extractor *Extractor, std::ostream& dest)
 		}
 		if (Extractor->getSupportsSubFiles())
 		{
-			std::auto_ptr<Perceptive::SubFile> sub_extractor(Extractor->GetFirstSubFile());
+			std::unique_ptr<Perceptive::SubFile> sub_extractor(Extractor->GetFirstSubFile());
 			while (sub_extractor.get())
 			{
 				std::cerr << "Processing (SUBFILE): " << sub_extractor->getID() << " -> " << sub_extractor->getName() << std::endl;
 				process_document(sub_extractor.get(), dest);
-				sub_extractor = std::auto_ptr<Perceptive::SubFile>(Extractor->GetNextSubFile());
+				sub_extractor = std::unique_ptr<Perceptive::SubFile>(Extractor->GetNextSubFile());
 			}
 		}
 	}
@@ -78,7 +78,7 @@ void process_file(const std::string &filename, const std::string& dest_file)
 	dest.open(dest_file.c_str(), std::ios::binary | std::ios::out);
 	dest.write((const char*)&byte_order_marker, sizeof(byte_order_marker));
 
-	std::auto_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(new Perceptive::FileStream(filename)));
+	std::unique_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(new Perceptive::FileStream(filename)));
 	process_document(Extractor.get(), dest);
 }
 

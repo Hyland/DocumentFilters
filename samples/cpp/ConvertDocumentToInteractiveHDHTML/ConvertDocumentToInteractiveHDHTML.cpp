@@ -42,7 +42,7 @@ Perceptive::DocumentFilters DocumentFilters;
 void process_file(const std::string &filename, const std::string &OutFilename, bool Async)
 {
 	std::cerr << "Processing (FILE): " << filename << std::endl;
-	std::auto_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(filename));
+	std::unique_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(filename));
 
 	std::string OptionsMain;
 	std::string OptionsPage;
@@ -74,9 +74,9 @@ void process_file(const std::string &filename, const std::string &OutFilename, b
 		<< ", SupportsSubFiles: " << Extractor->getSupportsSubFiles() << std::endl;
 	Extractor->Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE);
 
-	std::auto_ptr<Perceptive::Stream> OutputStream(new Perceptive::FileStream(OutFilename, "wb+"));
-	std::auto_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(OutputStream.get(), IGR_DEVICE_HTML, OptionsMain));
-	std::auto_ptr<Perceptive::Page> Page;
+	std::unique_ptr<Perceptive::Stream> OutputStream(new Perceptive::FileStream(OutFilename, "wb+"));
+	std::unique_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(OutputStream.get(), IGR_DEVICE_HTML, OptionsMain));
+	std::unique_ptr<Perceptive::Page> Page;
 
 	int pageNum = 0;
 	for (Page.reset(Extractor->GetFirstPage()); Page.get(); Page.reset(Extractor->GetNextPage()))
@@ -105,7 +105,7 @@ void process_file(const std::string &filename, const std::string &OutFilename, b
 			OutputStream->Write((void*)htmlOutput.c_str(), (ULONG)htmlOutput.size());
 
 			// Render page to it's own file
-			std::auto_ptr<Perceptive::Canvas> PageCanvas(DocumentFilters.MakeOutputCanvas(PageFilename, IGR_DEVICE_HTML, OptionsPage));
+			std::unique_ptr<Perceptive::Canvas> PageCanvas(DocumentFilters.MakeOutputCanvas(PageFilename, IGR_DEVICE_HTML, OptionsPage));
 			PageCanvas->RenderPage(Page.get());
 		}
 	}

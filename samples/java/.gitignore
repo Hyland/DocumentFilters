@@ -1,0 +1,6 @@
+**/target/*
+.gradle
+buildSrc
+**/build/*
+libs/*
+runtimes/*

@@ -31,7 +31,7 @@ void process_file(const std::string &filename)
 {
 	std::cerr << "Processing: " << filename << std::endl;
 	
-	std::auto_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
+	std::unique_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
 
 	int doc_type = extractor->getFileType();
 	std::cout << "DocType: " << doc_type << ", " << Perceptive::GetFileTypeName(doc_type)

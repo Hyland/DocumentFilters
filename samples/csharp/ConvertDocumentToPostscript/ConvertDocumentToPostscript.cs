@@ -1,5 +1,5 @@
 ﻿/*
-   (c) 2023 Hyland Software, Inc. and its affiliates. All rights reserved.
+   (c) 2024 Hyland Software, Inc. and its affiliates. All rights reserved.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -13,126 +13,51 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using Hyland.DocumentFilters;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace DocFilters
 {
 
-	class Program
-	{
-		private DocumentFilters m_filters;
-		private string m_outputFolder;
-		private TextWriter m_stdout;
-		private TextWriter m_stderr;
+    class Program
+    {
+        private readonly DocumentFilters m_docfilters = new();
 
-		public Program()
-		{
-			m_stdout = System.Console.Out;
-			m_stderr = System.Console.Error;
-			m_outputFolder = ".";
-		}
+        [Option("-o|--output", "the folder to save the output files, defaults to current directory", CommandOptionType.SingleValue)]
+        public string OutputFolder { get; set; } = ".";
 
-		public void Run(string[] args)
-		{
-			if (args.Length == 0)
-			{
-				ShowHelp();
-				return;
-			}
+        [Argument(0)]
+        public List<string> Files { get; set; } = new();
 
-			m_filters = new DocumentFilters();
-			m_filters.Initialize(DocumentFiltersLicense.LICENSE_KEY, ".");
+        private void ProcessFile(string filename)
+        {
+            string destination = Path.Combine(OutputFolder, Path.GetFileNameWithoutExtension(filename) + ".ps");
 
-			List< string > fileList = new List< string >();
-			for (int i = 0; i < args.Length; i++)
-			{
-				String arg = args[i];
+            Console.Error.WriteLine("Processing " + filename);
+            try
+            {
+                using Extractor doc = m_docfilters.OpenExtractor(filename, OpenMode.Paginated);
 
-				if (String.Compare(arg, "--output", true) == 0 || String.Compare(arg, "-o", true) == 0)
-				{
-					m_outputFolder = args[++i];
-				}
-				else if (String.Compare(arg, "-h", true) == 0 || String.Compare(arg, "--help", true) == 0)
-				{
-					ShowHelp();
-					return;
-				}
-				else
-				{
-					fileList.Add(arg);
-				}
-			}
+                using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, isys_docfilters.IGR_DEVICE_IMAGE_PS, "");
 
-			foreach (string filename in fileList)
-			{
-				ProcessFile(filename, m_filters.GetExtractor(filename));
-			}
+                canvas.RenderPages(doc);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error Processing " + filename);
+                Console.Error.WriteLine("   - " + e.ToString());
+            }
+        }
 
-			m_stdout.Close();
-		}
+        public void OnExecute()
+        {
+            m_docfilters.Initialize(DocumentFiltersLicense.Get(), ".");
 
-		private void ProcessFile(string filename, Extractor item)
-		{
-			string destination = System.IO.Path.Combine(m_outputFolder, System.IO.Path.GetFileNameWithoutExtension(filename) + ".ps");
-
-			m_stderr.WriteLine("Processing " + filename);
-			try
-			{
-				item.Open(isys_docfilters.IGR_BODY_AND_META | isys_docfilters.IGR_FORMAT_IMAGE);
-
-				Hyland.DocumentFilters.Canvas canvas = m_filters.MakeOutputCanvas(destination, isys_docfilters.IGR_DEVICE_IMAGE_PS, "");
-				try
-				{
-					for (int pageIndex = 0; pageIndex < item.GetPageCount(); pageIndex++)
-					{
-						Hyland.DocumentFilters.Page page = item.GetPage(pageIndex);
-						try
-						{
-							canvas.RenderPage(page);
-						}
-						finally
-						{
-							page.Close();
-						}
-					}
-				}
-				finally
-				{
-					canvas.Close();
-				}
-			}
-			catch (Exception e)
-			{
-				m_stderr.WriteLine("Error Processing " + filename);
-				m_stderr.WriteLine("   - " + e.ToString());
-			}
-			finally
-			{
-				item.Close();
-			}
-		}
-
-		private void ShowHelp()
-		{
-			System.Console.WriteLine("Document Filters 11: ConvertDocumentToPDF C# Example");
-			System.Console.WriteLine("(c) 2023 Hyland Software, Inc.");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("ConvertDocumentToPDF [options] filename");
-			System.Console.WriteLine("");
-			System.Console.WriteLine("options");
-			System.Console.WriteLine(" -h, --help                this help");
-			System.Console.WriteLine(" -o, --output [folder]     the folder to save the output files, defaults to current directory");
-		}
-
-		static void Main(string[] args)
-		{
-			Program prog = new Program();
-			prog.Run(args);
-		}
-	}
+            foreach (string file in Files)
+                ProcessFile(file);
+        }
+        public static int Main(string[] args)
+                => CommandLineApplication.Execute<Program>(args);
+    }
 
 }

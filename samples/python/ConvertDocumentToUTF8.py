@@ -17,7 +17,7 @@
 #* Document Filters Example - Convert a document to UTF-8 text.
 #****************************************************************************/
 
-import os, sys, argparse, DocumentFiltersLicense
+import os, sys, argparse, DocumentFiltersSample
 import shutil
 from DocumentFilters import *
 
@@ -55,8 +55,6 @@ try:
 	
 	args = parser.parse_args()
 	if args.file is None: raise Exception("filename cannot be empty")
-	if args.license_key is None: args.license_key = DocumentFiltersLicense.LICENSE_KEY
-	if args.library_path is None: args.library_path = os.environ.get("DF_PATH")
 
 	# Ensure the console is in binary mode (for 2.6 and 2.7 under Windows)
 	if sys.platform == "win32":
@@ -64,7 +62,7 @@ try:
 		msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)    
 
 	# Prepare and Initialize Engine
-	api.Initialize(args.license_key, ".", args.library_path)
+	DocumentFiltersSample.InitializeAPI(api, args)
 
 	# Get Extractor and Convert Document
 	ProcessFile(args.file, sys.stdout, sys.stderr, args.subfiles != None)

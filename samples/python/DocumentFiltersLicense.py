@@ -18,4 +18,4 @@
 #****************************************************************************/
 import os
 
-LICENSE_KEY = os.environ.get('DF_LICENSE') 
+LICENSE_KEY = os.environ.get('DF_LICENSE_KEY') 

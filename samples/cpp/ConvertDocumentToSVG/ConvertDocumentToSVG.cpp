@@ -54,7 +54,7 @@ void process_file(const std::string &filename, std::string output_filename)
 
 
 	std::cerr << "Processing (FILE): " << filename << std::endl;
-	std::auto_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
+	std::unique_ptr<Perceptive::Extractor> extractor(DocumentFilters.GetExtractor(filename));
 
 	int DocType = extractor->getFileType();
 	std::cerr << "DocType: " << DocType << ", " << Perceptive::GetFileTypeName(DocType)
@@ -63,10 +63,10 @@ void process_file(const std::string &filename, std::string output_filename)
 	extractor->Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE);
 
 	int pageNum = 1, pageCount = extractor->getPageCount();
-	for (std::auto_ptr<Perceptive::Page> page(extractor->GetFirstPage()); page.get(); page.reset(extractor->GetNextPage()))
+	for (std::unique_ptr<Perceptive::Page> page(extractor->GetFirstPage()); page.get(); page.reset(extractor->GetNextPage()))
 	{
 		std::string filename = generate_filename(output_filename, pageNum);
-		std::auto_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(filename, IGR_DEVICE_IMAGE_SVG, ""));
+		std::unique_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(filename, IGR_DEVICE_IMAGE_SVG, ""));
 
 		std::cerr << "Rendering Page " << pageNum++ << " of " << pageCount << " to " << filename << std::endl;
 		Canvas->RenderPage(page.get());

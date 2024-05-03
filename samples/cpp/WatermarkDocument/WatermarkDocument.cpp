@@ -30,7 +30,7 @@ void process_file(const std::string &filename, const std::string &OutFilename, c
 	std::cerr << "Processing (FILE): " << filename << std::endl;
 	try
 	{
-		std::auto_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(filename));
+		std::unique_ptr<Perceptive::Extractor> Extractor(DocumentFilters.GetExtractor(filename));
 
 		int doc_type = Extractor->getFileType();
 		std::cerr << "DocType: " << doc_type << ", " << Perceptive::GetFileTypeName(doc_type)
@@ -38,8 +38,8 @@ void process_file(const std::string &filename, const std::string &OutFilename, c
 			<< ", SupportsSubFiles: " << Extractor->getSupportsSubFiles() << std::endl;
 		Extractor->Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE);
 
-		std::auto_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(OutFilename, IGR_DEVICE_IMAGE_PDF, ""));
-		std::auto_ptr<Perceptive::Page> Page;
+		std::unique_ptr<Perceptive::Canvas> Canvas(DocumentFilters.MakeOutputCanvas(OutFilename, IGR_DEVICE_IMAGE_PDF, ""));
+		std::unique_ptr<Perceptive::Page> Page;
 
 		size_t imageSize = 0;
 		std::vector<uint8_t> imageData;
