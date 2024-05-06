@@ -27,8 +27,6 @@ The feature-limited evaluation has the following limitations:
 
 File type identification (e.g. IGR_Get_File_Type() and IGR_Get_Stream_Type() in the C API) is not impacted.
 
-Send an email to DocFiltersEval@hyland.com to request a license code for a full-featured, but time-limited, evaluation.
-
 ## Time-Limited Evaluation
 
 A time-limited evaluation allows you to use all of the features of Document Filters until the expiration of the evaluation license code.
