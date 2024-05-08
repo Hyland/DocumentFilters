@@ -14,7 +14,7 @@
 #
 
 #****************************************************************************
-#* Document Filters Example - Combine one or more documents
+#* Document Filters Example - Compare Documents
 #****************************************************************************/
 
 import json, os, sys, argparse, DocumentFiltersSample
