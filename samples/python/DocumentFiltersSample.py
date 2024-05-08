@@ -15,7 +15,7 @@ def GetLicenseCode(settings):
     if res is None:
         res = DocumentFiltersLicense.LICENSE_KEY
     if res is None:
-        raise Exception("License key must be provided")
+        res = ""
     return res
 
 def GetRuntimePath(settings):

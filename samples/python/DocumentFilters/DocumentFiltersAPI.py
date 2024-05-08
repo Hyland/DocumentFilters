@@ -22,11 +22,17 @@ IGR_SHORT = ctypes.c_int
 IGR_USHORT = ctypes.c_uint
 IGR_LONGLONG = ctypes.c_int64
 IGR_ULONGLONG = ctypes.c_uint64
-IGR_HANDLE = ctypes.POINTER(None)
+IGR_FLOAT = ctypes.c_float
+IGR_HANDLE = ctypes.POINTER(None) # type: ignore
 IGR_RETURN_CODE = IGR_LONG
 HPAGE = IGR_LONG
 HCANVAS = IGR_LONG
-HSUBFILES = ctypes.POINTER(None)
+HSUBFILES = ctypes.POINTER(None) # type: ignore
+IGR_HPAGE = IGR_LONG
+IGR_HCANVAS = IGR_LONG
+IGR_HSUBFILES = ctypes.POINTER(None) # type: ignore
+IGR_HDOC = IGR_LONG
+IGR_HTEXTCOMPARE = ctypes.POINTER(None) # type: ignore
 
 # Constants
 PERCEPTIVE_SZ_MD5_HEX_LEN = 33
@@ -277,6 +283,80 @@ IGR_OPEN_CALLBACK_ACTION_HEARTBEAT = 0
 IGR_OPEN_CALLBACK_ACTION_PASSWORD = 1
 IGR_OPEN_CALLBACK_ACTION_LOCALIZE = 2
 
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_EQUAL = 0
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT = 1
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_DELETE = 2
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_FORMATTING = 3
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_NEXT_BATCH = 0xFF
+IGR_COMPARE_DOCUMENTS_FLAGS_EQUALS = 0x1
+IGR_COMPARE_DOCUMENTS_FLAGS_MOVES = 0x10
+IGR_COMPARE_DOCUMENTS_FLAGS_FORMATTING = 0x20
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_COMMENTS = 0x40
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_CASE = 0x80
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_WHITESPACE = 0x100
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_PUNCTUATION = 0x200
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_TABLES = 0x400
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_HEADERS = 0x800
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_FOOTERS = 0x1000
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_FOOTNOTES = 0x2000
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_TEXTBOXES = 0x4000
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_FIELDS = 0x8000
+IGR_COMPARE_DOCUMENTS_FLAGS_NO_HEADERS_FOOTERS = IGR_COMPARE_DOCUMENTS_FLAGS_NO_HEADERS | IGR_COMPARE_DOCUMENTS_FLAGS_NO_FOOTERS
+IGR_COMPARE_DOCUMENTS_COMPARE_WORDS = 0x0
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_SOURCE_ORGINAL = 0x0
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_SOURCE_REVISED = 0x1
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_SOURCE_BOTH = 0x2
+
+IGR_PAGE_ELEMENT_TYPE = IGR_ULONG
+IGR_PAGE_ELEMENT_TYPE_PAGE = 1
+IGR_PAGE_ELEMENT_TYPE_SECTION = 2
+IGR_PAGE_ELEMENT_TYPE_COLUMN = 3
+IGR_PAGE_ELEMENT_TYPE_PARAGRAPH = 4
+IGR_PAGE_ELEMENT_TYPE_LINE = 5
+IGR_PAGE_ELEMENT_TYPE_RUN = 6
+IGR_PAGE_ELEMENT_TYPE_WORD = 7
+IGR_PAGE_ELEMENT_TYPE_HEADER = 8
+IGR_PAGE_ELEMENT_TYPE_FOOTER = 9
+IGR_PAGE_ELEMENT_TYPE_IMAGE = 10
+IGR_PAGE_ELEMENT_TYPE_TABLE = 11
+IGR_PAGE_ELEMENT_TYPE_TABLE_ROW = 12
+IGR_PAGE_ELEMENT_TYPE_TABLE_CELL = 13
+IGR_PAGE_ELEMENT_TYPE_FORM = 14
+IGR_PAGE_ELEMENT_TYPE_FORM_ELEMENT = 15
+IGR_PAGE_ELEMENT_TYPE_FLOAT = 16
+IGR_PAGE_ELEMENT_TYPE_GRAPHIC = 17
+IGR_PAGE_ELEMENT_TYPE_TEXT_BOX = 18
+
+IGR_PAGE_ELEMENT_FLAG_TYPE = IGR_ULONG
+IGR_PAGE_ELEMENT_FLAG_DYNAMIC_CONTENT = 0x01
+IGR_PAGE_ELEMENT_FLAG_INJECTED_CONTENT = 0x02
+
+IGR_FILETYPE_UNKNOWN              = 0
+IGR_FILETYPE_TEXT                 = 100
+IGR_FILETYPE_TEXT_MARKUP          = 101
+IGR_FILETYPE_WORD_PROCESSOR       = 200
+IGR_FILETYPE_SPREADSHEET          = 300
+IGR_FILETYPE_PRESENTATION         = 400
+IGR_FILETYPE_OFFICE_OTHER         = 500
+IGR_FILETYPE_CAD                  = 600
+IGR_FILETYPE_ARCHIVE              = 700
+IGR_FILETYPE_SYSTEM               = 800
+IGR_FILETYPE_DATABASE             = 900
+IGR_FILETYPE_GRAPHIC              = 1000
+IGR_FILETYPE_GRAPHIC_RASTER       = 1001
+IGR_FILETYPE_GRAPHIC_VECTOR       = 1002
+IGR_FILETYPE_EMAIL                = 1100
+IGR_FILETYPE_EMAIL_MESSAGE        = 1101
+IGR_FILETYPE_EMAIL_CONTAINER      = 1102
+IGR_FILETYPE_EMAIL_CONTACT        = 1103
+IGR_FILETYPE_EMAIL_CALENDAR       = 1104
+IGR_FILETYPE_EMAIL_OTHER          = 1105
+IGR_FILETYPE_MULTIMEDIA           = 1200
+IGR_FILETYPE_MULTIMEDIA_VIDEO     = 1201
+IGR_FILETYPE_MULTIMEDIA_AUDIO     = 1202
+IGR_FILETYPE_PUBLISHING           = 1300
+IGR_FILETYPE_APPDATA              = 2000
+
 def UNCHECKED(type):
     if hasattr(type, "_type_") and isinstance(type._type_, str) and type._type_ != "P":
         return type
@@ -337,6 +417,14 @@ class IGR_Rect(ctypes.Structure):
         ('top', IGR_ULONG),
         ('right', IGR_ULONG),
         ('bottom', IGR_ULONG),
+    ]
+
+class IGR_FRect(ctypes.Structure):
+    _fields_ = [
+        ("left", IGR_FLOAT),
+        ("top", IGR_FLOAT),
+        ("right", IGR_FLOAT),
+        ("bottom", IGR_FLOAT),
     ]
 
 class IGR_Size(ctypes.Structure):
@@ -498,11 +586,99 @@ class IGR_Open_Callback_Action_Password(ctypes.Structure):
 class IGR_Open_Callback_Action_Localize(ctypes.Structure):
     _fields_ = [
         ('struct_size', IGR_ULONG),
+        ('string_id', IGR_ULONG),
         ('original', IGR_UCS2 * 1024),
         ('replacement', IGR_UCS2 * 1024),
     ]
 
 IGR_OPEN_CALLBACK = ctypes.CFUNCTYPE(UNCHECKED(IGR_LONG), IGR_OPEN_CALLBACK_ACTION, ctypes.POINTER(None), ctypes.POINTER(None))
+
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_TYPE = IGR_ULONG
+IGR_COMPARE_DOCUMENTS_DIFFERENCE_SOURCE_TYPE = IGR_ULONG
+IGR_COMPARE_DOCUMENTS_COMPARE_TYPE = IGR_ULONG
+IGR_COMPARE_DOCUMENTS_FLAGS_TYPE = IGR_ULONG
+
+class IGR_Compare_Documents_Callback_Context(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", IGR_ULONG),
+        ("doc_index", IGR_ULONG),
+        ("doc_handle", IGR_HDOC),
+        ("page_index", IGR_ULONG),
+        ("page_handle", IGR_HDOC),
+    ]
+
+class IGR_Compare_Documents_Difference_Item(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", IGR_ULONG),
+        ("page_index", IGR_ULONG),
+        ("bounds", IGR_FRect),
+        ("text", ctypes.POINTER(IGR_UCS2)),
+    ]
+
+class IGR_Compare_Documents_Difference(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", IGR_ULONG),
+        ("type", IGR_COMPARE_DOCUMENTS_DIFFERENCE_TYPE),
+        ("doc_source", IGR_COMPARE_DOCUMENTS_DIFFERENCE_SOURCE_TYPE),
+        ("original_page_index", IGR_ULONG),
+        ("revised_page_index", IGR_ULONG),
+        ("item_count", IGR_ULONG),
+        ("items", ctypes.POINTER(IGR_Compare_Documents_Difference_Item)),
+    ]
+
+class IGR_Text_Compare_Settings(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", IGR_ULONG),
+        ("compare_type", IGR_COMPARE_DOCUMENTS_COMPARE_TYPE),
+        ("flags", IGR_COMPARE_DOCUMENTS_FLAGS_TYPE),
+        ("user_context", ctypes.c_void_p),
+        ("comparison_window", IGR_ULONG),
+        ("comparison_overlap", IGR_ULONG),
+        ("reserved1", ctypes.c_void_p),
+        ("reserved2", ctypes.c_void_p),
+        ("reserved3", ctypes.c_void_p),
+        ("reserved4", ctypes.c_void_p),
+        ("OpenPage", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.c_uint32, ctypes.POINTER(IGR_HANDLE))),
+        ("ClosePage", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), IGR_HANDLE)),
+        ("GetPageMargins", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(IGR_FRect))),
+        ("GetPageArea", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(IGR_FRect))),
+        ("GetNextPageIndex", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(ctypes.c_uint32))),
+        ("HandleError", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.c_void_p)),
+    ]
+
+class IGR_Text_Compare_Document_Source(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", IGR_ULONG),
+        ("doc_handle", IGR_LONG),
+        ("doc_first_page", IGR_ULONG),
+        ("doc_page_count", IGR_ULONG),
+        ("doc_margins", IGR_FRect),
+    ]
+
+class IGR_Page_Element(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", IGR_ULONG),
+        ("reserved", ctypes.POINTER(ctypes.c_void_p)),
+        ("type", IGR_PAGE_ELEMENT_TYPE),
+        ("depth", IGR_ULONG),
+        ("flags", IGR_PAGE_ELEMENT_FLAG_TYPE),
+        ("pos", IGR_FRect),
+        ("rotation", IGR_ULONG),
+    ]
+
+IGR_PAGE_ELEMENT_STYLES_CALLBACK = ctypes.CFUNCTYPE(
+    IGR_LONG,
+    ctypes.POINTER(IGR_UCS2),
+    ctypes.POINTER(IGR_UCS2),
+    ctypes.c_void_p
+)
+
+IGR_PAGE_ELEMENT_CALLBACK = ctypes.CFUNCTYPE(
+    IGR_LONG,
+    IGR_HPAGE,
+    ctypes.POINTER(IGR_Page_Element),
+    ctypes.c_void_p
+)
 
 class ISYS11dfAPI:
     @staticmethod
@@ -532,8 +708,8 @@ class ISYS11dfAPI:
                         # Python 3.7 does not support add_dll_directory. We side
                         # load the DLLs so the load library below can succeed.
                         ctypes.windll.kernel32.SetDllDirectoryW(path)
-                        ctypes.windll.kernel32.LoadLibraryExW(ISYS11dfAPI.windll_name(name, path), 
-                            0, 
+                        ctypes.windll.kernel32.LoadLibraryExW(ISYS11dfAPI.windll_name(name, path),
+                            0,
                             LOAD_LIBRARY_SEARCH_DEFAULT_DIRS or LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR)
 
                 return ctypes.windll.LoadLibrary(ISYS11dfAPI.windll_name(name, path))
@@ -544,26 +720,20 @@ class ISYS11dfAPI:
         raise ImportError("%s not found." % name)
 
     @staticmethod
-    def unixdll_name(name, dll_path = None):
-        res = "lib" + name + ".so"
+    def unixdll_name(name):
         if sys.platform == 'darwin':
-            res = "lib" + name + ".dylib"
-        if dll_path is not None:
-            res = os.path.join(dll_path, res)
-        return res
+            return "lib" + name + ".dylib"
+        return "lib" + name + ".so"
 
     @staticmethod
     def unixdll_load(name, dll_path = None):
-        try:
-            return ctypes.cdll.LoadLibrary(ISYS11dfAPI.unixdll_name("ISYS11df", dll_path))
-        except OSError:
-            return ctypes.cdll.LoadLibrary(ISYS11dfAPI.unixdll_name("ISYS11df"))
+        return ctypes.cdll.LoadLibrary(ISYS11dfAPI.unixdll_name("ISYS11df"))
 
     def __init__(self, dll_path = None):
         if os.name == 'nt':
             self._libISYS11df = ISYS11dfAPI.windll_load("ISYS11df", dll_path)
         else:
-            self._libISYS11df = ISYS11dfAPI.unixdll_load("ISYS11df", dll_path)
+            self._libISYS11df = ISYS11dfAPI.unixdll_load("ISYS11df")
 
         self.Init_Instance = self._libISYS11df.Init_Instance
         self.Init_Instance.argtypes = [IGR_LONG, ctypes.c_char_p, ctypes.POINTER(Instance_Status_Block), ctypes.POINTER(IGR_SHORT), ctypes.POINTER(Error_Control_Block)]
@@ -949,8 +1119,146 @@ class ISYS11dfAPI:
         self.IGR_Free_Page_Pixels.restype = IGR_RETURN_CODE
 
         self.IGR_Open_Ex = self._libISYS11df.IGR_Open_Ex
-        self.IGR_Free_Page_Pixels.argtypes = [IGR_OPEN_FROM, ctypes.POINTER(None), IGR_LONG, ctypes.POINTER(None), ctypes.POINTER(IGR_LONG), ctypes.POINTER(IGR_LONG), ctypes.POINTER(None), IGR_OPEN_CALLBACK, ctypes.POINTER(None), ctypes.POINTER(IGR_LONG), ctypes.POINTER(Error_Control_Block)]
-        self.IGR_Free_Page_Pixels.restype = IGR_RETURN_CODE
+        self.IGR_Open_Ex.argtypes = [IGR_OPEN_FROM, ctypes.POINTER(None), IGR_LONG, ctypes.POINTER(None), ctypes.POINTER(IGR_LONG), ctypes.POINTER(IGR_LONG), ctypes.POINTER(None), ctypes.POINTER(None), ctypes.POINTER(None), ctypes.POINTER(IGR_LONG), ctypes.POINTER(Error_Control_Block)]
+        self.IGR_Open_Ex.restype = IGR_RETURN_CODE
+
+        self.IGR_Text_Compare_Documents = self._libISYS11df.IGR_Text_Compare_Documents
+        self.IGR_Text_Compare_Documents.argtypes = [
+            ctypes.POINTER(IGR_Text_Compare_Document_Source),
+            ctypes.POINTER(IGR_Text_Compare_Document_Source),
+            ctypes.POINTER(IGR_Text_Compare_Settings),
+            ctypes.POINTER(IGR_HTEXTCOMPARE),
+            ctypes.POINTER(Error_Control_Block)
+        ]
+        self.IGR_Text_Compare_Documents.restype = IGR_RETURN_CODE
+
+        self.IGR_Text_Compare_Pages = self._libISYS11df.IGR_Text_Compare_Pages
+        self.IGR_Text_Compare_Pages.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(None), #IGR_FRect
+            IGR_HPAGE,
+            ctypes.POINTER(None), #IGR_FRect),
+            ctypes.POINTER(None), #IGR_Text_Compare_Settings),
+            ctypes.POINTER(IGR_HTEXTCOMPARE),
+            ctypes.POINTER(Error_Control_Block)
+        ]
+        self.IGR_Text_Compare_Pages.restype = IGR_RETURN_CODE
+
+        self.IGR_Text_Compare_Elements = self._libISYS11df.IGR_Text_Compare_Elements
+        self.IGR_Text_Compare_Elements.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            ctypes.POINTER(IGR_Text_Compare_Settings),
+            ctypes.POINTER(IGR_HTEXTCOMPARE),
+            ctypes.POINTER(Error_Control_Block)
+        ]
+        self.IGR_Text_Compare_Elements.restype = IGR_RETURN_CODE
+
+        self.IGR_Text_Compare_Close = self._libISYS11df.IGR_Text_Compare_Close
+        self.IGR_Text_Compare_Close.argtypes = [IGR_HTEXTCOMPARE, ctypes.POINTER(Error_Control_Block)]
+        self.IGR_Text_Compare_Close.restype = IGR_RETURN_CODE
+
+        self.IGR_Text_Compare_Reset = self._libISYS11df.IGR_Text_Compare_Reset
+        self.IGR_Text_Compare_Reset.argtypes = [IGR_HTEXTCOMPARE, ctypes.POINTER(Error_Control_Block)]
+        self.IGR_Text_Compare_Reset.restype = IGR_RETURN_CODE
+
+        self.IGR_Text_Compare_Next = self._libISYS11df.IGR_Text_Compare_Next
+        self.IGR_Text_Compare_Next.argtypes = [
+            IGR_HTEXTCOMPARE,
+            ctypes.POINTER(IGR_Compare_Documents_Difference),
+            ctypes.POINTER(Error_Control_Block)
+        ]
+        self.IGR_Text_Compare_Next.restype = IGR_RETURN_CODE
+
+        self.IGR_Text_Compare_Difference_Dispose = self._libISYS11df.IGR_Text_Compare_Difference_Dispose
+        self.IGR_Text_Compare_Difference_Dispose.argtypes = [
+            ctypes.POINTER(IGR_Compare_Documents_Difference),
+            ctypes.POINTER(Error_Control_Block)
+        ]
+        self.IGR_Text_Compare_Difference_Dispose.restype = IGR_RETURN_CODE
+
+        self.IGR_Get_Page_Elements = self._libISYS11df.IGR_Get_Page_Elements
+        self.IGR_Get_Page_Elements.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            IGR_ULONG,
+            ctypes.POINTER(IGR_ULONG),
+            ctypes.POINTER(IGR_Page_Element),
+            Error_Control_Block,
+        ]
+        self.IGR_Get_Page_Elements.restype = IGR_RETURN_CODE
+
+        self.IGR_Get_Page_Element_Root = self._libISYS11df.IGR_Get_Page_Element_Root
+        self.IGR_Get_Page_Element_Root.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            Error_Control_Block,
+        ]
+        self.IGR_Get_Page_Element_Root.restype = IGR_RETURN_CODE
+
+        self.IGR_Get_Page_Element_First_Child = self._libISYS11df.IGR_Get_Page_Element_First_Child
+        self.IGR_Get_Page_Element_First_Child.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            ctypes.POINTER(IGR_Page_Element),
+            Error_Control_Block,
+        ]
+        self.IGR_Get_Page_Element_First_Child.restype = IGR_RETURN_CODE
+
+        self.IGR_Get_Page_Element_Next_Sibling = self._libISYS11df.IGR_Get_Page_Element_Next_Sibling
+        self.IGR_Get_Page_Element_Next_Sibling.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            ctypes.POINTER(IGR_Page_Element),
+            Error_Control_Block,
+        ]
+        self.IGR_Get_Page_Element_Next_Sibling.restype = IGR_RETURN_CODE
+
+        self.IGR_Get_Page_Element_Text = self._libISYS11df.IGR_Get_Page_Element_Text
+        self.IGR_Get_Page_Element_Text.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            ctypes.POINTER(IGR_ULONG),
+            ctypes.POINTER(IGR_UCS2),
+            Error_Control_Block,
+        ]
+        self.IGR_Get_Page_Element_Text.restype = IGR_RETURN_CODE
+
+        self.IGR_Get_Page_Element_Styles = self._libISYS11df.IGR_Get_Page_Element_Styles
+        self.IGR_Get_Page_Element_Styles.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            IGR_PAGE_ELEMENT_STYLES_CALLBACK,
+            ctypes.c_void_p,
+            Error_Control_Block,
+        ]
+        self.IGR_Get_Page_Element_Styles.restype = IGR_RETURN_CODE
+
+        self.IGR_Get_Page_Element_Style = self._libISYS11df.IGR_Get_Page_Element_Style
+        self.IGR_Get_Page_Element_Style.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            ctypes.POINTER(IGR_UCS2),
+            ctypes.POINTER(IGR_ULONG),
+            ctypes.POINTER(IGR_UCS2),
+            Error_Control_Block,
+        ]
+        self.IGR_Get_Page_Element_Style.restype = IGR_RETURN_CODE
+
+        self.IGR_Enum_Page_Elements = self._libISYS11df.IGR_Enum_Page_Elements
+        self.IGR_Enum_Page_Elements.argtypes = [
+            IGR_HPAGE,
+            ctypes.POINTER(IGR_Page_Element),
+            IGR_ULONG,
+            IGR_ULONG,
+            IGR_PAGE_ELEMENT_CALLBACK,
+            ctypes.c_void_p,
+            Error_Control_Block,
+        ]
+        self.IGR_Enum_Page_Elements.restype = IGR_RETURN_CODE
+
 
     __singleton = None
 
