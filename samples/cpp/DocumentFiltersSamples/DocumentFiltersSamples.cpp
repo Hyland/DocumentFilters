@@ -13,7 +13,7 @@ namespace DocumentFiltersSamples
 #ifdef DOCUMENT_FILTERS_LICENSE_KEY
             return DOCUMENT_FILTERS_LICENSE_KEY;
 #else
-            throw std::runtime_error("DF_LICENSE_CODE environment variable must be set");
+            return "";
 #endif
         }
         return s;
