@@ -720,20 +720,26 @@ class ISYS11dfAPI:
         raise ImportError("%s not found." % name)
 
     @staticmethod
-    def unixdll_name(name):
+    def unixdll_name(name, dll_path = None):
+        res = "lib" + name + ".so"
         if sys.platform == 'darwin':
-            return "lib" + name + ".dylib"
-        return "lib" + name + ".so"
+            res = "lib" + name + ".dylib"
+        if dll_path is not None:
+            res = os.path.join(dll_path, res)
+        return res
 
     @staticmethod
     def unixdll_load(name, dll_path = None):
-        return ctypes.cdll.LoadLibrary(ISYS11dfAPI.unixdll_name("ISYS11df"))
+        try:
+            return ctypes.cdll.LoadLibrary(ISYS11dfAPI.unixdll_name("ISYS11df", dll_path))
+        except OSError:
+            return ctypes.cdll.LoadLibrary(ISYS11dfAPI.unixdll_name("ISYS11df"))
 
     def __init__(self, dll_path = None):
         if os.name == 'nt':
             self._libISYS11df = ISYS11dfAPI.windll_load("ISYS11df", dll_path)
         else:
-            self._libISYS11df = ISYS11dfAPI.unixdll_load("ISYS11df")
+            self._libISYS11df = ISYS11dfAPI.unixdll_load("ISYS11df", dll_path)
 
         self.Init_Instance = self._libISYS11df.Init_Instance
         self.Init_Instance.argtypes = [IGR_LONG, ctypes.c_char_p, ctypes.POINTER(Instance_Status_Block), ctypes.POINTER(IGR_SHORT), ctypes.POINTER(Error_Control_Block)]
