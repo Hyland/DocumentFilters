@@ -1,6 +1,6 @@
 **/target/*
 .gradle
-buildSrc
+buildSrc/build
 **/build/*
 libs/*
 runtimes/*
