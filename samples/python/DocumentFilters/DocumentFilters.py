@@ -2911,7 +2911,8 @@ class DocumentFilters(DocumentFiltersBase):
     def Initialize(self, license, resource_path = ".", dll_path = None):
         ecb = Error_Control_Block()
         isb = Instance_Status_Block()
-        isb.Licensee_ID1 = license.encode('utf8')
+        if license is not None:
+            isb.Licensee_ID1 = license.encode('utf8')
         handle = IGR_SHORT()
 
         self._APIPrepare(dll_path)
