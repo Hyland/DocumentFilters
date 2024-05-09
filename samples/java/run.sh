@@ -1,9 +1,10 @@
 #!/bin/bash
 
 PLATFORM="$(uname -s)-$(uname -m)"
+SCRIPT_DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+
 ARTIFACT=""
-VERSION="$(cat "../DF_VERSION.txt")"
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+VERSION="$(cat "${SCRIPT_DIR}/../DF_VERSION.txt")"
 RUNTIME_DIR="${SCRIPT_DIR}/runtimes"
 
 if [ "${PLATFORM}" == "Linux-x86_64" ]; then
@@ -12,6 +13,8 @@ elif [ "${PLATFORM}" == "Linux-ppc64le" ]; then
     ARTIFACT="linux-ppc64le-gcc-64"
 elif [ "${PLATFORM}" == "Linux-ppc64le" ]; then
     ARTIFACT="linux-ppc64le-gcc-64"
+elif [ "${PLATFORM}" == "Linux-aarch64" ]; then
+    ARTIFACT="linux-aarch64-gcc-64"
 elif [ "${PLATFORM}" == "Darwin-x86_64" ]; then
     ARTIFACT="macos-intel-clang-64"
 elif [ "${PLATFORM}" == "Darwin-arm64" ]; then
@@ -26,6 +29,10 @@ fi
 ARTIFACT_URL="https://github.com/HylandSoftware/DocumentFilters/releases/download/v${VERSION}/${ARTIFACT}.zip"
 ASSETS_URL="https://github.com/HylandSoftware/DocumentFilters/releases/download/v${VERSION}/assets.zip"
 
+if [ "${DOCFILTERS_RELEASES_URL}" != "" ]; then
+    ARTIFACT_URL="${DOCFILTERS_RELEASES_URL}/${ARTIFACT}.zip"
+fi
+
 mkdir -p "${RUNTIME_DIR}"
 
 if [ ! -d "${RUNTIME_DIR}/${ARTIFACT}" ]; then
@@ -36,7 +43,7 @@ if [ ! -d "${RUNTIME_DIR}/${ARTIFACT}" ]; then
     fi
     mkdir -p "${RUNTIME_DIR}/${ARTIFACT}"
     pushd "${RUNTIME_DIR}/${ARTIFACT}" > /dev/null || exit
-    unzip -qq "../${ARTIFACT}.zip" 2> /dev/null || true
+    unzip "../${ARTIFACT}.zip" 2> /dev/null || true
     popd > /dev/null || exit
 fi
 
@@ -48,16 +55,16 @@ if [ ! -d "${RUNTIME_DIR}/assets" ]; then
     fi
     mkdir -p "${RUNTIME_DIR}/assets"
     pushd "${RUNTIME_DIR}/assets" > /dev/null || exit
-    unzip -qq "../assets.zip" 2> /dev/null || true
+    unzip  "../assets.zip" 2> /dev/null || true
     popd > /dev/null || exit    
 fi
 
 PROJECT="$1"
 shift
 
-export ISYS_FONTS="runtimes/assets"
+export ISYS_FONTS="${SCRIPT_DIR}/runtimes/assets"
 
-java -Djava.library.path="runtimes/${ARTIFACT}" \
-    -jar "libs/${PROJECT}-1.0.0-SNAPSHOT.jar" \
+java -Djava.library.path="${SCRIPT_DIR}/runtimes/${ARTIFACT}" \
+    -jar "${SCRIPT_DIR}/libs/${PROJECT}-1.0.0-SNAPSHOT.jar" \
     "$@"
 

@@ -14,7 +14,7 @@ tasks.withType<Jar> {
     mustRunAfter(":docfilters-sample:jar")
     
     manifest {
-         attributes["Main-Class"] = "com.documentfilters.ConvertDocumentToPng"
+         attributes["Main-Class"] = "com.documentfilters.ConvertDocumentToPNG"
     }
     
     from({

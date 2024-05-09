@@ -14,7 +14,7 @@ tasks.withType<Jar> {
     mustRunAfter(":docfilters-sample:jar")
     
     manifest {
-         attributes["Main-Class"] = "com.documentfilters.ConvertDocumentToStructuredXml"
+         attributes["Main-Class"] = "com.documentfilters.ConvertDocumentToStructuredXML"
     }
     
     from({

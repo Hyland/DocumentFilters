@@ -67,7 +67,7 @@ package, making it accessible to any Python project. To perform the
 installation, execute the following command:
 
 ```bash
-python3 setup.sh install --user
+python3 setup.py install --user
 ```
 
 > **_IMPORTANT:_** The package does not come bundled with the native shared
