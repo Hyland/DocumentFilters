@@ -21,8 +21,9 @@ The feature-limited evaluation has the following limitations:
   - Microsoft Office (Word, Excel, Powerpoint)
   - OpenDocument Format (ODF)
 - Output formats are limited to:
+  - Text
   - PDF
-  - Image
+  - Raster image (e.g. PNG, JPEG, GIF, WEBP, BMP, TIFF)
 - Each page of output contains an "Evaluation Copy" watermark
 
 File type identification is not impacted.  For example, the functions IGR_Get_File_Type() and IGR_Get_Stream_Type() in the C API are not impacted.
