@@ -44,11 +44,13 @@ To get started on your own project, check out the [Getting Started](https://docs
 | [RedactionDemo](./RedactionDemo)                                     | Demonstrates redacting content in a document based on various different rule type.                                    |
 | [UpdateForm](./UpdateForm)                                           | Updates form data within a PDF document.                                                                              |
 | [DfSamplesCommon](./DfSamplesCommon)                                 | Common functionality for Document Filters samples.                                                                    |
-| [DocumentFiltersLicense.cs](./DocumentFiltersLicense.cs)             | Update with your Document Filters License Code                                                                        |
+| [DocumentFiltersLicense.cs](./DocumentFiltersLicense.cs)             | Update with your Document Filters License Key                                                                         |
 
 ## Getting Started
 
-To run the sample applications, ensure you have a valid Document Filters
+You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](./EVAL.md) for details.
+
+To run the sample applications without feature limitations, ensure you have a valid Document Filters
 license key. You can provide this key by either modifying the
 DocumentFiltersLicense.cs file or setting it in an environment variable named
 `DF_LICENSE_KEY`.
