@@ -43,7 +43,7 @@ section in the documentation.
 
 ## Getting Started
 
-You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](./EVAL.md) for details.
+You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
 
 To run the sample applications without feature limitations, ensure you have a valid Document Filters
 license key. You can provide this key by either modifying the
