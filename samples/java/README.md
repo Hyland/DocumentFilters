@@ -39,7 +39,9 @@ section in the documentation.
 
 ## Getting Started
 
-To run the sample applications, ensure you have a valid Document Filters license
+You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
+
+To run the sample applications without feature limitations, ensure you have a valid Document Filters license
 key. You can provide this key by either modifying the
 `docfilters-sample/src/main/java/com/documentfilters/DocumentFiltersLicense.java`
 file or setting it in an environment variable named `DF_LICENSE_KEY`.

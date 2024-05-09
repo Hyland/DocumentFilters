@@ -38,19 +38,20 @@ section in the documentation.
 | [ExtractAnnotations.py](./ExtractAnnotations.py)                           | Extracts annotations from documents.                                                                                  |
 | [ExtractDocumentWords.py](./ExtractDocumentWords.py)                       | Retrieves words from documents.                                                                                       |
 | [WatermarkDocument.py](./WatermarkDocument.pt)                             | Converts a document to PDF and applies a watermark.                                                                   |
-| [DocumentFiltersLicense.py](./DocumentFiltersLicense.py)                   | Update with your Document Filters License Code                                                                        |
+| [DocumentFiltersLicense.py](./DocumentFiltersLicense.py)                   | Update with your Document Filters License Key                                                                         |
 | [DocumentFiltersSample.py](./DocumentFiltersSample.py)                     | Utility functions for setup Document Filters objects.                                                                 |
 
 ## Getting Started
 
-To run the sample applications, ensure you have a valid Document Filters
+You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
+
+To run the sample applications without feature limitations, ensure you have a valid Document Filters
 license key. You can provide this key by either modifying the
 DocumentFiltersLicense.py file or setting it in an environment variable named
-DF_LICENSE_CODE. Alternatively, you can pass the license code directly to the
+`DF_LICENSE_KEY`. Alternatively, you can pass the license key directly to the
 samples by specifying `--license-key`.
 
-With a license key in hand, the samples can be run by passing to the python
-interpreter:
+The samples can be run by passing to the python interpreter:
 
 ```bash
 python ./ConvertDocumentToPDF.py "file.docx"
