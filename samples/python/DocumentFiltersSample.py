@@ -35,9 +35,9 @@ def GetRuntimePath(settings):
         if hasattr(sys, 'implementation') and hasattr(sys.implementation, '_multiarch') and 'musl' in sys.implementation._multiarch:
             musl = True
 
-        if f"{current_os}-{architecture}" == "windows-amd64":
+        if f"{current_os}-{architecture}" == "windows-amd64" or current_os.startswith("cygwin_nt") and architecture == "amd64":
             artifact="windows-intel-msvc-64"
-        elif f"{current_os}-{architecture}" == "windows-x64":
+        elif f"{current_os}-{architecture}" == "windows-x64" or current_os.startswith("cygwin_nt") and architecture == "x86_64":
             artifact="windows-intel-msvc-32"
         elif f"{current_os}-{architecture}" == "linux-x86_64":
             if musl:
