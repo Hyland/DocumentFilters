@@ -9,12 +9,18 @@ RUNTIME_DIR="${SCRIPT_DIR}/runtimes"
 
 if [ "${PLATFORM}" == "Linux-x86_64" ]; then
     ARTIFACT="linux-intel-gcc-64"
+    if [ -f "/etc/alpine-release" ]; then
+        ARTIFACT="linux-intel-clang-musl-64"
+    fi
 elif [ "${PLATFORM}" == "Linux-ppc64le" ]; then
     ARTIFACT="linux-ppc64le-gcc-64"
 elif [ "${PLATFORM}" == "Linux-ppc64le" ]; then
     ARTIFACT="linux-ppc64le-gcc-64"
 elif [ "${PLATFORM}" == "Linux-aarch64" ]; then
     ARTIFACT="linux-aarch64-gcc-64"
+    if [ -f "/etc/alpine-release" ]; then
+        ARTIFACT="linux-aarch64-clang-musl-64"
+    fi
 elif [ "${PLATFORM}" == "Darwin-x86_64" ]; then
     ARTIFACT="macos-intel-clang-64"
 elif [ "${PLATFORM}" == "Darwin-arm64" ]; then

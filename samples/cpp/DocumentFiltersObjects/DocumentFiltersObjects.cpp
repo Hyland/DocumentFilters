@@ -308,7 +308,7 @@ namespace Perceptive
 				buffer[i] = S[i];
 				i++;
 			}
-			buffer[i] = (WCHAR)NULL;
+			buffer[i] = 0;
 			retval.assign((const char *)&buffer[0], buffer_len * sizeof(WCHAR));
 		}
 		return retval;
