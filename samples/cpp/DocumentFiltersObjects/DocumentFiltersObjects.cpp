@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 #include <sys/stat.h>
 #include <cstdio>
-#ifdef PERCEPTIVE_PLATFORM_WINDOWS
+#ifdef _WIN32
 #include <io.h>     // setmode()
 #include <fcntl.h>  // O_BINARY
 #include <direct.h> // _mkdir()
@@ -41,7 +41,7 @@ extern "C" {
 
 namespace Perceptive
 {
-#ifdef PERCEPTIVE_PLATFORM_WINDOWS
+#ifdef _WIN32
 	const char PathDelim = '\\';
 	const char* NewLine = "\r\n";
 	const wchar_t* NewLineW = L"\r\n";
@@ -199,7 +199,7 @@ namespace Perceptive
 		FILE *fopen_utf8(const char *filename, const char *mode)
 		{
 			FILE* F;
-#if defined(PERCEPTIVE_PLATFORM_WINDOWS)
+#if defined(_WIN32)
 			// Convert UTF8 filename to wide chars on Windows.
 			errno_t fileErr = _wfopen_s(&F, _UCS2(filename), _UCS2(mode));
 			if (fileErr) F = NULL;
@@ -1704,7 +1704,7 @@ namespace Perceptive
 
 	void PrepareFileForBinaryOutput(FILE *F)
 	{
-#ifdef PERCEPTIVE_PLATFORM_WINDOWS
+#ifdef _WIN32
 		_setmode(_fileno(F), O_BINARY);
 #endif
 	}
@@ -1732,7 +1732,7 @@ namespace Perceptive
 	std::string ReadTextFile(const std::string &filename)
 	{
 		std::string Result = "";
-#if defined(PERCEPTIVE_PLATFORM_WINDOWS)
+#if defined(_WIN32)
 		// Convert UTF8 filename to wide chars on Windows.
 		FILE* F = 0;
 		std::string wFilename = ToWCHARStr(filename);
@@ -1758,7 +1758,7 @@ namespace Perceptive
 
 	bool SameText(const std::string &S1, const std::string &S2)
 	{
-#ifdef PERCEPTIVE_PLATFORM_WINDOWS
+#ifdef _WIN32
 		return _stricmp(S1.c_str(), S2.c_str()) == 0;
 #else
 		return strcasecmp(S1.c_str(), S2.c_str()) == 0;
@@ -1805,7 +1805,7 @@ namespace Perceptive
 
 	bool FileExists(const std::string &filename)
 	{
-#ifdef PERCEPTIVE_PLATFORM_WINDOWS
+#ifdef _WIN32
 		struct _stat buf;
 		return(_stat(filename.c_str(), &buf) == 0);
 #else
@@ -1817,7 +1817,7 @@ namespace Perceptive
 	bool DirExists(const std::string &Path)
 	{
 		std::string PathEx = RemoveTrailingPathDelimiter(Path);
-#ifdef PERCEPTIVE_PLATFORM_WINDOWS
+#ifdef _WIN32
 		struct _stat buf;
 		return((_stat(PathEx.c_str(), &buf) == 0) && (buf.st_mode & _S_IFDIR));
 #else
@@ -1839,7 +1839,7 @@ namespace Perceptive
 					Result = CreateFolder(ParentPath);
 			}
 			if (!DirExists(Path))
-#ifdef PERCEPTIVE_PLATFORM_WINDOWS
+#ifdef _WIN32
 				Result = (_mkdir(Path.c_str()) == 0);
 #else
 				Result = (mkdir(Path.c_str(), 0755) == 0);
