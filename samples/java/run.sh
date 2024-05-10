@@ -27,6 +27,8 @@ elif [ "${PLATFORM}" == "Darwin-arm64" ]; then
     ARTIFACT="macos-arm64-clang-64"
 elif [ "${PLATFORM}" == "Darwin-aarch64" ]; then
     ARTIFACT="macos-arm64-clang-64"
+elif [ "${OS:-}" == "Windows_NT" ]; then
+    ARTIFACT="windows-intel-msvc-64"
 else
     echo "Unknown Platform: ${PLATFORM}"
     exit 1
