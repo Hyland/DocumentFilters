@@ -183,7 +183,7 @@ def main():
                             left_output_canvas.Rect(int(hit.Bounds.left), int(hit.Bounds.top), int(hit.Bounds.right), int(hit.Bounds.bottom))
 
                         if diff.Type == IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT and right_output_canvas:
-                            current_right = ensure_page(hit.PageIndex, left, right_output_canvas, current_right, False)
+                            current_right = ensure_page(hit.PageIndex, right, right_output_canvas, current_right, False)
                             left_output_canvas.Rect(int(hit.Bounds.left), int(hit.Bounds.top), int(hit.Bounds.right), int(hit.Bounds.bottom))
 
                         part = {

@@ -173,7 +173,7 @@ class Program
 
                 if (compareResult.Current.Type == DifferenceType.Insert && rightOutputCanvas != null)
                 {
-                    ensurePage(hit.PageIndex, left, rightOutputCanvas, ref currentRight, false);
+                    ensurePage(hit.PageIndex, right, rightOutputCanvas, ref currentRight, false);
                     rightOutputCanvas.Rect(FromRectF(hit.Bounds));
                 }
 
