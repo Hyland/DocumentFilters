@@ -2,10 +2,15 @@
 
 PLATFORM="$(uname -s)-$(uname -m)"
 SCRIPT_DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+P_SCRIPT_DIR="${SCRIPT_DIR}"
 
 ARTIFACT=""
 VERSION="$(cat "${SCRIPT_DIR}/../DF_VERSION.txt")"
 RUNTIME_DIR="${SCRIPT_DIR}/runtimes"
+
+if [ "${OS:-}" == "Windows_NT" ]; then
+    P_SCRIPT_DIR="$(cygpath -w "${SCRIPT_DIR}")"
+fi
 
 if [ "${PLATFORM}" == "Linux-x86_64" ]; then
     ARTIFACT="linux-intel-gcc-64"
@@ -70,9 +75,9 @@ fi
 PROJECT="$1"
 shift
 
-export ISYS_FONTS="${SCRIPT_DIR}/runtimes/assets"
+export ISYS_FONTS="${P_SCRIPT_DIR}/runtimes/assets"
 
-java -Djava.library.path="${SCRIPT_DIR}/runtimes/${ARTIFACT}" \
-    -jar "${SCRIPT_DIR}/libs/${PROJECT}-1.0.0-SNAPSHOT.jar" \
+java -Djava.library.path="${P_SCRIPT_DIR}/runtimes/${ARTIFACT}" \
+    -jar "${P_SCRIPT_DIR}/libs/${PROJECT}-1.0.0-SNAPSHOT.jar" \
     "$@"
 
