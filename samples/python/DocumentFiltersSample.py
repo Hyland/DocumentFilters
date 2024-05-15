@@ -63,7 +63,7 @@ def GetRuntimePath(settings):
 
         if artifact is not None:
             url=f'https://github.com/HylandSoftware/DocumentFilters/releases/download/v{DF_VERSION}/{artifact}.zip'
-            if os.environ.get("DOCFILTERS_RELEASES_URL") is not None:
+            if os.environ.get("DOCFILTERS_RELEASES_URL"):
                 url = os.environ.get("DOCFILTERS_RELEASES_URL") + f"{artifact}.zip"
             dest_archive=f'runtimes/{DF_VERSION}/{artifact}.zip'
             dest_dir=f'runtimes/{DF_VERSION}/{artifact}'
