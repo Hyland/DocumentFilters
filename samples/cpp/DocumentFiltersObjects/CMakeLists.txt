@@ -8,3 +8,4 @@ target_include_directories(DocumentFiltersObjects INTERFACE . ..)
 target_link_directories(DocumentFiltersObjects PUBLIC ${CMAKE_BINARY_DIR}/bin)
 
 add_dependencies(DocumentFiltersObjects DocumentFiltersBinaries_copy)
+add_dependencies(DocumentFiltersObjects DocumentFiltersAssets_copy)

@@ -400,6 +400,9 @@ class DocumentFilters(DocumentFiltersBase):
         @property
         def Id(self): return self._id
 
+        @property
+        def FileTypeCategory(self): return self._fileTypeCategory
+
         def __init__(self, index):
             self._name = DocumentFilters.Format.Fetch(self.API, index, 0)
             self._shortname = DocumentFilters.Format.Fetch(self.API, index, 1)
@@ -407,6 +410,10 @@ class DocumentFilters(DocumentFiltersBase):
             self._class = DocumentFilters.Format.Fetch(self.API, index, 3)
             self._mimetype = DocumentFilters.Format.Fetch(self.API, index, 5)
             self._id = index
+            try:
+                self._fileTypeCategory = DocumentFilters.Format.Fetch(self.API, index, 6)
+            except ValueError:
+                self._fileTypeCategory = 0
 
         def __repr__(self):
             return str(self.__dict__)
@@ -1135,6 +1142,30 @@ class DocumentFilters(DocumentFiltersBase):
             finally:
                 DocumentFiltersBase._Call(self.API.IGR_Free_Page_Pixels, ctypes.byref(pixels))
             return res
+        
+        def Compare(self, otherPage, margins = None, leftMargins = None, rightMargins = None, compareSettings = None):
+            if otherPage is None:
+                raise IGRException("otherPage cannot be None", 4)
+            
+            res = IGR_HTEXTCOMPARE()
+            leftHandle = self.Handle
+            rightHandle = otherPage.Handle
+
+            wrappedSettings = DocumentFilters.CompareSettings()
+            if isinstance(compareSettings, DocumentFilters.CompareSettings):
+                wrappedSettings = compareSettings;
+            
+            if not isinstance(leftMargins, IGR_FRect):
+                leftMargins = margins
+            if not isinstance(rightMargins, IGR_FRect):
+                rightMargins = margins
+            if leftMargins is None:
+                leftMargins = IGR_FRect()
+            if rightMargins is None:
+                rightMargins = IGR_FRect()
+
+            DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Pages, leftHandle, ctypes.byref(leftMargins), rightHandle, ctypes.byref(rightMargins), ctypes.byref(wrappedSettings._item), ctypes.byref(res))
+            return DocumentFilters.CompareResults(res)
 
 
         @property
@@ -2173,6 +2204,167 @@ class DocumentFilters(DocumentFiltersBase):
         def Handle(self):
             return self._needHandle()
     
+    class CompareSettings():
+
+        def __init__(self):
+            self._item = IGR_Text_Compare_Settings()
+            self._item.struct_size = ctypes.sizeof(IGR_Text_Compare_Settings)
+
+        @property
+        def CompareType(self): return self._item.compare_type
+
+        @CompareType.setter
+        def CompareType(self, value): self._item.compare_type = value
+
+        @property
+        def Flags(self): return self._item.flags
+        
+        @Flags.setter
+        def Flags(self, value): self._item.flags = value
+
+    class CompareDocumentSettings():
+        def __init__(self):
+            self._item = IGR_Text_Compare_Document_Source()
+            self._item.struct_size = ctypes.sizeof(IGR_Text_Compare_Document_Source)
+
+        @property
+        def FirstPage(self): return self._item.doc_first_page
+
+        @FirstPage.setter
+        def FirstPage(self, value): self._item.doc_first_page = value
+    
+        @property
+        def PageCount(self): return self._item.doc_page_count
+
+        @PageCount.setter
+        def PageCount(self, value): self._item.doc_page_count = value
+
+        @property
+        def Margins(self): return self._item.doc_margins
+
+        @Margins.setter
+        def Margins(self, value): self._item.doc_margins = value        
+    
+
+    class CompareDocumentSource(CompareDocumentSettings):
+        def __init__(self):
+            super().__init__()
+            self._extractor = None
+
+        @property
+        def Extractor(self): return self._extractor
+
+        @Extractor.setter
+        def Extractor(self, value): 
+            if isinstance(value, DocumentFilters.Extractor):
+                self._extractor = value
+                self._item.doc_handle = value._handle
+
+        @property
+        def DocumentHandle(self): return self._item.doc_handle
+
+        @DocumentHandle.setter
+        def DocumentHandle(self, value): 
+            self._item.doc_handle = value
+
+
+    class CompareResults(DocumentFiltersBase):
+        def __init__(self, handle):
+            self._handle = handle
+            self._current = None
+            self._res = None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exception_type, exception_value, traceback):
+            self.Close()            
+
+        def Close(self):
+            if self._handle is not None:
+                DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Close, self._handle)
+                self._handle = None
+
+        @property
+        def Current(self): return self._res
+        
+        def MoveNext(self):
+            if self._handle is None:
+                return False
+            
+            self._current = IGR_Compare_Documents_Difference()
+            self._current.struct_size = ctypes.sizeof(IGR_Compare_Documents_Difference)
+            self._res = None
+
+            if DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Next, self._handle, self._current) == IGR_OK:
+                self._res = DocumentFilters.CompareResultDifference(self._current)
+                return True
+            return False
+
+        def GetNext(self):
+            if self.MoveNext():
+                return self._res
+            else:
+                return None
+
+    class CompareResultDifference(DocumentFiltersBase):
+        def __init__(self, item):
+            self._type = item.type
+            self._source = item.doc_source
+            self._originalPageIndex = item.original_page_index
+            self._revisedPageIndex = item.revised_page_index
+            self._details = list()
+            for i in range(item.item_count):
+                self._details.append(DocumentFilters.CompareResultDifferenceDetail(item.items[i]))
+            DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Difference_Dispose, item)
+
+        @property
+        def Type(self): return self._type
+
+        @property
+        def Source(self): return self._source
+
+        @property
+        def OriginalPageIndex(self): return self._originalPageIndex
+
+        @property
+        def RevisedPageIndex(self): return self._revisedPageIndex
+
+        @property
+        def Details(self): return self._details
+
+        def GetText(self):
+            result = ""
+            last = None
+            for detail in self._details:
+                if last is not None:
+                    if detail.Bounds.top > last.top:
+                        result += "\n"
+                    elif detail.Bounds.left - 2 > last.right:
+                        result += " "
+                result += detail.Text
+            return result
+
+    class CompareResultDifferenceDetail(DocumentFiltersBase):
+
+        def __init__(self, item):
+            self._pageIndex = item.page_index
+            self._bounds = IGR_FRect()
+            self._bounds.left = item.bounds.left
+            self._bounds.top = item.bounds.top
+            self._bounds.right = item.bounds.right
+            self._bounds.bottom = item.bounds.bottom
+            self._text = DocumentFiltersBase._FromUTF16(ctypes.cast(item.text, ctypes.POINTER(ctypes.c_char)), 0xff)
+        
+        @property
+        def PageIndex(self): return self._pageIndex
+
+        @property
+        def Text(self): return self._text
+
+        @property
+        def Bounds(self): return self._bounds
+
     class OpenCallback:
         class ActionHeartbeat:
             def __init__(self, internal):
@@ -2570,6 +2762,44 @@ class DocumentFilters(DocumentFiltersBase):
             res = IGR_Bookmark()
             DocumentFiltersBase._Call(self.API.IGR_Get_Bookmark_Root, self._needHandle(), ctypes.byref(res))
             return DocumentFilters.Bookmark(self._needHandle(), res)
+        
+        def Compare(self, otherDocument, otherDocumentSettings = None, thisDocumentSettings = None, compareSettings = None):
+            if otherDocument is None:
+                raise IGRException("otherDocument cannot be None", 4)
+            
+            otherDocumentSource = None
+            if isinstance(otherDocument, DocumentFilters.CompareDocumentSource):
+                otherDocumentSource = otherDocument
+            elif isinstance(otherDocument, DocumentFilters.Extractor):
+                otherDocumentSource = DocumentFilters.CompareDocumentSource()
+                otherDocumentSource.Extractor = otherDocument
+
+                if isinstance(otherDocumentSettings, DocumentFilters.CompareDocumentSettings):
+                    otherDocumentSource.FirstPage = otherDocumentSettings.FirstPage
+                    otherDocumentSource.PageCount = otherDocumentSettings.PageCount
+                    otherDocumentSource.Margins = otherDocumentSettings.Margins
+            else:
+                raise IGRException("otherDocument must be an Extractor or otherDocument", 4)
+
+            thisDocumentSource = DocumentFilters.CompareDocumentSource()
+            thisDocumentSource.DocumentHandle = self._needHandle()
+            if isinstance(thisDocumentSettings, DocumentFilters.CompareDocumentSettings):
+                thisDocumentSource.FirstPage = thisDocumentSettings.FirstPage
+                thisDocumentSource.PageCount = thisDocumentSettings.PageCount
+                thisDocumentSource.Margins = thisDocumentSettings.Margins
+            
+            res = IGR_HTEXTCOMPARE()
+
+            wrappedSettings = DocumentFilters.CompareSettings()
+            if isinstance(compareSettings, DocumentFilters.CompareSettings):
+                wrappedSettings = compareSettings
+            
+            DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Documents
+                                      , ctypes.byref(thisDocumentSource._item)
+                                      , ctypes.byref(otherDocumentSource._item)
+                                      , ctypes.byref(wrappedSettings._item)
+                                      , ctypes.byref(res))
+            return DocumentFilters.CompareResults(res)        
 
         @property
         def FirstSubFile(self): return self.GetFirstSubFile()
@@ -2681,7 +2911,8 @@ class DocumentFilters(DocumentFiltersBase):
     def Initialize(self, license, resource_path = ".", dll_path = None):
         ecb = Error_Control_Block()
         isb = Instance_Status_Block()
-        isb.Licensee_ID1 = license.encode('utf8')
+        if license is not None:
+            isb.Licensee_ID1 = license.encode('utf8')
         handle = IGR_SHORT()
 
         self._APIPrepare(dll_path)

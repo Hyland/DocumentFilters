@@ -15,7 +15,7 @@ def GetLicenseCode(settings):
     if res is None:
         res = DocumentFiltersLicense.LICENSE_KEY
     if res is None:
-        raise Exception("License key must be provided")
+        res = ""
     return res
 
 def GetRuntimePath(settings):
@@ -30,30 +30,50 @@ def GetRuntimePath(settings):
         current_os = platform.system().lower()
         architecture = platform.machine().lower()
         artifact = None
+        musl = False
 
-        if f"{current_os}-{architecture}" == "windows-amd64":
+        if hasattr(sys, 'implementation') and hasattr(sys.implementation, '_multiarch') and 'musl' in sys.implementation._multiarch:
+            musl = True
+
+        if f"{current_os}-{architecture}" == "windows-amd64" or current_os.startswith("cygwin_nt") and architecture == "amd64":
             artifact="windows-intel-msvc-64"
-        elif f"{current_os}-{architecture}" == "windows-x64":
+        elif f"{current_os}-{architecture}" == "windows-x64" or current_os.startswith("cygwin_nt") and architecture == "x86_64":
             artifact="windows-intel-msvc-32"
         elif f"{current_os}-{architecture}" == "linux-x86_64":
-            artifact="linux-intel-gcc-64"
+            if musl:
+                artifact="linux-intel-clang-musl-64"
+            else:
+                artifact="linux-intel-gcc-64"
         elif f"{current_os}-{architecture}" == "linux-x86":
             artifact="linux-intel-gcc-32"
+        elif f"{current_os}-{architecture}" == "linux-aarch64":
+            if musl:
+                artifact="linux-aarch64-clang-musl-64"
+            else:
+                artifact="linux-aarch64-gcc-64"
+        elif f"{current_os}-{architecture}" == "linux-ppc64le":
+            artifact="linux-ppc64le-gcc-64"
         elif f"{current_os}-{architecture}" == "darwin-arm64":
             artifact="macos-arm64-clang-64"
         elif f"{current_os}-{architecture}" == "darwin-x86_64":
             artifact="macos-intel-clang-64"
+        else:
+            print(f"Unsupported platform: {current_os}-{architecture}")
+            exit(1)
 
         if artifact is not None:
             url=f'https://github.com/HylandSoftware/DocumentFilters/releases/download/v{DF_VERSION}/{artifact}.zip'
+            if os.environ.get("DOCFILTERS_RELEASES_URL") is not None:
+                url = os.environ.get("DOCFILTERS_RELEASES_URL") + f"{artifact}.zip"
             dest_archive=f'runtimes/{DF_VERSION}/{artifact}.zip'
             dest_dir=f'runtimes/{DF_VERSION}/{artifact}'
             if not os.path.exists(dest_dir):
                 print(f"Downloading Document Filters {DF_VERSION} binaries for {artifact} from GitHub...")
-                os.makedirs(dest_dir, exist_ok=True)
+                os.makedirs(f"runtimes/{DF_VERSION}", exist_ok=True)
                 if not os.path.exists(dest_archive):
                     urllib.request.urlretrieve(url, dest_archive)
                 with zipfile.ZipFile(dest_archive, 'r') as zip_ref:
+                    os.makedirs(dest_dir, exist_ok=True)
                     zip_ref.extractall(dest_dir)
 
             res = os.path.realpath(dest_dir)
@@ -75,6 +95,7 @@ def GetFontsDir(settings):
 def InitializeAPI(api, settings):
     key = GetLicenseCode(settings)
     runtime_path = GetRuntimePath(settings)
+    # print("Initializing Document Filters with license key: " + key + " and runtime path: " + runtime_path)
 
     os.environ.setdefault('ISYS_FONTS', GetFontsDir(settings))
     api.Initialize(key, ".", runtime_path)

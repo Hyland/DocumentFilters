@@ -42,13 +42,13 @@ def ProcessFile(filename, outFilename, console):
 try:
 	parser = argparse.ArgumentParser(description='Convert Document to PDF.')
 	parser.add_argument('file', metavar='file', type=str, nargs='?', help='filename of file to convert')
-	parser.add_argument('-o', 'output', dest='output', action='store', help='Output file to create')
+	parser.add_argument('-o', '--output', dest='output', action='store', help='Output file to create')
 	parser.add_argument('-l', '--library', dest='library_path', action='store', help='Path to the Document Filters libraries')
 	parser.add_argument('--license-key', dest='license_key', action='store', help='License key for Document Filters')
 	
 	args = parser.parse_args()
 	if args.file is None: raise Exception("filename cannot be empty")
-	if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".pdf"
+	if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".xml"
 
 	# Prepare and Initialize Engine
 	DocumentFiltersSample.InitializeAPI(api, args)

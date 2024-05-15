@@ -22,7 +22,7 @@ from DocumentFilters import *
 
 api = DocumentFilters()
 
-def ProcessFile(filename, outFilename, console, page, options):
+def ProcessFile(filename, outFilename, console, pageNumber, options):
 	console.write("Processing (FILE): " + filename + "\n")
 
 	with api.GetExtractor(filename) as file:
@@ -33,7 +33,7 @@ def ProcessFile(filename, outFilename, console, page, options):
 		file.Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE, options)
 		
 		with api.MakeOutputCanvas(outFilename, IGR_DEVICE_IMAGE_PNG, "") as canvas:
-			with file.GetPage(int(page)) as page:
+			with file.GetPage(int(pageNumber)-1) as page:
 				console.write(f"Rendering Page\n")
 				canvas.RenderPage(page)
 

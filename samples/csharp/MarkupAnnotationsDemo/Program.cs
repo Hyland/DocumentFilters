@@ -22,7 +22,7 @@ using System.Reflection;
 /// </summary>
 class Program
 {
-    [Option("-o,--output", Description = "Output file name")]
+    [Option("-o|--output", Description = "Output file name")]
     public string OutputFileName { get; set; } = "output.pdf";
 
     private readonly Hyland.DocumentFilters.Api _api = new();

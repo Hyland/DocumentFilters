@@ -34,7 +34,9 @@ In this repository, you'll find the shared libraries and DLLs for releases publi
 
 Document Filters is callable from C#, Java, Python, C/C++ or any language that supports calling C APIs.
 
-To begin, you will need either an evaluation license, or full a license code for Document Filters. You can request an evaluation license from [Hyland Software](http://www.documentfilters.com) by selecting **Request Free Trial**.
+You can try Document Filters without a license key, in a feature-limited evaluation.  See [Document Filters Evaluation](./EVAL.md) for details.
+
+To use Document Filters without feature limitations, you will need either an evaluation license key or a full license key. You can request an evaluation license key from [Hyland Software](http://www.documentfilters.com) by selecting **Request a free trial**.
 
 <table width=100% border=0 style="max-width: 800px">
   <tbody>
