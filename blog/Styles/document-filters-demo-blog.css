@@ -72,6 +72,21 @@ body, html {
   font-size: 1rem; /* Sets the font size for text within the inner content */
 }
 
+/* Styles for the iframe */
+.iframe-video {
+  position: relative; /* Sets the position context for the pseudo-element */
+  width: 100%; /* Ensures the iframe fills the width of the inner-content area */
+  padding-top: 56.25%; /* Aspect ratio padding for 16:9 videos (height/width*100%) */
+}
+
+.iframe-video iframe {
+  position: absolute; /* Positions the iframe absolutely within the .iframe-video div */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
 /* Styles for hyperlinks */
 a {
   text-decoration: none; /* Removes the default underline from links */
