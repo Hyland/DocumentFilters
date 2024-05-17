@@ -50,6 +50,23 @@ body, html {
 	max-height: 40px; /* Restricts the logo's height to maintain design consistency */
 }
 
+/* Styles for the home button container */
+.button-container {
+  display: grid; 
+  grid-template-columns: auto; 
+  justify-items: center; 
+}
+
+/* Styles for the home button */
+.home-button {
+  padding: 10px 20px;
+  background-color: var(--button);
+  color: var(--button-text) !important; /* Overrides any previous styles and ensures this color is applied */
+  text-align: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
 /* Theme dropdown container alignment and spacing */
 .theme-dropdown {
   justify-self: end; /* Aligns the dropdown to the right within its grid cell */
@@ -116,7 +133,7 @@ h1 {
   padding-bottom: 10px; /* Adds space below the heading for separation */
 }
 
-.anchor-link, .anchor-link:hover, .anchor-link:active, .anchor-link:visited, .anchor-link:focus {
+.anchor-link, .anchor-link:active, .anchor-link:focus {
   text-decoration: none; /* Ensures links in the navigation don't have an underline */
   color: inherit; /* Keeps link colors consistent with surrounding text */
   display: block; /* Sets links to block-level for layout purposes */
@@ -144,5 +161,14 @@ h1 {
   .logo {
     display: block; /* Ensures the logo is block-level for layout control */
     margin: 0 auto; /* Centers the logo horizontally */
+  }
+}
+
+@media (max-width: 500px) {
+  .logo {
+    display: none; /* Hides the logo on smaller screens */
+  }
+  .home-button-container {
+    justify-items: start; /* Aligns the button to the left */
   }
 }

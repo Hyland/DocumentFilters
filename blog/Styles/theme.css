@@ -10,6 +10,8 @@
     --light-theme-content-background: #F8F7F2;
     --light-theme-link: #006334;
     --light-theme-dropdown-option: #F8F7F2;
+    --button: #006334;
+    --button-text: #FFFFFF;
 }
 
 /* Dark theme styles for the overall page */
