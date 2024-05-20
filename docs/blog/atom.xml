@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://hyland.github.io/DocumentFilters/blog/</id>
+    <title>Hyland Document Filters Blog Blog</title>
+    <updated>2024-05-15T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://hyland.github.io/DocumentFilters/blog/"/>
+    <subtitle>Hyland Document Filters Blog Blog</subtitle>
+    <icon>https://hyland.github.io/DocumentFilters/blog/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Document Filters 24.2 Release]]></title>
+        <id>https://hyland.github.io/DocumentFilters/blog/24.2-release</id>
+        <link href="https://hyland.github.io/DocumentFilters/blog/24.2-release"/>
+        <updated>2024-05-15T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[The new 24.2 release of Hyland Document Filters introduces a range of features designed to streamline document comparison, improve accessibility, and integrate advanced OCR technology, with features being directly influenced by the Document Filters community. With these updates, Document Filters continues to evolve as a versatile tool that adapts to the diverse needs of its users.]]></summary>
+        <content type="html"><![CDATA[<p>The new 24.2 release of Hyland Document Filters introduces a range of features designed to streamline document comparison, improve accessibility, and integrate advanced OCR technology, with features being directly influenced by the Document Filters community. With these updates, Document Filters continues to evolve as a versatile tool that adapts to the diverse needs of its users.</p>
+<p>Watch as we walk through a few of the new features in the 24.2 release of Document Filters.</p>
+<iframe src="https://www.youtube.com/embed/-Nc111FEe5g?si=i4LE7tz5WU1ThrQd" title="Hyland Document Filters - 24.2 Features Preview Video" enablejsapi="true" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="" width="700" height="400"></iframe>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-comparison---different-file-formats">Document Comparison - Different File Formats<a href="https://hyland.github.io/DocumentFilters/blog/24.2-release#document-comparison---different-file-formats" class="hash-link" aria-label="Direct link to Document Comparison - Different File Formats" title="Direct link to Document Comparison - Different File Formats">​</a></h2>
+<p>Document Filters now includes a powerful feature for comparing text-based documents, such as PDFs and Microsoft Word documents. This new functionality allows users to quickly identify differences and changes, streamlining the review process, as well as reducing the cost needed to pass this comparison information to an AI solution. Read more about it in the <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/common_use_cases/how_do_i_compare_documents.html" target="_blank" rel="noopener noreferrer">Document Filters documentation</a>.</p>
+<p><img decoding="async" loading="lazy" alt="Hyland Document Filters - Document Comparison - Different File Formats" src="https://hyland.github.io/DocumentFilters/blog/assets/images/Document_Compare_Different_File_Formats-d66be55c8bb43a666ea328843091df46.png" width="1920" height="1037" class="img_ev3q"></p>
+<p>Comparing a Microsoft Word document with a Text document, while ignoring the formatting differences and footers.</p>
+<p><img decoding="async" loading="lazy" alt="Hyland Document Filters - Document Comparison - Different Formatting" src="https://hyland.github.io/DocumentFilters/blog/assets/images/Document_Compare_Different_Formatting-53805097a1a4946bcc2886d86df3a77c.png" width="1920" height="1037" class="img_ev3q"></p>
+<p>Comparing the formatting of 2 Microsoft Word documents.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="accessibility-information-extraction">Accessibility Information Extraction<a href="https://hyland.github.io/DocumentFilters/blog/24.2-release#accessibility-information-extraction" class="hash-link" aria-label="Direct link to Accessibility Information Extraction" title="Direct link to Accessibility Information Extraction">​</a></h2>
+<p>In order to extract every piece of information from documents, Document Filters has added the ability to extract accessibility information from Microsoft Office documents. Not only does this extract more information, but it also allows consumers to build applications that are fully accessible, ensuring that the end-users' needs for accessible content are met. Explore how to extract this content in the <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/about_accessibility_info_extraction.html" target="_blank" rel="noopener noreferrer">Document Filters documentation</a>.</p>
+<p><img decoding="async" loading="lazy" alt="Hyland Document Filters - Accessibility Information Extraction" src="https://hyland.github.io/DocumentFilters/blog/assets/images/Accessibility-738ca71d8b10bbac0ccd860a22219717.gif" width="1442" height="1041" class="img_ev3q"></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="tesseract-ocr-integration">Tesseract OCR Integration<a href="https://hyland.github.io/DocumentFilters/blog/24.2-release#tesseract-ocr-integration" class="hash-link" aria-label="Direct link to Tesseract OCR Integration" title="Direct link to Tesseract OCR Integration">​</a></h2>
+<p>Document Filters now supports seamless integration with any user-supplied version of the Tesseract OCR engine. This enhancement empowers consumers to leverage advanced OCR capabilities within their existing workflows, enhancing text recognition and extraction from images and scanned documents. Detailed instructions on how to utilize any version of the Tesseract OCR engine are available in the <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/about_optical_character_recognition_ocr.html#using-a-different-version-of-tesseract" target="_blank" rel="noopener noreferrer">Document Filters documentation</a>.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="file-type-categorization">File Type Categorization<a href="https://hyland.github.io/DocumentFilters/blog/24.2-release#file-type-categorization" class="hash-link" aria-label="Direct link to File Type Categorization" title="Direct link to File Type Categorization">​</a></h2>
+<p>In order to be able to identify the type of application that created a file, Document Filters has implemented a new file type categorization. Categories range from Text, to Spreadsheet, to Archive, with many more listed under the <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/techinfo_constants_and_codes/igr_filetype_category_type.html" target="_blank" rel="noopener noreferrer">IGR_FILETYPE_CATEGORY</a> type in the documentation.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="release-links">Release Links<a href="https://hyland.github.io/DocumentFilters/blog/24.2-release#release-links" class="hash-link" aria-label="Direct link to Release Links" title="Direct link to Release Links">​</a></h2>
+<ul>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/rel_24_2_0_0000.html" target="_blank" rel="noopener noreferrer">Document Filters 24.2 Release Notes</a></li>
+<li><a href="https://github.com/Hyland/DocumentFilters/releases/download/v24.2/document-filters-24.2.0.5063-sbom.json" target="_blank" rel="noopener noreferrer">Document Filters 24.2 Software Bill of Materials</a></li>
+<li><a href="https://community.hyland.com/feedback" target="_blank" rel="noopener noreferrer">Enhancement Requests</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-resources">Document Filters Resources<a href="https://hyland.github.io/DocumentFilters/blog/24.2-release#document-filters-resources" class="hash-link" aria-label="Direct link to Document Filters Resources" title="Direct link to Document Filters Resources">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on GitHub</a></li>
+<li><a href="https://www.nuget.org/packages/Hyland.DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on NuGet</a></li>
+<li><a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters Samples</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">Document Filters Documentation</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html" target="_blank" rel="noopener noreferrer">Document Filters Release Notes</a></li>
+<li><a href="https://www.hyland.com/en/products/document-filters" target="_blank" rel="noopener noreferrer">Hyland</a></li>
+</ul>]]></content>
+        <author>
+            <name>Nabih Metri</name>
+        </author>
+        <category label="Release" term="Release"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Converting Documents with Comments]]></title>
+        <id>https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments</id>
+        <link href="https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments"/>
+        <updated>2024-05-15T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[In software development, where every line of code counts, the Hyland Document Filters SDK is a beacon of efficiency for the document conversion process. This SDK is crafted to streamline the document conversion solution, ensuring that embedded comments—the lifeblood of project collaboration, packed with critical feedback and key insights—are not just preserved, but seamlessly integrated into the converted documents. It’s a solution that resonates with the developer community, offering a way to enhance digital workflows with precision and ease. By incorporating this SDK, developers can confidently tackle the document conversion process, armed with the assurance that the collaborative essence of the documents remains intact, bolstering the robustness of their applications.]]></summary>
+        <content type="html"><![CDATA[<p>In software development, where every line of code counts, the Hyland Document Filters SDK is a beacon of efficiency for the document conversion process. This SDK is crafted to streamline the document conversion solution, ensuring that embedded comments—the lifeblood of project collaboration, packed with critical feedback and key insights—are not just preserved, but seamlessly integrated into the converted documents. It’s a solution that resonates with the developer community, offering a way to enhance digital workflows with precision and ease. By incorporating this SDK, developers can confidently tackle the document conversion process, armed with the assurance that the collaborative essence of the documents remains intact, bolstering the robustness of their applications.</p>
+<p>Watch as we walk through the code of how Hyland Document Filters can be used to convert a Word document to a PDF while preserving its comments.</p>
+<video controls="" aria-describedby="Hyland Document Filters - Converting Documents with Comments Video" width="680"><source src="https://es-prod-doc.s3.amazonaws.com/DocumentFilters/en_US/Print/Converting_Documents_with_Comments.mp4" type="video/mp4"><p>Your browser does not support the video tag.</p></video>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="converting-documents-with-comments">Converting Documents with Comments<a href="https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments#converting-documents-with-comments" class="hash-link" aria-label="Direct link to Converting Documents with Comments" title="Direct link to Converting Documents with Comments">​</a></h2>
+<p>Explore how Hyland Document Filters effortlessly transforms Word documents with comments into PDFs, preserving all comments for seamless information sharing.</p>
+<img data-gifffer="/DocumentFilters/blog/assets/images/Document_Filters_PDF_Comments-4a78bc3f9cfa2c2cd716bbe06d96f02a.gif" data-gifffer-width="100%" data-gifffer-height="auto" alt="Hyland Document Filters - Converting Documents with Comments Demo">
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="running-the-document-filters-samples">Running the Document Filters Samples<a href="https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments#running-the-document-filters-samples" class="hash-link" aria-label="Direct link to Running the Document Filters Samples" title="Direct link to Running the Document Filters Samples">​</a></h2>
+<p>You can try out various features using the <a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters sample apps</a> on GitHub.</p>
+<p>To get started with the Document Filters sample applications:</p>
+<ol>
+<li>Clone or download the <a href="https://github.com/Hyland/DocumentFilters/tree/master" target="_blank" rel="noopener noreferrer">Document Filters sample repo</a> from GitHub.</li>
+<li>Update the Document Filters license key by either modifying the <code>DocumentFiltersLicense</code> file or setting it in an environment variable named <code>DF_LICENSE_KEY</code>.<!-- -->
+<ul>
+<li>You can run the sample applications without a license key, with some limitations. See <a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Document Filters Evaluation</a> for details.</li>
+</ul>
+</li>
+<li>Build <code>Document Filters Samples.sln</code> and run the <code>ConvertDocumentWithComments</code> app, while passing in an input document.</li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="add-document-filters-to-an-existing-app">Add Document Filters to an Existing App<a href="https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments#add-document-filters-to-an-existing-app" class="hash-link" aria-label="Direct link to Add Document Filters to an Existing App" title="Direct link to Add Document Filters to an Existing App">​</a></h2>
+<p>Once you're ready to integrate Document Filters into your application, you can follow these guides:</p>
+<ul>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html" target="_blank" rel="noopener noreferrer">Getting Started with .NET</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_python_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Python</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_java_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Java</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_class_wrapper_around_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C++</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_com_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with COM</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-evaluation">Document Filters Evaluation<a href="https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments#document-filters-evaluation" class="hash-link" aria-label="Direct link to Document Filters Evaluation" title="Direct link to Document Filters Evaluation">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Try a feature limited version of Document Filters</a></li>
+<li><a href="https://www.hyland.com/en/resources/document-filters-version-evaluation" target="_blank" rel="noopener noreferrer">Request a free Document Filters evaluation</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-resources">Document Filters Resources<a href="https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments#document-filters-resources" class="hash-link" aria-label="Direct link to Document Filters Resources" title="Direct link to Document Filters Resources">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on GitHub</a></li>
+<li><a href="https://www.nuget.org/packages/Hyland.DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on NuGet</a></li>
+<li><a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters Samples</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">Document Filters Documentation</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html" target="_blank" rel="noopener noreferrer">Document Filters Release Notes</a></li>
+<li><a href="https://www.hyland.com/en/products/document-filters" target="_blank" rel="noopener noreferrer">Hyland</a></li>
+</ul>]]></content>
+        <author>
+            <name>Nabih Metri</name>
+        </author>
+        <category label="Feature" term="Feature"/>
+        <category label="API" term="API"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Document Filters for AI Solutions]]></title>
+        <id>https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions</id>
+        <link href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions"/>
+        <updated>2024-05-01T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[In the dynamic realm of AI development, Hyland's Document Filters is a game-changer, offering developers a versatile toolkit for file identification, content extraction, document transformation, and document conversion across over 600 file formats. Our presentation underscores its pivotal role in AI solutions, from enhancing data security with robust redaction features to streamlining operations, and to reducing costs. As AI companies integrate Document Filters into their enterprise offerings, it exemplifies the toolkit's potential to revolutionize AI applications, ensuring efficiency, security, and compliance in our data-driven future.]]></summary>
+        <content type="html"><![CDATA[<p>In the dynamic realm of AI development, Hyland's Document Filters is a game-changer, offering developers a versatile toolkit for file identification, content extraction, document transformation, and document conversion across over 600 file formats. Our presentation underscores its pivotal role in AI solutions, from enhancing data security with robust redaction features to streamlining operations, and to reducing costs. As AI companies integrate Document Filters into their enterprise offerings, it exemplifies the toolkit's potential to revolutionize AI applications, ensuring efficiency, security, and compliance in our data-driven future.</p>
+<p>Watch as we walk through an overview of Hyland Document Filters and its benefits for AI solutions.</p>
+<video controls="" aria-describedby="Hyland Document Filters - Document Filters for AI Solutions" width="680"><source src="https://es-prod-doc.s3.amazonaws.com/DocumentFilters/en_US/Print/DF_For_AI_Solutions.mp4" type="video/mp4"><p>Your browser does not support the video tag.</p></video>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="running-the-document-filters-samples">Running the Document Filters Samples<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#running-the-document-filters-samples" class="hash-link" aria-label="Direct link to Running the Document Filters Samples" title="Direct link to Running the Document Filters Samples">​</a></h2>
+<p>You can try out various features using the <a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters sample apps</a> on GitHub.</p>
+<p>To get started with the Document Filters sample applications:</p>
+<ol>
+<li>Clone or download the <a href="https://github.com/Hyland/DocumentFilters/tree/master" target="_blank" rel="noopener noreferrer">Document Filters sample repo</a> from GitHub.</li>
+<li>Update the Document Filters license key by either modifying the <code>DocumentFiltersLicense</code> file or setting it in an environment variable named <code>DF_LICENSE_KEY</code>.<!-- -->
+<ul>
+<li>You can run the sample applications without a license key, with some limitations. See <a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Document Filters Evaluation</a> for details.</li>
+</ul>
+</li>
+<li>Build <code>Document Filters Samples.sln</code> and run the <code>ConvertDocumentWithComments</code> app, while passing in an input document.</li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="add-document-filters-to-an-existing-app">Add Document Filters to an Existing App<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#add-document-filters-to-an-existing-app" class="hash-link" aria-label="Direct link to Add Document Filters to an Existing App" title="Direct link to Add Document Filters to an Existing App">​</a></h2>
+<p>Once you're ready to integrate Document Filters into your application, you can follow these guides:</p>
+<ul>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html" target="_blank" rel="noopener noreferrer">Getting Started with .NET</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_python_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Python</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_java_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Java</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_class_wrapper_around_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C++</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_com_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with COM</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-evaluation">Document Filters Evaluation<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#document-filters-evaluation" class="hash-link" aria-label="Direct link to Document Filters Evaluation" title="Direct link to Document Filters Evaluation">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Try a feature limited version of Document Filters</a></li>
+<li><a href="https://www.hyland.com/en/resources/document-filters-version-evaluation" target="_blank" rel="noopener noreferrer">Request a free Document Filters evaluation</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-resources">Document Filters Resources<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#document-filters-resources" class="hash-link" aria-label="Direct link to Document Filters Resources" title="Direct link to Document Filters Resources">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on GitHub</a></li>
+<li><a href="https://www.nuget.org/packages/Hyland.DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on NuGet</a></li>
+<li><a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters Samples</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">Document Filters Documentation</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html" target="_blank" rel="noopener noreferrer">Document Filters Release Notes</a></li>
+<li><a href="https://www.hyland.com/en/products/document-filters" target="_blank" rel="noopener noreferrer">Hyland</a></li>
+</ul>]]></content>
+        <author>
+            <name>Nabih Metri</name>
+        </author>
+        <category label="AI" term="AI"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Document Filters 24.1 Release]]></title>
+        <id>https://hyland.github.io/DocumentFilters/blog/24.1-release</id>
+        <link href="https://hyland.github.io/DocumentFilters/blog/24.1-release"/>
+        <updated>2024-02-21T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Document Filters 24.1.0 is now available for download!]]></summary>
+        <content type="html"><![CDATA[<p>Document Filters 24.1.0 is now available for download!</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="features-demo">Features Demo<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#features-demo" class="hash-link" aria-label="Direct link to Features Demo" title="Direct link to Features Demo">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="hd-support-for-pdf-xfa">HD Support for PDF XFA<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#hd-support-for-pdf-xfa" class="hash-link" aria-label="Direct link to HD Support for PDF XFA" title="Direct link to HD Support for PDF XFA">​</a></h3>
+<p>PDF XFA files are often used for interactive forms and dynamic documents in the
+government, education, and financial industries. Document Filters now allows for
+rendering these files in high definition, adding to the 100+ file formats
+supported in HD.</p>
+<img data-gifffer="/DocumentFilters/blog/assets/images/PDFXFAgif-16db2cd489f8ffd95f98db88365c92e8.gif" data-gifffer-width="100%" data-gifffer-height="auto" alt="PDF XFA">
+<p>PDF XFA files require the
+<a href="https://docs.hyland.com/DocumentFilters/en_US/Print/techinfo_processing_options.html" target="_blank" rel="noopener noreferrer"><code>PDF_XFA_ENABLED</code></a>
+option, with the default having it disabled.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="comment-extraction-from-archive-formats">Comment Extraction from Archive Formats<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#comment-extraction-from-archive-formats" class="hash-link" aria-label="Direct link to Comment Extraction from Archive Formats" title="Direct link to Comment Extraction from Archive Formats">​</a></h3>
+<p>Document Filters always has a goal of being able to extract every piece of
+information from files, and we’ve now expanded that. It’s now possible to
+extract comments from archive files (ZIP, RAR) with Document Filters.</p>
+<img data-gifffer="/DocumentFilters/blog/assets/images/ArchiveCommentsgif-2c382cf8e27edee0fea0165df14c6286.gif" data-gifffer-width="100%" data-gifffer-height="auto" alt="Archive Comments">
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="olm-date-field">OLM Date Field<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#olm-date-field" class="hash-link" aria-label="Direct link to OLM Date Field" title="Direct link to OLM Date Field">​</a></h3>
+<p>Document Filters now allows for choosing which OLM date field should be used as
+the main Date field in OLM files.</p>
+<img data-gifffer="/DocumentFilters/blog/assets/images/OLMDategif-3017936d5ec4fe8a3e38215c7225f121.gif" data-gifffer-width="100%" data-gifffer-height="auto" alt="OLM Date Field">
+<p>The
+<a href="https://docs.hyland.com/DocumentFilters/en_US/Print/techinfo_processing_options.html" target="_blank" rel="noopener noreferrer"><code>OLM_DATE_FIELD</code></a>
+option can be set to a comma separated list of fields that determines the search
+priority for the OLM Date field. The default is an empty list, which results in
+the first field that's found being used for the field.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="xls-external-workbook">XLS External Workbook<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#xls-external-workbook" class="hash-link" aria-label="Direct link to XLS External Workbook" title="Direct link to XLS External Workbook">​</a></h3>
+<p>Links to external workbooks in XLS files are now processed when extracting text.</p>
+<img data-gifffer="/DocumentFilters/blog/assets/images/XLSWorkbookLinksgif-fba5f743a14103b628aed7ad4b61ca7a.gif" data-gifffer-width="100%" data-gifffer-height="auto" alt="XLS External Workbook">
+<p>When extracting text from an XLS file and the <code>EXCELMODE=text</code> and
+<code>SHOWHIDDEN=on</code> options are set, the
+<a href="https://docs.hyland.com/DocumentFilters/en_US/Print/techinfo_processing_options.html" target="_blank" rel="noopener noreferrer"><code>SHOWHIDDEN_EXCEL_REFS</code></a>
+option can be enabled to extract links to external workbooks. This option is
+disabled by default.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="additional-information">Additional Information<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#additional-information" class="hash-link" aria-label="Direct link to Additional Information" title="Direct link to Additional Information">​</a></h2>
+<p>Find additional information on how to implement existing and new functionality,
+as well as all current and previous release notes for Document Filters on our
+<a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">documentation
+site</a>.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="links-and-info">Links and Info<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#links-and-info" class="hash-link" aria-label="Direct link to Links and Info" title="Direct link to Links and Info">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="how-to-download-through-community">How to download through Community<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#how-to-download-through-community" class="hash-link" aria-label="Direct link to How to download through Community" title="Direct link to How to download through Community">​</a></h3>
+<p>The update can be downloaded here: Perceptive Software Downloads - Select
+"Document Filters" from the Product drop-down list and then search for the
+package name. Note that we post separate packages for separate platforms, you
+will need to download the correct package(s) for your platform(s) such as
+"Document Filters 24.1.0.4978 windows".</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="how-to-download-through-nugetorg">How to download through nuget.org<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#how-to-download-through-nugetorg" class="hash-link" aria-label="Direct link to How to download through nuget.org" title="Direct link to How to download through nuget.org">​</a></h3>
+<p>For projects that support nuget packages, it's possible to consume Document
+Filters directly from nuget.org. The Document Filters package can be found
+<a href="https://www.nuget.org/packages/Hyland.DocumentFilters" target="_blank" rel="noopener noreferrer">here</a> on nuget.org.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="how-to-download-through-githubcom">How to download through github.com<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#how-to-download-through-githubcom" class="hash-link" aria-label="Direct link to How to download through github.com" title="Direct link to How to download through github.com">​</a></h3>
+<p>For projects that do not support nuget packages, it's possible to consume
+Document Filters directly from github.com. The Document Filters binaries can be
+found <a href="https://github.com/HylandSoftware/DocumentFilters" target="_blank" rel="noopener noreferrer">here</a> on github.com.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="documentation">Documentation<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#documentation" class="hash-link" aria-label="Direct link to Documentation" title="Direct link to Documentation">​</a></h3>
+<p>View our documentation at
+<a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">docs.hyland.com</a>.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="sample-applications">Sample Applications<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#sample-applications" class="hash-link" aria-label="Direct link to Sample Applications" title="Direct link to Sample Applications">​</a></h3>
+<p>Learn how to use different Document Filters features through our sample
+applications on
+<a href="https://github.com/HylandSoftware/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="software-bill-of-materials">Software Bill of Materials<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#software-bill-of-materials" class="hash-link" aria-label="Direct link to Software Bill of Materials" title="Direct link to Software Bill of Materials">​</a></h3>
+<p>Download the Software Bill of Materials for the release from
+<a href="https://community.hyland.com/en/gallery/items/-/media/74dfc7ea20c243119f5e081b5adf7b6b.json" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="release-notes">Release Notes<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#release-notes" class="hash-link" aria-label="Direct link to Release Notes" title="Direct link to Release Notes">​</a></h3>
+<p>View release notes from this release and previous releases
+<a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="enhancement-requests">Enhancement Requests<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#enhancement-requests" class="hash-link" aria-label="Direct link to Enhancement Requests" title="Direct link to Enhancement Requests">​</a></h3>
+<p>Submit Document Filters enhancement requests through
+<a href="https://community.hyland.com/feedback" target="_blank" rel="noopener noreferrer">Feedback</a> on Community.</p>]]></content>
+        <author>
+            <name>Nabih Metri</name>
+        </author>
+        <category label="Release" term="Release"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Extracting text from any file is harder than it looks. Extracting formatting is even harder.]]></title>
+        <id>https://hyland.github.io/DocumentFilters/blog/extracting-text-from-any-file-is-harder-than-it-looks</id>
+        <link href="https://hyland.github.io/DocumentFilters/blog/extracting-text-from-any-file-is-harder-than-it-looks"/>
+        <updated>2021-10-04T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Backdrop]]></summary>
+        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="Backdrop" src="https://hyland.github.io/DocumentFilters/blog/assets/images/Splash-746084355fbf90b668ce3c8cc955bdbf.png" width="1200" height="630" class="img_ev3q"></p>
+<p>This post was originally hosted on the
+<a href="https://stackoverflow.blog/2021/10/04/extracting-text-from-any-file-is-harder-than-it-looks-extracting-formatting-is-even-harder/" target="_blank" rel="noopener noreferrer">Stack
+Overflow Blog</a>.</p>
+<p>We take for granted document processing on an individual scale: double-click the
+file (or use a simple command-line phrase) and the contents of the file display.
+But it gets more complicated at scale. Imagine you’re a recruiter searching
+resumes for keywords or a paralegal looking for names in thousands of pages of
+discovery documents. The formats, versions, and platforms that generated them
+could be wildly different. The challenge is even greater when it’s time
+sensitive, for example if you have to scan all outgoing emails for personally
+identifiable information (PII) leakages, or you have to give patients a single
+file that contains all of their disclosure agreements, scanned documents, and
+MRI/X-ray/test reports, regardless of the original file format.</p>
+<p>At Hyland we produce a document processing toolkit that independent software
+vendors can implement to identify files, extract text, render file content,
+convert formats, and annotate documents in over 550 formats. These are Document
+Filters, and any software that interacts with documents will need Document
+Filters.</p>
+<p>One library for 550 formats may seem like overkill, but imagine stringing
+together dozens of open source libraries, testing each of these libraries each
+time a new release hits the wild. We give you one dependency, one point of
+contact if something goes wrong, and one library to deploy instead of dozens.</p>
+<p>We started as a company that sold desktop search software called ISYS. The
+application was built in Pascal for MS-DOS and provided mainframe-level search
+on PCs. Eventually, other companies, such as Microsoft and Google, started
+providing desktop search applications for free, and it’s tough to compete with
+free.</p>
+<p>This led us to realize that the sum of the parts was greater than the whole;
+getting text out of files and delivering the exact location is harder than it
+seems and relevant to applications other than search. Our customers noticed our
+strength in text extraction and wanted that as something they could integrate or
+embed in their software and across multiple platforms.</p>
+<p>Identifying that Pascal was not going to meet our needs we pivoted our engineers
+to rebuild the app in C++ over the next year for about half a dozen computing
+platforms. Since then, we’ve learned a lot about content processing at scale and
+how to make it work on any platform.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="on-any-platform">On any platform<a href="https://hyland.github.io/DocumentFilters/blog/extracting-text-from-any-file-is-harder-than-it-looks#on-any-platform" class="hash-link" aria-label="Direct link to On any platform" title="Direct link to On any platform">​</a></h2>
+<p>When we rewrote our software, one of the key factors was platform support. At
+the time, Pascal only supported Windows, and while it now supports Mac and
+Linux, it was and still is a niche language. That wasn’t going to work for us,
+as we wanted to support big backend processing servers like Solaris and HP-UX.
+We considered writing it in C, but we would have had to invent a lot of the
+boilerplate that C++ gave us for free.</p>
+<p>We were able to port about 80% of the code from Pascal. The other 20% was new OS
+abstractions, primarily to support the Windows API functions we lose on other
+platforms and the various quirks of each platform. Each compiler makes different
+assumptions of how to implement C++ code, so we use multiple compilers to see
+what those assumptions are.</p>
+<p>Complicating things was that we not only had to consider operating systems, but
+CPUs as well. Different CPUs process bytes in different orders, called byte
+endianness. All Intel and ARM chips use little-endian, where the least
+significant byte is stored first. SPARC chips historically used in Solaris
+machines used big-endian storage, where the most significant byte was stored
+first. When you’re reading from a file, you need to know what chipset produced
+it, otherwise you could read things backwards. We make sure to abstract this
+away so no one needs to figure out the originating chipset before processing a
+file.</p>
+<p>Ultimately, the goal is to have the software run exactly the same on all 27
+platforms. Some of the solution to that problem is just writing everything as
+generically as possible without special code for each platform. The other
+solution is testing. With the conversion to C++, we wrote a lot of new tests in
+order to exercise as much code on all platforms. Today, we’ve expanded those
+tests and made error detection much more strict. Lots of files and formats pass
+through during tests and they need to come through clean.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="search-and-extract-text-at-scale">Search and extract text at scale<a href="https://hyland.github.io/DocumentFilters/blog/extracting-text-from-any-file-is-harder-than-it-looks#search-and-extract-text-at-scale" class="hash-link" aria-label="Direct link to Search and extract text at scale" title="Direct link to Search and extract text at scale">​</a></h2>
+<p>The first step to locating or extracting text from a file is finding out what
+format the file is in. If you are lucky to get a plaintext file, then that’s an
+easy one. Unfortunately, things are rarely easy. There aren’t a lot of standards
+available for how files are structured; what exists may be incomplete or
+outdated. Things have changed a lot over the years; Microsoft is actually at the
+forefront for publishing standards. They publish standards for most of their
+file types these days, particularly the newer ones.</p>
+<p>Many file types can be identified by an initial set of four bytes. Once you have
+that, you can quickly parse the file. Older MS Office files all had the same
+four bytes, which presented complications, especially since so many files were
+in one of the four Office formats. You had to do a little extra detective work.
+Newer Office files all identify as ZIP files—they are all compressed XML—so once
+you extract the XML, you start applying known heuristics and following markers.
+Most XML is self-describing, so those markers can be easy to follow. Others
+don’t have much of a path at all.</p>
+<p>Binary file types are harder. Some of the work here is reverse engineering and
+making sure you basically have enough files that are a representative sample
+set. But once you know the pattern, then detecting the file is absolutely
+predictable. We don’t use any machine learning or AI techniques to identify
+files because of this. The challenge is working out what the pattern is and what
+pattern a given file fits.</p>
+<p>Identifying files is the very first thing that we do, so it has to be fast. One
+slow detection can impact everything and take us from sub-milliseconds per
+document to 15 milliseconds per document. When you're trying to crank through
+forty-thousand documents in a minute, that's a lot.</p>
+<p>We gain a lot of speed from specializing in text search and extraction as a pure
+back-end system. Alternate methods have used something like LibreOffice to
+process documents as a headless word processor. End-user applications have
+graphic elements and other features that you don’t care about. In a high-traffic
+environment, that could mean 50 copies of LibreOffice running as separate
+processes across multiple machines, each eating up hundreds of MB. If that
+crashes it could bring down vital business processes with it. It’s not uncommon
+to see server farms running LibreOffice for conversions that could be replaced
+with a single back-end process such as Document Filters. That’s before
+considering the other workarounds to process all the other file types you might
+need such as spreadsheets, images, and PDFs.</p>
+<p>By focusing on processing text at a high volume, we can help clients that need
+to process emails, incoming and outgoing, looking for data loss and accidental
+PII leakages. These products need to scan everything going in or out. We call it
+deep inspection. We cracked apart every level of an email that could have text.
+Zipping something and renaming the extension is not enough to try and trick it.
+Attaching a PDF inside a Word document inside an Excel document is also not
+enough. These are all files that contain text, and security needs to scan all of
+it without delaying the send. We won’t try to crack an encrypted file, but we
+can flag it for human review. All this is done so quickly that you won’t notice
+a delay in the delivery of critical email.</p>
+<p>We can process text so quickly because we built in C++ and run natively on the
+hardware; targeting native binaries also gives us the greatest flexibility where
+we can be embedded in applications written in a wide variety of languages. On
+top of that, all that work identifying file formats pays off. When scanning a
+file, we load as little as possible into memory, just enough to identify the
+format. Then we move to processing, where we ignore any information we don’t
+need to spot text—we don’t need to load Acrobat forms and crack that stuff
+apart. Plus we let you throw as much hardware at the problem as you have. Say
+you are running a POWER8 machine with 200 cores, you can run 400 threads and it
+won't break a sweat. You want a lot of memory if you're doing that amount of
+documents in parallel.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="make-it-look-good">Make it look good<a href="https://hyland.github.io/DocumentFilters/blog/extracting-text-from-any-file-is-harder-than-it-looks#make-it-look-good" class="hash-link" aria-label="Direct link to Make it look good" title="Direct link to Make it look good">​</a></h2>
+<p>Our clients weren’t content with just searching and extracting text; they also
+wanted to display it in web browsers. Around 2009, people wanted to convert
+documents to HTML. When extracting text, the software doesn’t care about whether
+something is bolded or paginated—we just want the text.</p>
+<p>Fortunately, all that work we did in understanding file types paid off here. We
+knew how to spot text, the markers that indicated each type, but now we had to
+understand the full file structure. Suddenly, bold, italics, tables, page
+breaks, and tabs vs. spaces become a lot more important. Our first iteration of
+HTML rendering, now called Classic HTML, created an unpaginated free flowing
+version of the file with as much formatting as we could pull. If you’ve ever
+looked at the HTML generated by MS Word, you know that creating HTML that
+accurately reflects a document is complicated.</p>
+<p>There’s seven billion people on the planet and all of them create a Word
+document differently. Even within Word or open source .docx editors like
+OpenOffice, you move an element and suddenly the formatting disappears. We had
+to test out all of the possible behaviors in the specifications, and still we
+figured out some bugs by trial and error.</p>
+<p>We had one bug where Windows and Mac versions were producing different shades of
+blue. It was consistent across Office documents—PowerPoint and Excel documents
+all showed the same two shades of blue. Sometimes it comes down to different
+system defaults and fonts on different platforms. Sometimes the answer is
+completely subjective as to what the definition of blue is or whether a line
+wraps before or after a word. In cases like that, you have to pick one of the
+cases to propagate; one of them is right, but it’s hard to suss out exactly
+which one. There’s no absolutes.</p>
+<p>File format specifications, typically published by the vendor, don’t always help
+here either. We’ve seen a property change, while the spec doesn’t clarify how
+that affects the formatting of the document. Then, when testing a thousand page
+document, we find a bug on page 342, and our collective hearts sink a little
+bit. In cases like these, we know it’s going to take a while to sort out what’s
+causing it, then prove it over millions of iterations.</p>
+<p>For all the trouble that Word documents give us, at least there’s structure; you
+know a table is a table. PDFs have none of that. They are probably the hardest
+to deal with because they focus on how a document is drawn on a screen.
+Technically, characters can be placed individually anywhere on a page, so
+determining column breaks, tables, and other formatting features requires
+looking at their rendered position on a screen.</p>
+<p>Pre-internet, everyone had to create everything themselves. They made their own
+formats in the dark. Everyone wrote binaries differently. And PDFs, while they
+are getting better, can always reveal a new bug, no matter how large a corpus of
+test data we have.</p>
+<p>Open source software and an increased focus on accessibility concerns have
+changed formats a lot. PDFs have started including more formatting information
+to accommodate screen readers. Open source software needs to understand file
+formats, so more information is published and file producers have started making
+their files easier to understand.</p>
+<p>The next step after understanding document format was to be able to take these
+files and produce paginated output that looks near-pixel perfect to the source
+application. All that information we learned about file formats, let us create
+what we call Paginated HD Renditions. Paginated output means the output looks
+similar to if you were to print the document. That’s reading and extracting text
+from 550 formats, and creating fully formatted and paginated HD Renditions for
+over 100 formats. Combined with a full markup and annotation API that can create
+native annotations and export to one of over 20 formats.</p>
+<p>We’ve talked a lot about Word and PDF documents, because that’s what most people
+use. But we also can read in exotic file formats, like MRI and CT scan files.
+This has a significant application in medical situations where you may want to
+concatenate them with other medical forms, then output a PDF complete with the
+doctor’s annotations. Want to throw us multiple documents from different file
+formats? Go ahead, we’re not limited to 1:1 input to output, we will ingest the
+data, understand it, and return it as a single file type of your choice.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="dont-forget-security">Don’t forget security<a href="https://hyland.github.io/DocumentFilters/blog/extracting-text-from-any-file-is-harder-than-it-looks#dont-forget-security" class="hash-link" aria-label="Direct link to Don’t forget security" title="Direct link to Don’t forget security">​</a></h2>
+<p>As we moved our product from a desktop search application, we’ve had to increase
+our focus on security. If a consumer-grade product crashes it impacts a single
+user. But if an embedded piece of software crashes, it could take the rest of
+the program—possibly the entire server—down with it. These crashes and exploits
+could open them up for further mischief. Over the years, we did get hit with a
+few surprises and got burnt.</p>
+<p>What may be common today certainly wasn’t in the early 2000s. Static analysis,
+unit tests with high code coverage, compiler sanitizers, CVE scans, and
+fuzz-testing are all must haves.</p>
+<p>We process files of unknown origins and quality. These files might come from a
+third-party that doesn’t strictly follow specifications, so they might be
+corrupt, or they might be maliciously crafted to trigger vulnerabilities.</p>
+<p>Strict adherence to coding and security best practices only gets you so far.
+Testing, both active and passive, is a constantly running background task that
+helps us in our efforts to detect and gracefully handle the unexpected.</p>
+<p>Each release is verified with 100K+ files to ensure no regressions or
+performance degradations. Each nightly build runs over 40K unit tests.
+Fuzz-tests number in the 10s of millions. And of course, third-party libraries
+are scanned for vulnerabilities nightly.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="conclusion">Conclusion<a href="https://hyland.github.io/DocumentFilters/blog/extracting-text-from-any-file-is-harder-than-it-looks#conclusion" class="hash-link" aria-label="Direct link to Conclusion" title="Direct link to Conclusion">​</a></h2>
+<p>We’ve lived and breathed file types for decades, and seen the complexities that
+go into simply finding and extracting text. Some of the largest software
+companies in the world leverage Document Filters for their document processing
+needs, processing terabytes of information hourly. Our team of engineers is
+always monitoring new and changing file-types so consumers of Document Filters
+are well prepared for the future.</p>
+<p>If you’re starting a new project, feel there’s room for improvement with your
+current tools, or not wanting to worry about the complexities of document
+processing, you can always learn more by checking out our code samples or
+requesting an evaluation at DocumentFilters.com.</p>]]></content>
+        <author>
+            <name>Ben Truscott</name>
+        </author>
+        <author>
+            <name>Corey Kidd</name>
+        </author>
+    </entry>
+</feed>
