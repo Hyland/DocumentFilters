@@ -50,10 +50,60 @@
         <category label="Release" term="Release"/>
     </entry>
     <entry>
+        <title type="html"><![CDATA[Document Filters for AI Solutions]]></title>
+        <id>https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions</id>
+        <link href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions"/>
+        <updated>2024-05-14T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[In the dynamic realm of AI development, Hyland's Document Filters is a game-changer, offering developers a versatile toolkit for file identification, content extraction, document transformation, and document conversion across over 600 file formats. Our presentation underscores its pivotal role in AI solutions, from enhancing data security with robust redaction features to streamlining operations, and to reducing costs. As AI companies integrate Document Filters into their enterprise offerings, it exemplifies the toolkit's potential to revolutionize AI applications, ensuring efficiency, security, and compliance in our data-driven future.]]></summary>
+        <content type="html"><![CDATA[<p>In the dynamic realm of AI development, Hyland's Document Filters is a game-changer, offering developers a versatile toolkit for file identification, content extraction, document transformation, and document conversion across over 600 file formats. Our presentation underscores its pivotal role in AI solutions, from enhancing data security with robust redaction features to streamlining operations, and to reducing costs. As AI companies integrate Document Filters into their enterprise offerings, it exemplifies the toolkit's potential to revolutionize AI applications, ensuring efficiency, security, and compliance in our data-driven future.</p>
+<p>Watch as we walk through an overview of Hyland Document Filters and its benefits for AI solutions.</p>
+<video controls="" aria-describedby="Hyland Document Filters - Document Filters for AI Solutions" width="680"><source src="https://es-prod-doc.s3.amazonaws.com/DocumentFilters/en_US/Print/DF_For_AI_Solutions.mp4" type="video/mp4"><p>Your browser does not support the video tag.</p></video>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="running-the-document-filters-samples">Running the Document Filters Samples<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#running-the-document-filters-samples" class="hash-link" aria-label="Direct link to Running the Document Filters Samples" title="Direct link to Running the Document Filters Samples">​</a></h2>
+<p>You can try out various features using the <a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters sample apps</a> on GitHub.</p>
+<p>To get started with the Document Filters sample applications:</p>
+<ol>
+<li>Clone or download the <a href="https://github.com/Hyland/DocumentFilters/tree/master" target="_blank" rel="noopener noreferrer">Document Filters sample repo</a> from GitHub.</li>
+<li>Update the Document Filters license key by either modifying the <code>DocumentFiltersLicense</code> file or setting it in an environment variable named <code>DF_LICENSE_KEY</code>.<!-- -->
+<ul>
+<li>You can run the sample applications without a license key, with some limitations. See <a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Document Filters Evaluation</a> for details.</li>
+</ul>
+</li>
+<li>Build <code>Document Filters Samples.sln</code> and run the <code>ConvertDocumentWithComments</code> app, while passing in an input document.</li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="add-document-filters-to-an-existing-app">Add Document Filters to an Existing App<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#add-document-filters-to-an-existing-app" class="hash-link" aria-label="Direct link to Add Document Filters to an Existing App" title="Direct link to Add Document Filters to an Existing App">​</a></h2>
+<p>Once you're ready to integrate Document Filters into your application, you can follow these guides:</p>
+<ul>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html" target="_blank" rel="noopener noreferrer">Getting Started with .NET</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_python_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Python</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_java_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Java</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_class_wrapper_around_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C++</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_com_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with COM</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-evaluation">Document Filters Evaluation<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#document-filters-evaluation" class="hash-link" aria-label="Direct link to Document Filters Evaluation" title="Direct link to Document Filters Evaluation">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Try a feature limited version of Document Filters</a></li>
+<li><a href="https://www.hyland.com/en/resources/document-filters-version-evaluation" target="_blank" rel="noopener noreferrer">Request a free Document Filters evaluation</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-resources">Document Filters Resources<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#document-filters-resources" class="hash-link" aria-label="Direct link to Document Filters Resources" title="Direct link to Document Filters Resources">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on GitHub</a></li>
+<li><a href="https://www.nuget.org/packages/Hyland.DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on NuGet</a></li>
+<li><a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters Samples</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">Document Filters Documentation</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html" target="_blank" rel="noopener noreferrer">Document Filters Release Notes</a></li>
+<li><a href="https://www.hyland.com/en/products/document-filters" target="_blank" rel="noopener noreferrer">Hyland</a></li>
+</ul>]]></content>
+        <author>
+            <name>Nabih Metri</name>
+        </author>
+        <category label="AI" term="AI"/>
+    </entry>
+    <entry>
         <title type="html"><![CDATA[Converting Documents with Comments]]></title>
         <id>https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments</id>
         <link href="https://hyland.github.io/DocumentFilters/blog/convert-document-with-comments"/>
-        <updated>2024-05-15T00:00:00.000Z</updated>
+        <updated>2024-05-01T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[In software development, where every line of code counts, the Hyland Document Filters SDK is a beacon of efficiency for the document conversion process. This SDK is crafted to streamline the document conversion solution, ensuring that embedded comments—the lifeblood of project collaboration, packed with critical feedback and key insights—are not just preserved, but seamlessly integrated into the converted documents. It’s a solution that resonates with the developer community, offering a way to enhance digital workflows with precision and ease. By incorporating this SDK, developers can confidently tackle the document conversion process, armed with the assurance that the collaborative essence of the documents remains intact, bolstering the robustness of their applications.]]></summary>
         <content type="html"><![CDATA[<p>In software development, where every line of code counts, the Hyland Document Filters SDK is a beacon of efficiency for the document conversion process. This SDK is crafted to streamline the document conversion solution, ensuring that embedded comments—the lifeblood of project collaboration, packed with critical feedback and key insights—are not just preserved, but seamlessly integrated into the converted documents. It’s a solution that resonates with the developer community, offering a way to enhance digital workflows with precision and ease. By incorporating this SDK, developers can confidently tackle the document conversion process, armed with the assurance that the collaborative essence of the documents remains intact, bolstering the robustness of their applications.</p>
 <p>Watch as we walk through the code of how Hyland Document Filters can be used to convert a Word document to a PDF while preserving its comments.</p>
@@ -102,56 +152,6 @@
         </author>
         <category label="Feature" term="Feature"/>
         <category label="API" term="API"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Document Filters for AI Solutions]]></title>
-        <id>https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions</id>
-        <link href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions"/>
-        <updated>2024-05-01T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[In the dynamic realm of AI development, Hyland's Document Filters is a game-changer, offering developers a versatile toolkit for file identification, content extraction, document transformation, and document conversion across over 600 file formats. Our presentation underscores its pivotal role in AI solutions, from enhancing data security with robust redaction features to streamlining operations, and to reducing costs. As AI companies integrate Document Filters into their enterprise offerings, it exemplifies the toolkit's potential to revolutionize AI applications, ensuring efficiency, security, and compliance in our data-driven future.]]></summary>
-        <content type="html"><![CDATA[<p>In the dynamic realm of AI development, Hyland's Document Filters is a game-changer, offering developers a versatile toolkit for file identification, content extraction, document transformation, and document conversion across over 600 file formats. Our presentation underscores its pivotal role in AI solutions, from enhancing data security with robust redaction features to streamlining operations, and to reducing costs. As AI companies integrate Document Filters into their enterprise offerings, it exemplifies the toolkit's potential to revolutionize AI applications, ensuring efficiency, security, and compliance in our data-driven future.</p>
-<p>Watch as we walk through an overview of Hyland Document Filters and its benefits for AI solutions.</p>
-<video controls="" aria-describedby="Hyland Document Filters - Document Filters for AI Solutions" width="680"><source src="https://es-prod-doc.s3.amazonaws.com/DocumentFilters/en_US/Print/DF_For_AI_Solutions.mp4" type="video/mp4"><p>Your browser does not support the video tag.</p></video>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="running-the-document-filters-samples">Running the Document Filters Samples<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#running-the-document-filters-samples" class="hash-link" aria-label="Direct link to Running the Document Filters Samples" title="Direct link to Running the Document Filters Samples">​</a></h2>
-<p>You can try out various features using the <a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters sample apps</a> on GitHub.</p>
-<p>To get started with the Document Filters sample applications:</p>
-<ol>
-<li>Clone or download the <a href="https://github.com/Hyland/DocumentFilters/tree/master" target="_blank" rel="noopener noreferrer">Document Filters sample repo</a> from GitHub.</li>
-<li>Update the Document Filters license key by either modifying the <code>DocumentFiltersLicense</code> file or setting it in an environment variable named <code>DF_LICENSE_KEY</code>.<!-- -->
-<ul>
-<li>You can run the sample applications without a license key, with some limitations. See <a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Document Filters Evaluation</a> for details.</li>
-</ul>
-</li>
-<li>Build <code>Document Filters Samples.sln</code> and run the <code>ConvertDocumentWithComments</code> app, while passing in an input document.</li>
-</ol>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="add-document-filters-to-an-existing-app">Add Document Filters to an Existing App<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#add-document-filters-to-an-existing-app" class="hash-link" aria-label="Direct link to Add Document Filters to an Existing App" title="Direct link to Add Document Filters to an Existing App">​</a></h2>
-<p>Once you're ready to integrate Document Filters into your application, you can follow these guides:</p>
-<ul>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html" target="_blank" rel="noopener noreferrer">Getting Started with .NET</a></li>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_python_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Python</a></li>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_java_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with Java</a></li>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C</a></li>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_class_wrapper_around_native_library_functions_application.html" target="_blank" rel="noopener noreferrer">Getting Started with C++</a></li>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_com_api_application.html" target="_blank" rel="noopener noreferrer">Getting Started with COM</a></li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-evaluation">Document Filters Evaluation<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#document-filters-evaluation" class="hash-link" aria-label="Direct link to Document Filters Evaluation" title="Direct link to Document Filters Evaluation">​</a></h2>
-<ul>
-<li><a href="https://github.com/Hyland/DocumentFilters/blob/master/EVAL.md" target="_blank" rel="noopener noreferrer">Try a feature limited version of Document Filters</a></li>
-<li><a href="https://www.hyland.com/en/resources/document-filters-version-evaluation" target="_blank" rel="noopener noreferrer">Request a free Document Filters evaluation</a></li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-resources">Document Filters Resources<a href="https://hyland.github.io/DocumentFilters/blog/df-for-ai-solutions#document-filters-resources" class="hash-link" aria-label="Direct link to Document Filters Resources" title="Direct link to Document Filters Resources">​</a></h2>
-<ul>
-<li><a href="https://github.com/Hyland/DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on GitHub</a></li>
-<li><a href="https://www.nuget.org/packages/Hyland.DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on NuGet</a></li>
-<li><a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters Samples</a></li>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">Document Filters Documentation</a></li>
-<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html" target="_blank" rel="noopener noreferrer">Document Filters Release Notes</a></li>
-<li><a href="https://www.hyland.com/en/products/document-filters" target="_blank" rel="noopener noreferrer">Hyland</a></li>
-</ul>]]></content>
-        <author>
-            <name>Nabih Metri</name>
-        </author>
-        <category label="AI" term="AI"/>
     </entry>
     <entry>
         <title type="html"><![CDATA[Document Filters 24.1 Release]]></title>
