@@ -7,12 +7,12 @@ import os, platform, urllib.request, zipfile, glob
 try:
   DF_VERSION=os.environ['ISYS_BUILD_PRODUCT_VERSION']
 except KeyError:
-  DF_VERSION = '24.2'
+  DF_VERSION = '24.2.1'
 
 # Download the binaries from 
 setup(name='DocumentFilters',
       version=DF_VERSION,
-      url='https://github.com/HylandSoftware/DocumentFilters',
+      url='https://github.com/Hyland/DocumentFilters',
       license='MIT',
       author='Hyland Software, Inc.',
       description='Document Filters python API',
