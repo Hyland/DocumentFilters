@@ -324,6 +324,7 @@ document workflows.</p>
             <description><![CDATA[Document Filters 24.1.0 is now available for download!]]></description>
             <content:encoded><![CDATA[<p>Document Filters 24.1.0 is now available for download!</p>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="features-demo">Features Demo<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#features-demo" class="hash-link" aria-label="Direct link to Features Demo" title="Direct link to Features Demo">​</a></h2>
+<div class="iframe-container"><iframe src="https://www.youtube.com/embed/uo0X2wzVfD4?si=IUN-aQm7ldteUh6m" title="Hyland Document Filters - 24.1 Features Preview Video" enablejsapi="true" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen=""></iframe></div>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="hd-support-for-pdf-xfa">HD Support for PDF XFA<a href="https://hyland.github.io/DocumentFilters/blog/24.1-release#hd-support-for-pdf-xfa" class="hash-link" aria-label="Direct link to HD Support for PDF XFA" title="Direct link to HD Support for PDF XFA">​</a></h3>
 <p>PDF XFA files are often used for interactive forms and dynamic documents in the
 government, education, and financial industries. Document Filters now allows for
