@@ -4,29 +4,37 @@
 
 Providing developers with everything needed for file inspection, extraction, and transformation, in one powerful software development kit (SDK).
 
-[Home Page](http://www.documentfilters.com) | [Documentation](https://docs.hyland.com/Portal_Public/Products/en/Document_Filters.htm) | [Samples](./samples) | [Release Notes](https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html)
+[Home Page](http://www.documentfilters.com) | [Documentation](https://docs.hyland.com/Portal_Public/Products/en/Document_Filters.htm) | [Samples](./samples) | [Release Notes](https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html) | [Blog](https://hyland.github.io/DocumentFilters/blog/?utm_source=github)
 
 </div>
 
 ---
 
-Hyland’s Document Filters SDK gives software developers the tools they need to embed rich document processing into their applications. Document Filters is the ideal toolkit to enable file inspection and processing.
+Hyland’s Document Filters SDK equips software developers with powerful tools to embed rich document processing capabilities into their applications. It is ideal for enabling file inspection, data extraction, content manipulation, and document conversion across a wide array of document types and programming languages.
 
-**Deeply inspect content and data**
+## Key Features
 
-Identify and extract every document, email, archive and container format while analyzing all text and data associated with your content.
+- **Deep Content Inspection**: Identify and extract data from documents, emails, archives, and container formats, analyzing all associated text and metadata.
+- **Rendering and Annotation**: Render high-definition content in a web-safe format with tools for redaction, annotations, and more.
+- **Content Transformation**: Export and convert content for use in other locations, replicate original files, and combine pages from different documents to create packets.
+- **Advanced Filtering Platform**: Deploy across 31 software platforms and architectures, supporting nearly any programming language and over 600 file formats.
 
-**Render and annotate content**
+## Applications
 
-Seamlessly manipulate and render high-definition content in a web-safe format with tools to apply precise redaction marks, annotations and more.
+Document Filters can be applied to:
 
-**Transform and output content**
+- Enhancing AI/ML models by structuring unstructured data
+- Content indexing
+- E-discovery
+- Data migration
 
-Export content and easily convert it for use in other locations. Replicate original files and combine pages from different documents to create packets.
+## Getting Started
 
-**Leverage the most advanced document filtering platform**
+In this repository, you'll find shared libraries and DLLs for releases since version 23.2. For SDK installers, samples, and documentation, visit the [Hyland Community website](https://community.hyland.com).
 
-Deploy seamlessly across 31 software platforms and architectures, and work with nearly any programming language to identify more than 600 file formats.
+## Additional Resources
+
+[Document Filters Blog](https://hyland.github.io/DocumentFilters/blog/?utm_source=github)
 
 In this repository, you'll find the shared libraries and DLLs for releases published since version 23.2. If you're searching for the SDK installers that include samples and documentation, kindly obtain them from the Hyland Community website.
 
