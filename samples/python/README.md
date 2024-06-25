@@ -34,6 +34,7 @@ section in the documentation.
 | [ConvertDocumentToTIFFFromMemory.py](./ConvertDocumentToTIFFFromMemory.py) | Converts documents to TIFF format from memory.                                                                        |
 | [ConvertDocumentToTIFFStream.py](./ConvertDocumentToTIFFStream.py)         | Converts documents to TIFF format using streams.                                                                      |
 | [ConvertDocumentToUTF8.py](./ConvertDocumentToUTF8.py)                     | Converts documents to either text or flow-html. Additionally, sub-files can also be processed.                        |
+| [ConvertDocumentToUTF8WithOCR.py](./ConvertDocumentToUTF8WithOCR.py)       | Converts documents to text using Optical Character Recognition.                                                       |
 | [CreateBarcode.py](./CreateBarcode.py)                                     | Demonstrates create 1D and 2D bar codes                                                                               |
 | [ExtractAnnotations.py](./ExtractAnnotations.py)                           | Extracts annotations from documents.                                                                                  |
 | [ExtractDocumentWords.py](./ExtractDocumentWords.py)                       | Retrieves words from documents.                                                                                       |

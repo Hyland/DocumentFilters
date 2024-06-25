@@ -80,7 +80,7 @@ def GetRuntimePath(settings):
     return res
 
 def GetFontsDir(settings):
-    dest_dir = f'runtimes/{DF_VERSION}/assets'
+    dest_dir = os.getcwd() + f'/runtimes/{DF_VERSION}/assets'
     if not os.path.exists(dest_dir):
         url=f'https://github.com/HylandSoftware/DocumentFilters/releases/download/v{DF_VERSION}/assets.zip'
         dest_archive=f'runtimes/{DF_VERSION}/assets.zip'
@@ -98,5 +98,6 @@ def InitializeAPI(api, settings):
     # print("Initializing Document Filters with license key: " + key + " and runtime path: " + runtime_path)
 
     os.environ.setdefault('ISYS_FONTS', GetFontsDir(settings))
+    os.environ.setdefault('ISYS_ASSETS', GetFontsDir(settings))
     api.Initialize(key, ".", runtime_path)
 
