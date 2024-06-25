@@ -33,6 +33,7 @@ To get started on your own project, check out the [Getting Started](https://docs
 | [ConvertDocumentToTIFF](./ConvertDocumentToTIFF)                     | Converts documents to TIFF format.                                                                                    |
 | [ConvertDocumentToTIFFFromMemory](./ConvertDocumentToTIFFFromMemory) | Converts documents to TIFF format from memory.                                                                        |
 | [ConvertDocumentToTIFFStream](./ConvertDocumentToTIFFStream)         | Converts documents to TIFF format using streams.                                                                      |
+| [ConvertDocumentToUTF8WithOCR](./ConvertDocumentToUTF8WithOCR)       | Converts documents to text using Optical Character Recognition.                                                       |
 | [ConvertDocumentWithComments](./ConvertDocumentWithComments)         | Converts documents to a multi-page PDF, with comments shown in either the margin or on new pages.                     |
 | [CreateBarcode](./CreateBarcode)                                     | Demonstrates create 1D and 2D bar codes                                                                               |
 | [ExtractAnnotations](./ExtractAnnotations)                           | Extracts annotations from documents.                                                                                  |
