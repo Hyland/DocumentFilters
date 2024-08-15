@@ -72,7 +72,7 @@ if("${DF_BINARIES}" STREQUAL "")
     # Configure and build the assets project (fonts, ocr data, etc.)
     set(EXTERNAL_PROJECT_ASSETS_NAME DocumentFiltersAssets)
     set(EXTERNAL_PROJECT_ASSETS_PREFIX ${CMAKE_BINARY_DIR}/${EXTERNAL_PROJECT_NAME})    
-    set(EXTERNAL_PROJECT_ASSESTS_URL "https://github.com/HylandSoftware/DocumentFilters/releases/download/v${EXTERNAL_PROJECT_VERSION}/assets.zip")
+    set(EXTERNAL_PROJECT_ASSESTS_URL "${DOCFILTERS_RELEASES_URL}/assets.zip")
     ExternalProject_Add(
         ${EXTERNAL_PROJECT_ASSETS_NAME}
         PREFIX ${EXTERNAL_PROJECT_ASSETS_PREFIX}

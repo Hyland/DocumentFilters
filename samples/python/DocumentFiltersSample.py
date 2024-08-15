@@ -83,6 +83,8 @@ def GetFontsDir(settings):
     dest_dir = f'runtimes/{DF_VERSION}/assets'
     if not os.path.exists(dest_dir):
         url=f'https://github.com/HylandSoftware/DocumentFilters/releases/download/v{DF_VERSION}/assets.zip'
+        if os.environ.get("DOCFILTERS_RELEASES_URL"):
+            url = os.environ.get("DOCFILTERS_RELEASES_URL") + f"assets.zip"
         dest_archive=f'runtimes/{DF_VERSION}/assets.zip'
         if not os.path.exists(dest_archive):
             print(f"Downloading Document Filters Fonts and Assets from GitHub...")
