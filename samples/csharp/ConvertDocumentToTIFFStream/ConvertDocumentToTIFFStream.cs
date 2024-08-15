@@ -34,7 +34,7 @@ namespace DocFilters
             try
             {
                 using Extractor doc = m_docfilters.OpenExtractor(filename, OpenMode.Paginated);
-                using Canvas canvas = m_docfilters.MakeOutputCanvas(outStream, isys_docfilters.IGR_DEVICE_IMAGE_TIF, "");
+                using Canvas canvas = m_docfilters.MakeOutputCanvas(outStream, CanvasType.TIF, "");
 
                 canvas.RenderPages(doc);
             }

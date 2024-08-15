@@ -40,7 +40,7 @@ namespace DocFilters
                 {
                     string destination = Path.Combine(OutputFolder, Path.GetFileNameWithoutExtension(filename) + "_page_" + pageIndex + ".png");
 
-                    using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, isys_docfilters.IGR_DEVICE_IMAGE_PNG, "");
+                    using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, CanvasType.PNG, "");
                     using Page page = doc.GetPage(pageIndex);
 
                     canvas.RenderPage(page);

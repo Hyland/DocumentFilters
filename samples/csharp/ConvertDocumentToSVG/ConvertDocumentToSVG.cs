@@ -39,7 +39,7 @@ namespace DocFilters
                 {
                     string destination = Path.Combine(OutputFolder, Path.GetFileNameWithoutExtension(filename) + "_page_" + pageIndex + ".svg");
 
-                    using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, isys_docfilters.IGR_DEVICE_IMAGE_SVG, "");
+                    using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, CanvasType.SVG, "");
                     using Page page = doc.GetPage(pageIndex);
                     canvas.RenderPage(page);
                 }

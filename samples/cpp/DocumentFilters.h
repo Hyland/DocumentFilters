@@ -246,6 +246,8 @@ extern "C"
 #define IGR_DEVICE_PDF            IGR_DEVICE_IMAGE_PDF
 #define IGR_DEVICE_XML            5
 #define IGR_DEVICE_HTML           6
+#define IGR_DEVICE_JSON           22
+#define IGR_DEVICE_MARKDOWN       23
 
 	/**
 	*  File type details 
@@ -701,6 +703,9 @@ extern "C"
 	    void* reserved;                         ///< Reserved for internal use.
 	};
 
+#define IGR_SUBFILE_INFO_FLAG_TYPE IGR_ULONG
+#define IGR_SUBFILE_INFO_FLAG_PASSWORD_PROTECTED 0x0002
+#define IGR_SUBFILE_INFO_FLAG_HAS_COMMENT        0x0004
 
 	/**
 	 * Structure representing information about a subfile or sub-document.
@@ -709,16 +714,16 @@ extern "C"
 	 */
 	struct IGR_Subfile_Info
 	{
-	    IGR_ULONG struct_size;      ///< Size of this structure, must be populated.
-	    IGR_ULONG flags;            ///< Flags indicating specific characteristics.
-	    IGR_UCS2* id;               ///< Buffer to be populated with the id.
-	    IGR_ULONG id_size;          ///< Number of characters pointed to by id.
-	    IGR_UCS2* name;             ///< Buffer to be populated with the name.
-	    IGR_ULONG name_size;        ///< Number of characters pointed to by name.
-	    IGR_UCS2* comment;          ///< Buffer to be populated with the comment.
-	    IGR_ULONG comment_size;     ///< Number of characters pointed to by comment.
-	    IGR_ULONGLONG size;         ///< Size in bytes of the sub-document.
-	    IGR_ULONGLONG date;         ///< Date and time of the sub-document in FILETIME format.
+		IGR_ULONG struct_size;             ///< Size of this structure, must be populated.
+		IGR_SUBFILE_INFO_FLAG_TYPE flags;  ///< Flags indicating specific characteristics.
+		IGR_UCS2* id;                      ///< Buffer to be populated with the id.
+		IGR_ULONG id_size;                 ///< Number of characters pointed to by id.
+		IGR_UCS2* name;                    ///< Buffer to be populated with the name.
+		IGR_ULONG name_size;               ///< Number of characters pointed to by name.
+		IGR_UCS2* comment;                 ///< Buffer to be populated with the comment.
+		IGR_ULONG comment_size;            ///< Number of characters pointed to by comment.
+		IGR_ULONGLONG size;                ///< Size in bytes of the sub-document.
+		IGR_ULONGLONG date;                ///< Date and time of the sub-document in FILETIME format.
 	};
 
 	struct IGR_Subfile_Enumerator;
@@ -1793,6 +1798,7 @@ extern "C"
 #define IGR_PAGE_ELEMENT_TYPE_FLOAT         16
 #define IGR_PAGE_ELEMENT_TYPE_GRAPHIC       17
 #define IGR_PAGE_ELEMENT_TYPE_TEXT_BOX      18
+#define IGR_PAGE_ELEMENT_TYPE_NOTES         19
 
 #define IGR_PAGE_ELEMENT_FLAG_TYPE IGR_ULONG
 #define IGR_PAGE_ELEMENT_FLAG_DYNAMIC_CONTENT  0x01

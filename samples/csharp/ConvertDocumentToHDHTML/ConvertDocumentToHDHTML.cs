@@ -38,7 +38,7 @@ namespace DocFilters
             {
                 using Extractor doc = m_docfilters.OpenExtractor(filename, OpenMode.Paginated);
 
-                using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, isys_docfilters.IGR_DEVICE_HTML, "");
+                using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, CanvasType.HTML, "");
 
                 foreach (Page page in doc.Pages)
                 {
