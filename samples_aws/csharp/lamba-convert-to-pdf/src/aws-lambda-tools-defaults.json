@@ -1,0 +1,14 @@
+{
+    "Information": [
+        "This file demonstrates using Document Filters to receive an event from ",
+        "S3 converting the inbound file to PDF, writing it to a new S3 bucket."
+    ],
+    "profile": "",
+    "region": "",
+    "configuration": "Release",
+    "package-type": "image",
+    "function-memory-size": 1024,
+    "function-timeout": 30,
+    "image-command": "DocFilters.Lambda::DocFilters.Lambda.S3ConvertToPDF::FunctionHandler",
+    "docker-host-build-output-dir": "./bin/Release/lambda-publish"
+}
