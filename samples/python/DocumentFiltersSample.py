@@ -1,7 +1,7 @@
 import os, platform, zipfile, urllib.request, fnmatch, DocumentFiltersLicense
 from DocumentFilters import *
 
-DF_VERSION='24.2.1'
+DF_VERSION='24.3.0'
 with open('../DF_VERSION.txt', 'r') as version_file:
     DF_VERSION=version_file.read().strip()
 
