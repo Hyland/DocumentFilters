@@ -14,7 +14,7 @@ tasks.withType<Jar> {
     mustRunAfter(":docfilters-sample:jar")
     
     manifest {
-         attributes["Main-Class"] = "com.documentfilters.ConvertDocumentToMarkdown"
+         attributes["Main-Class"] = "com.documentfilters.ConvertDocumentToJSON"
     }
     
     from({
@@ -32,4 +32,4 @@ tasks.named<Jar>("jar") {
     dependsOn("copyJars")
 }
 
-description = "Convert Document to Markdown"
+description = "Convert Document to JSON"
