@@ -14,7 +14,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /****************************************************************************
-* Document Filters Example - Convert a document to Markdown
+* Document Filters Example - Convert a document to JSON
 ****************************************************************************/
 
 #include "DocumentFilters.h"
@@ -40,7 +40,7 @@ void process_file(const std::string &filename, const std::string& outfile)
 		<< ", SupportsSubFiles: " << extractor->getSupportsSubFiles() << std::endl;
 	extractor->Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE);
 
-	std::unique_ptr<Perceptive::Canvas> canvas(DocumentFilters.MakeOutputCanvas(outfile, IGR_DEVICE_MARKDOWN, ""));
+	std::unique_ptr<Perceptive::Canvas> canvas(DocumentFilters.MakeOutputCanvas(outfile, IGR_DEVICE_JSON, ""));
 
 	int pageNum = 1, pageCount = extractor->getPageCount();
 	for (std::unique_ptr<Perceptive::Page> page(extractor->GetFirstPage()); page.get(); page.reset(extractor->GetNextPage()))
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 {
 	if (argc < 3)
 	{
-		std::cerr << "Document Filters: ConvertDocumentToMarkdown C++ Example" << std::endl;
+		std::cerr << "Document Filters: ConvertDocumentToJSON C++ Example" << std::endl;
 		std::cerr << "(c) 2024 Hyland Software, Inc. and its affiliates. All rights reserved." << std::endl;
 		std::cerr << "ALL RIGHTS RESERVED" << std::endl << std::endl;
 		std::cerr << "Usage: " << argv[0] << " DocFilename OutFilename" << std::endl;
