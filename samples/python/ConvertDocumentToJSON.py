@@ -54,7 +54,7 @@ try:
 	
 	args = parser.parse_args()
 	if args.file is None: raise Exception("filename cannot be empty")
-	if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".md"
+	if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".json"
 
 	# Prepare and Initialize Engine
 	DocumentFiltersSample.InitializeAPI(api, args)

@@ -43,7 +43,7 @@ namespace DocFilters
 
         private void ProcessFile(string filename)
         {
-            string destination = Path.Combine(OutputFolder, Path.GetFileNameWithoutExtension(filename) + ".md");
+            string destination = Path.Combine(OutputFolder, Path.GetFileNameWithoutExtension(filename) + ".json");
 
             Console.Error.WriteLine("Processing " + filename);
             try

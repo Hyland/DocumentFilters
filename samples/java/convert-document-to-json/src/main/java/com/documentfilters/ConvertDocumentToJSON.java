@@ -54,7 +54,7 @@ public class ConvertDocumentToJSON {
 
 	protected void ProcessFileImpl(String filename, Extractor item, PrintStream OutStream, PrintStream ErrStream)
 			throws IGRException {
-		String destination = makeFilename(outputFolder, filename, ".md");
+		String destination = makeFilename(outputFolder, filename, ".json");
 
 		try {
 			item.Open(isys_docfilters.IGR_BODY_AND_META | isys_docfilters.IGR_FORMAT_IMAGE);
