@@ -54,9 +54,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalizeMetadata", "Localiz
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentWithComments", "ConvertDocumentWithComments\ConvertDocumentWithComments.csproj", "{3FB9D3CB-0DC4-4552-AF72-03BCF8BC995F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareDocuments", "CompareDocuments\CompareDocuments.csproj", "{2480AFF7-C6AC-4BB4-88C0-8C49DE01FA80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompareDocuments", "CompareDocuments\CompareDocuments.csproj", "{2480AFF7-C6AC-4BB4-88C0-8C49DE01FA80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocumentToMarkdown", "ConvertDocumentToMarkdown\ConvertDocumentToMarkdown.csproj", "{A11F8E57-44E4-4A2A-A6E5-2374B0994D1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToMarkdown", "ConvertDocumentToMarkdown\ConvertDocumentToMarkdown.csproj", "{A11F8E57-44E4-4A2A-A6E5-2374B0994D1F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertDocumentToJSON", "ConvertDocumentToJSON\ConvertDocumentToJSON.csproj", "{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -368,6 +370,18 @@ Global
 		{A11F8E57-44E4-4A2A-A6E5-2374B0994D1F}.Release|x64.Build.0 = Release|Any CPU
 		{A11F8E57-44E4-4A2A-A6E5-2374B0994D1F}.Release|x86.ActiveCfg = Release|Any CPU
 		{A11F8E57-44E4-4A2A-A6E5-2374B0994D1F}.Release|x86.Build.0 = Release|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Debug|x64.Build.0 = Debug|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Debug|x86.Build.0 = Debug|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Release|x64.ActiveCfg = Release|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Release|x64.Build.0 = Release|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Release|x86.ActiveCfg = Release|Any CPU
+		{0FC7C9C3-AF63-4368-AE90-C74C2E99B4DC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

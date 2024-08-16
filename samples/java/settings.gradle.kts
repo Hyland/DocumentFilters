@@ -6,6 +6,7 @@ rootProject.name = "docfilters-samples"
 
 include(":docfilters-sample")
 include(":convert-document-to-html")
+include(":convert-document-to-json")
 include(":convert-document-to-markdown")
 include(":convert-document-to-pdf")
 include(":convert-document-to-png")
