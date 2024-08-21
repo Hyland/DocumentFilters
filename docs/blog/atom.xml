@@ -2,11 +2,59 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://hyland.github.io/DocumentFilters/blog/</id>
     <title>Hyland Document Filters Blog Blog</title>
-    <updated>2024-05-29T00:00:00.000Z</updated>
+    <updated>2024-08-21T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://hyland.github.io/DocumentFilters/blog/"/>
     <subtitle>Hyland Document Filters Blog Blog</subtitle>
     <icon>https://hyland.github.io/DocumentFilters/blog/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Document Filters 24.3 Release]]></title>
+        <id>https://hyland.github.io/DocumentFilters/blog/24.3-release</id>
+        <link href="https://hyland.github.io/DocumentFilters/blog/24.3-release"/>
+        <updated>2024-08-21T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Explore the new features of Hyland Document Filters with the 24.3 release, ranging from table detection to a markdown output type.]]></summary>
+        <content type="html"><![CDATA[<p>We're excited to announce the latest release of Document Filters, packed with powerful new features designed to enhance your document processing capabilities. This update introduces a JSON Output Type for structured data handling, a Markdown Output Type for streamlined document conversion, advanced PDF Table Extraction for improved data accuracy, and MSI Installer Sub-File Extraction for comprehensive file analysis. Additionally, we've added community-inspired support for Hancom Hangul HWPX text extraction and HD rendering. Read on to discover how these new features can elevate your workflows and drive better results.</p>
+<p>Watch as we walk through a few of the new features in the 24.3 release of Document Filters.</p>
+<div class="iframe-container"><iframe src="https://www.youtube.com/embed/Iou3fnOuTSo?si=zSEciPzwpaO4nEBA" title="Hyland Document Filters - 24.3 Features Preview Video" enablejsapi="true" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen=""></iframe></div>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="pdf-table-extraction">PDF Table Extraction<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#pdf-table-extraction" class="hash-link" aria-label="Direct link to PDF Table Extraction" title="Direct link to PDF Table Extraction">​</a></h2>
+<p>Document Filters now supports the identification and extraction of tables from untagged PDF files. This feature preserves the logical structure of tables, rows, and cells, ensuring accurate table detection for PDFs. Preserving the structures of tables allows AI/ML systems to improve their data quality and accuracy when processing documents.</p>
+<a href="https://hyland.github.io/DocumentFilters/blog/assets/images/PDF_TABLE_DETECTION-d19ee1f757ec4dfe9651f605b62b34f0.png" target="_blank" rel="noopener noreferrer"><img src="https://hyland.github.io/DocumentFilters/blog/assets/images/PDF_TABLE_DETECTION-d19ee1f757ec4dfe9651f605b62b34f0.png" alt="Hyland Document Filters - PDF Table Extraction"></a>
+<p>Detecting and extracting the table information from an invoice. The image on the left displays how information is extracted with table detection disabled, while the right displays how information is extrated with table detection enabled.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="json-output-type">JSON Output Type<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#json-output-type" class="hash-link" aria-label="Direct link to JSON Output Type" title="Direct link to JSON Output Type">​</a></h2>
+<p>Document Filters now includes support for a JSON output type, which structures document data in a detailed, hierarchical format. This enhancement facilitates seamless integration with AI and other JSON-compatible applications, ensuring efficient parsing and utilization of document content for improved AI/ML-driven data analysis and processing.</p>
+<img data-gifffer="/DocumentFilters/blog/assets/images/JSON-047d132fda1eb5fd56168e99237ba81e.gif" data-gifffer-width="100%" data-gifffer-height="auto" alt="Hyland Document Filters - JSON Output Type">
+<p>Converting an invoice with a table into JSON, and keeping its table structure.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="markdown-output-type">Markdown Output Type<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#markdown-output-type" class="hash-link" aria-label="Direct link to Markdown Output Type" title="Direct link to Markdown Output Type">​</a></h2>
+<p>Converting documents to a Markdown output type is now supported. This feature allows users to effortlessly convert documents to Markdown, providing a lightweight and efficient way to present formatted content. It is ideal for use with AI/ML systems, as the lightweight and structured composition of Markdown reduces computing costs, as well as enhances data processing.</p>
+<a href="https://hyland.github.io/DocumentFilters/blog/assets/images/Markdown-8a65dc0021a1553bcbc364aa54e8573f.png" target="_blank" rel="noopener noreferrer"><img src="https://hyland.github.io/DocumentFilters/blog/assets/images/Markdown-8a65dc0021a1553bcbc364aa54e8573f.png" alt="Hyland Document Filters - Markdown Output Type"></a>
+<p>Converting an invoice with a table into Markdown, and keeping its table structure.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="markdown-ai-use-case">Markdown AI Use Case<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#markdown-ai-use-case" class="hash-link" aria-label="Direct link to Markdown AI Use Case" title="Direct link to Markdown AI Use Case">​</a></h3>
+<img data-gifffer="/DocumentFilters/blog/assets/images/Markdown_ChatGPT-07dd432a4198afc67fd0aa16e63d3f9a.gif" data-gifffer-width="100%" data-gifffer-height="auto" alt="Hyland Document Filters - Markdown AI Use Case">
+<p>Here we passed in the Markdown generated from the invoice into ChatGPT and gave it the prompt of "Complete this invoice and display it in a readable format." ChatGPT was able to correctly identify and understand the context of the table and fill in the missing values. Using Markdown with table detection allowed ChatGPT to have better context compared to plain text, as well as need less resources compared to full JSON, HTML, or XML.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="msi-installer-sub-file-extraction">MSI Installer Sub-File Extraction<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#msi-installer-sub-file-extraction" class="hash-link" aria-label="Direct link to MSI Installer Sub-File Extraction" title="Direct link to MSI Installer Sub-File Extraction">​</a></h2>
+<p>Our latest update introduces support for sub-file extraction from MSI installer files. This addition enables better handling and analysis of MSI files by extracting embedded files for further processing, enhancing the overall file analysis workflow in security systems.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="hancom-hangul-hwpx-text-and-hd-support-community-inspired">Hancom Hangul HWPX Text and HD Support (Community-Inspired)<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#hancom-hangul-hwpx-text-and-hd-support-community-inspired" class="hash-link" aria-label="Direct link to Hancom Hangul HWPX Text and HD Support (Community-Inspired)" title="Direct link to Hancom Hangul HWPX Text and HD Support (Community-Inspired)">​</a></h2>
+<p>In response to community feedback, we have introduced text extraction and HD rendering support for Hancom Hangul HWPX files. This update enhances the ability to process and utilize content from these files, as well as ensures enhanced rendering fidelity of complex Korean language documents, maintaining their original formatting and layout.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="release-links">Release Links<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#release-links" class="hash-link" aria-label="Direct link to Release Links" title="Direct link to Release Links">​</a></h2>
+<ul>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/rel_24_3_0_0000.html" target="_blank" rel="noopener noreferrer">Document Filters 24.3 Release Notes</a></li>
+<li><a href="https://github.com/Hyland/DocumentFilters/releases/download/v24.3.0/document-filters-24.3.0.5160-sbom.json" target="_blank" rel="noopener noreferrer">Document Filters 24.3 Software Bill of Materials</a></li>
+<li><a href="https://community.hyland.com/feedback" target="_blank" rel="noopener noreferrer">Enhancement Requests</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="document-filters-resources">Document Filters Resources<a href="https://hyland.github.io/DocumentFilters/blog/24.3-release#document-filters-resources" class="hash-link" aria-label="Direct link to Document Filters Resources" title="Direct link to Document Filters Resources">​</a></h2>
+<ul>
+<li><a href="https://github.com/Hyland/DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on GitHub</a></li>
+<li><a href="https://www.nuget.org/packages/Hyland.DocumentFilters" target="_blank" rel="noopener noreferrer">Document Filters on NuGet</a></li>
+<li><a href="https://github.com/Hyland/DocumentFilters/tree/master/samples" target="_blank" rel="noopener noreferrer">Document Filters Samples</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/index.html" target="_blank" rel="noopener noreferrer">Document Filters Documentation</a></li>
+<li><a href="https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html" target="_blank" rel="noopener noreferrer">Document Filters Release Notes</a></li>
+<li><a href="https://www.hyland.com/en/products/document-filters" target="_blank" rel="noopener noreferrer">Hyland</a></li>
+</ul>]]></content>
+        <author>
+            <name>Nabih Metri</name>
+        </author>
+        <category label="Release" term="Release"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Exploring the Document Comparison APIs]]></title>
         <id>https://hyland.github.io/DocumentFilters/blog/comparison-api</id>
