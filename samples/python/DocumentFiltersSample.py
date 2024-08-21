@@ -1,7 +1,7 @@
 import os, platform, zipfile, urllib.request, fnmatch, DocumentFiltersLicense
 from DocumentFilters import *
 
-DF_VERSION='24.2.1'
+DF_VERSION='24.3.0'
 with open('../DF_VERSION.txt', 'r') as version_file:
     DF_VERSION=version_file.read().strip()
 
@@ -83,6 +83,8 @@ def GetFontsDir(settings):
     dest_dir = f'runtimes/{DF_VERSION}/assets'
     if not os.path.exists(dest_dir):
         url=f'https://github.com/HylandSoftware/DocumentFilters/releases/download/v{DF_VERSION}/assets.zip'
+        if os.environ.get("DOCFILTERS_RELEASES_URL"):
+            url = os.environ.get("DOCFILTERS_RELEASES_URL") + f"assets.zip"
         dest_archive=f'runtimes/{DF_VERSION}/assets.zip'
         if not os.path.exists(dest_archive):
             print(f"Downloading Document Filters Fonts and Assets from GitHub...")

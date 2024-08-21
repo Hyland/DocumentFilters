@@ -7,7 +7,7 @@ import os, platform, urllib.request, zipfile, glob
 try:
   DF_VERSION=os.environ['ISYS_BUILD_PRODUCT_VERSION']
 except KeyError:
-  DF_VERSION = '24.2.1'
+  DF_VERSION = '24.3.0'
 
 # Download the binaries from 
 setup(name='DocumentFilters',

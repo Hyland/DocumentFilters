@@ -704,7 +704,83 @@ class DocumentFilters(DocumentFiltersBase):
                 DocumentFiltersBase._Call(API.IGR_Get_Page_Form_Elements, pageHandle, i, ctypes.byref(c), ctypes.byref(e))
                 result.append(DocumentFilters.FormElement(e))
             return result
+        
+    class PageElement(DocumentFiltersBase):
+        def __init__(self, pageHandle, info):
+            self._pageHandle = pageHandle
+            self._info = info
+            self._styles = None
 
+        @property
+        def Depth(self): return self._info.depth
+
+        @property
+        def Flags(self): return self._info.flags
+
+        @property
+        def Type(self): return self._info.type
+
+        @property
+        def Bounds(self): return self._info.pos
+
+        @property 
+        def Text(self): return self.GetText()
+
+        @property 
+        def Styles(self):
+            if self._styles == None:
+                self._styles = {}
+                self._styles["a"] = "a"
+
+                def callback_function(name, value, ctx):
+                    self._styles[name] = value
+
+                DocumentFiltersBase._Call(self.API.IGR_Get_Page_Element_Styles, self._pageHandle, ctypes.byref(self._info), IGR_PAGE_ELEMENT_STYLES_CALLBACK(callback_function), 0)
+
+            return self._styles
+
+        def GetText(self):
+            len = IGR_ULONG(0)
+            DocumentFiltersBase._Call(self.API.IGR_Get_Page_Element_Text, self._pageHandle, ctypes.byref(self._info), ctypes.byref(len), None)
+            
+            len.value += 1
+            data = ctypes.create_string_buffer((len.value + 1) * 2)
+            DocumentFiltersBase._Call(self.API.IGR_Get_Page_Element_Text, self._pageHandle, ctypes.byref(self._info), ctypes.byref(len),  ctypes.byref(data))
+            return DocumentFiltersBase._FromUTF16(data, len.value)
+        
+        def GetFirstChild(self):
+            res = IGR_Page_Element()
+            res.struct_size = ctypes.sizeof(IGR_Page_Element)
+            
+            if DocumentFilters._Call(self.API.IGR_Get_Page_Element_First_Child, self._pageHandle, ctypes.byref(self._info), ctypes.byref(res)) == 0:
+                return DocumentFilters.PageElement(self._pageHandle, res)
+            else:
+                return None
+
+        def GetNextSibling(self):
+            res = IGR_Page_Element()
+            res.struct_size = ctypes.sizeof(IGR_Page_Element)
+            
+            if DocumentFilters._Call(self.API.IGR_Get_Page_Element_Next_Sibling, self._pageHandle, ctypes.byref(self._info), ctypes.byref(res)) == 0:
+                return DocumentFilters.PageElement(self._pageHandle, res)
+            else:
+                return None
+            
+        def Children(self):
+            child = self.GetFirstChild()
+            while child is not None:
+                yield child
+      
+        def AllChildren(self):
+            child = self.GetFirstChild()
+            while child is not None:
+                yield child
+
+                for grandChild in child.AllChildren():
+                    yield grandChild
+                child = child.GetNextSibling()
+           
+            
     class Word(DocumentFiltersBase):
         def __init__(self, item, index):
             self._item = item
@@ -947,6 +1023,7 @@ class DocumentFilters(DocumentFiltersBase):
             self._hyperlinkIter = None
             self._annotations = None
             self._annotationIndex = 0
+            self._rootPageElement = None
 
             DocumentFiltersBase._Call(self.API.IGR_Open_Page, docHandle, pageIndex, ctypes.byref(self._pageHandle))
 
@@ -1055,7 +1132,7 @@ class DocumentFilters(DocumentFiltersBase):
         def GetNextImage(self):
             if self._imageEnumerator == None:
                 return self.GetFirstImage()
-            return DocumentFilters.Extractor._NextSubFile(self._imageEnumerator, self._pageHandle, self.API.IGR_Subfiles_Next, self.API.IGR_Extract_Page_Image_Stream)
+            return DocumentFilters.Extractor._NextSubFile(self._imageEnumerator, self._pageHandle, self.API.IGR_Subfiles_Next_Ex, self.API.IGR_Extract_Page_Image_Stream)
 
         def GetAttribute(self, name):
             size = IGR_LONG(1024)
@@ -1166,7 +1243,14 @@ class DocumentFilters(DocumentFiltersBase):
 
             DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Pages, leftHandle, ctypes.byref(leftMargins), rightHandle, ctypes.byref(rightMargins), ctypes.byref(wrappedSettings._item), ctypes.byref(res))
             return DocumentFilters.CompareResults(res)
+        
+        def GetRootPageElement(self):
+            if self._rootPageElement == None:
+                self._rootPageElement = IGR_Page_Element()
+                self._rootPageElement.struct_size = ctypes.sizeof(IGR_Page_Element)
+                DocumentFilters._Call(self.API.IGR_Get_Page_Element_Root, self._pageHandle, ctypes.byref(self._rootPageElement))
 
+            return DocumentFilters.PageElement(self._pageHandle, self._rootPageElement)
 
         @property
         def PageIndex(self): return self._pageIndex
@@ -2433,7 +2517,7 @@ class DocumentFilters(DocumentFiltersBase):
                     self.close()
 
                 def __next__(self):
-                    result = DocumentFilters.Extractor._NextSubFile(self._handle, self._docHandle, self.API.IGR_Subfiles_Next, self._getter)
+                    result = DocumentFilters.Extractor._NextSubFile(self._handle, self._docHandle, self.API.IGR_Subfiles_Next_Ex, self._getter)
                     if result == None:
                         raise StopIteration
                     return result
@@ -2472,18 +2556,31 @@ class DocumentFilters(DocumentFiltersBase):
 
         @staticmethod
         def _NextSubFile(enumeratorHandle, documentHandle, next, extractor):
-            size = IGR_LONGLONG(0)
-            date = IGR_LONGLONG(0)
-            id = DocumentFiltersBase._UTF16Buffer(4096)
-            name = DocumentFiltersBase._UTF16Buffer(1024)
-            if DocumentFiltersBase._Call(next, enumeratorHandle, id, name, ctypes.byref(date), ctypes.byref(size)) == 0:
+
+            info = IGR_Subfile_Info()
+            info.struct_size = ctypes.sizeof(IGR_Subfile_Info)
+            info.id_size = 4096
+            info.name_size = 1024
+            info.comment_size = 4096
+
+            id_buffer = DocumentFiltersBase._UTF16Buffer(info.id_size)
+            name_buffer = DocumentFiltersBase._UTF16Buffer(info.name_size)
+            comment_buffer = DocumentFiltersBase._UTF16Buffer(info.comment_size)
+
+            info.id = ctypes.cast(id_buffer, ctypes.POINTER(None))
+            info.name = ctypes.cast(name_buffer, ctypes.POINTER(None))
+            info.comment = ctypes.cast(comment_buffer, ctypes.POINTER(None))
+
+            if DocumentFiltersBase._Call(next, enumeratorHandle, ctypes.byref(info)) == 0:
 
                 return DocumentFilters.SubFile(documentHandle, \
-                    DocumentFiltersBase._FromUTF16(id, 4096), \
-                    DocumentFiltersBase._FromUTF16(name, 1024), \
-                    size.value, \
-                    date.value, \
-                    extractor)
+                    id = DocumentFiltersBase._FromUTF16(id_buffer, info.id_size), \
+                    name = DocumentFiltersBase._FromUTF16(name_buffer, info.name_size), \
+                    comment = DocumentFiltersBase._FromUTF16(comment_buffer, info.comment_size), \
+                    size = info.size, \
+                    date = info.date, \
+                    flags = info.flags,
+                    extractor = extractor)
             return None
 
         @staticmethod
@@ -2725,7 +2822,7 @@ class DocumentFilters(DocumentFiltersBase):
         def GetNextSubFile(self):
             if self._subfilesEnumerator == None:
                 return self.GetFirstSubFile()
-            return DocumentFilters.Extractor._NextSubFile(self._subfilesEnumerator, self._needHandle(), self.API.IGR_Subfiles_Next, self.API.IGR_Extract_Subfile_Stream)
+            return DocumentFilters.Extractor._NextSubFile(self._subfilesEnumerator, self._needHandle(), self.API.IGR_Subfiles_Next_Ex, self.API.IGR_Extract_Subfile_Stream)
 
         def GetFirstImage(self):
             if self._imageEnumerator == None:
@@ -2738,13 +2835,13 @@ class DocumentFilters(DocumentFiltersBase):
         def GetNextImage(self):
             if self._imageEnumerator == None:
                 return self.GetFirstImage()
-            return DocumentFilters.Extractor._NextSubFile(self._imageEnumerator, self._needHandle(), self.API.IGR_Subfiles_Next, self.API.IGR_Extract_Image_Stream)
+            return DocumentFilters.Extractor._NextSubFile(self._imageEnumerator, self._needHandle(), self.API.IGR_Subfiles_Next_Ex, self.API.IGR_Extract_Image_Stream)
 
         def GetSubFile(self, id):
-            return DocumentFilters.SubFile(self._needHandle(), id, '', 0, 0, self.API.IGR_Extract_Subfile_Stream)
+            return DocumentFilters.SubFile(self._needHandle(), id = id, name = '', comment = None, date = 0, size = 0, flags = 0, extractor = self.API.IGR_Extract_Subfile_Stream)
 
         def GetImage(self, id):
-            return DocumentFilters.SubFile(self._needHandle(), id, '', 0, 0, self.API.IGR_Extract_Image_Stream)
+            return DocumentFilters.SubFile(self._needHandle(), id = id, name = '', comment = None, date = 0, size = 0, flags = 0, extractor = self.API.IGR_Extract_Image_Stream)
 
         def GetFirstPage(self):
             self._pageIndex = 0
@@ -2800,6 +2897,9 @@ class DocumentFilters(DocumentFiltersBase):
                                       , ctypes.byref(wrappedSettings._item)
                                       , ctypes.byref(res))
             return DocumentFilters.CompareResults(res)        
+
+        def GetMimeType(self):
+            return self.getFileType(5)
 
         @property
         def FirstSubFile(self): return self.GetFirstSubFile()
@@ -2872,15 +2972,19 @@ class DocumentFilters(DocumentFiltersBase):
         def Localizer(self, value: 'Callable[[int, str], str]'): 
             self._localizer = value        
 
+        @property
+        def MimeType(self): return self.GetMimeType()
 
     class SubFile(Extractor):
-        def __init__(self, docHandle, id, name, size, date, extractor):
+        def __init__(self, docHandle, id, name, comment, size, date, flags, extractor):
             super(DocumentFilters.SubFile, self).__init__()
             self._docHandle = docHandle
             self._id = id
             self._name = name
             self._size = size
             self._date = date
+            self._comment = comment
+            self._flags = flags
             self._extractor = extractor
 
         def _needStream(self):
@@ -2907,6 +3011,17 @@ class DocumentFilters(DocumentFiltersBase):
 
         @property
         def FileSize(self): return self.getFileSize()
+
+        @property
+        def Flags(self): return self._flags
+
+        @property
+        def Comment(self): return self._comment
+
+        @property
+        def IsEncrypted(self): return (self.Flags & IGR_SUBFILE_INFO_FLAG_PASSWORD_PROTECTED) != 0
+
+
 
     def Initialize(self, license, resource_path = ".", dll_path = None):
         ecb = Error_Control_Block()
