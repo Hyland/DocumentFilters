@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+
+add_executable (ConvertDocumentToPostscript "ConvertDocumentToPostscript.cpp")
+target_link_libraries (ConvertDocumentToPostscript PUBLIC DocumentFiltersSamples)
+install(TARGETS ConvertDocumentToPostscript DESTINATION bin)

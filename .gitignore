@@ -9,4 +9,5 @@
 **/*.bak
 **/CMakeSettings.json
 **/.sarif
+**/build/*
 .vs
