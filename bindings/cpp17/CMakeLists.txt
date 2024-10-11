@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
+# Enable Hot Reload for MSVC compilers if supported.
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
 project(DocumentFilters
     VERSION 24.4.0
     DESCRIPTION "Document Filters - c++17 bindings"
@@ -43,8 +49,9 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../c bindings)
 
 # Create the library for the C++17 bindings
 add_library(${LIBRARY_NAME} STATIC ${SOURCES} ${HEADERS})
-target_compile_features(${LIBRARY_NAME} PRIVATE cxx_std_17)
-target_compile_definitions(${LIBRARY_NAME} PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+set_property(TARGET ${LIBRARY_NAME} PROPERTY CXX_STANDARD 17)
+#target_compile_features(${LIBRARY_NAME} PRIVATE cxx_std_17)
+#target_compile_definitions(${LIBRARY_NAME} PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
 target_include_directories(${LIBRARY_NAME} PUBLIC include)
 target_link_libraries(${LIBRARY_NAME} PUBLIC DocumentFilters)
 

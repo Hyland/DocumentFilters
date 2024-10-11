@@ -5,6 +5,7 @@ project(DocumentFiltersSamples)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_INSTALL_RPATH "$ORIGIN")
 
 include(FetchContent)
 FetchContent_Declare(CLI11
@@ -13,8 +14,6 @@ FetchContent_Declare(CLI11
 )
 FetchContent_MakeAvailable(CLI11)
 
-set(DOCFILTERS_INSTALL_BINARIES ON)
-set(DOCFILTERS_INSTALL_ASSETS ON)
 add_subdirectory(${CMAKE_SOURCE_DIR}/../../bindings/cpp17 bindings)
 
 add_subdirectory (CombineDocuments)
@@ -39,4 +38,6 @@ add_subdirectory (GetDocumentType)
 add_subdirectory (GetDocumentWords)
 add_subdirectory (WatermarkDocument)
 
-set_target_properties(CLI11 PROPERTIES FOLDER "Third-Party")
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18")
+  set_target_properties(CLI11 PROPERTIES FOLDER "Third-Party")
+endif()
