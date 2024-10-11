@@ -38,3 +38,5 @@ add_subdirectory (DocumentFiltersSamples)
 add_subdirectory (GetDocumentType)
 add_subdirectory (GetDocumentWords)
 add_subdirectory (WatermarkDocument)
+
+set_target_properties(CLI11 PROPERTIES FOLDER "Third-Party")

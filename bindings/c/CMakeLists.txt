@@ -6,31 +6,36 @@ project(DocumentFilters
     LANGUAGES CXX
 )
 
+option(DOCFILTERS_INSTALL_BINARIES "Install the Document Filters binaries" ON)
+option(DOCFILTERS_INSTALL_ASSETS "Install the Document Filters binaries" ON)
+
+# Location where the Document Filters binaries will be downloaded. If not set, the latest release will be downloaded.
 set(DOCFILTERS_RELEASES_URL "" CACHE STRING "URL to download the Document Filters binaries from")
+
+# Version of the Document Filters binaries to download. If not set, the latest release will be downloaded.
 set(DOCFILTERS_VERSION "" CACHE STRING "Document Filters version")
-set(DOCFILTERS_INSTALL_BINARIES OFF CACHE BOOL "Install the Document Filters binaries")
-set(DOCFILTERS_INSTALL_ASSETS OFF CACHE BOOL "Install the Document Filters binaries")
+set(DOCFILTERS_BINARIES_PROJECT DocumentFiltersBinaries)
+set(DOCFILTERS_BINARIES_PROJECT_PREFIX ${CMAKE_BINARY_DIR}/${DOCFILTERS_BINARIES_PROJECT})
 
+# Create the interface library for the C api
 set(LIBRARY_NAME "DocumentFilters")
-
 set(HEADERS include/DocumentFilters.h)
 
-set(DEPENDENCIES DocumentFilters)
-
-# Create the libary
-add_library(${LIBRARY_NAME} INTERFACE  ${HEADERS})
+add_library(${LIBRARY_NAME} INTERFACE)
 target_include_directories(${LIBRARY_NAME} INTERFACE include)
-target_link_libraries(${LIBRARY_NAME} INTERFACE ${DEPENDENCIES})
+target_link_libraries(${LIBRARY_NAME} INTERFACE ISYS11df)
+
+add_library(DocumentFilters::DocumentFilters ALIAS DocumentFilters)
 
 if (WIN32)
 	target_link_directories(${LIBRARY_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/lib)
-	if(${CMAKE_CXX_COMPILER_ARCHITECTURE_ID} MATCHES "X86")		
-		target_link_libraries(${LIBRARY_NAME} INTERFACE "ISYS11df_x86")
+	if(${CMAKE_CXX_COMPILER_ARCHITECTURE_ID} MATCHES "X86")
+        target_link_directories(${LIBRARY_NAME} INTERFACE "${CMAKE_CURRENT_LIST_DIR}/lib/x86")
 	else()
-		target_link_libraries(${LIBRARY_NAME} INTERFACE "ISYS11df_x64")
+        target_link_directories(${LIBRARY_NAME} INTERFACE "${CMAKE_CURRENT_LIST_DIR}/lib/x64")
 	endif()
-# else()
-# 	target_link_libraries(DocumentFiltersSamples PUBLIC "ISYS11df")
+else()
+	target_link_directories(${LIBRARY_NAME} INTERFACE "${DOCFILTERS_BINARIES_PROJECT_PREFIX}/src/${DOCFILTERS_BINARIES_PROJECT}_download/")
 endif()
 
 export(TARGETS DocumentFilters FILE DocumentFiltersConfig.cmake)
@@ -46,15 +51,15 @@ endif()
 # Function to get the latest version from GitHub using its API
 function(fetch_latest_version LATEST_VERSION_VAR)
     message(STATUS "Fetching the latest version from GitHub...")
-    
+
     # GitHub API URL to get the latest release info (replace with your repo's details)
     set(LATEST_URL "https://api.github.com/repos/Hyland/DocumentFilters/releases/latest")
-    
+
     file(DOWNLOAD ${LATEST_URL} ${CMAKE_BINARY_DIR}/latest_release.json
          TIMEOUT 60
          STATUS DOWNLOAD_STATUS
          LOG logFile)
-    
+
     if(NOT DOWNLOAD_STATUS EQUAL 0)
         message(FATAL_ERROR "Failed to download latest release information from GitHub.")
     endif()
@@ -79,100 +84,90 @@ endif()
 message(STATUS "Downloading release binaries from: ${DOCFILTERS_RELEASES_URL}")
 
 # Set the URL of the ZIP file you want to download
-set(EXTERNAL_PROJECT_NAME DocumentFiltersBinaries)
-set(EXTERNAL_PROJECT_PREFIX ${CMAKE_BINARY_DIR}/${EXTERNAL_PROJECT_NAME})
 
 if("${DF_BINARIES}" STREQUAL "")
     if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-        set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/windows-intel-msvc-64.zip)
+        set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/windows-intel-msvc-64.zip)
     elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
         if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
             if (EXISTS "/etc/alpine-release")
-                set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/linux-aarch64-clang-musl-64.zip)
+                set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/linux-aarch64-clang-musl-64.zip)
             else()
-                set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/linux-aarch64-gcc-64.zip)
+                set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/linux-aarch64-gcc-64.zip)
             endif()
         elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
-            set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/linux-ppc64le-gcc-64.zip)
+            set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/linux-ppc64le-gcc-64.zip)
         elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64")
-            set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/linux-ppc-gcc-64.zip)
+            set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/linux-ppc-gcc-64.zip)
         else()
             if (EXISTS "/etc/alpine-release")
-                set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/linux-intel-clang-musl-64.zip)
+                set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/linux-intel-clang-musl-64.zip)
             else()
-                set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/linux-intel-gcc-64.zip)
+                set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/linux-intel-gcc-64.zip)
             endif()
         endif()
     elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
         if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
-            set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/macos-arm64-clang-64.zip)
+            set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/macos-arm64-clang-64.zip)
         else()
-            set(EXTERNAL_PROJECT_URL ${DOCFILTERS_RELEASES_URL}/macos-intel-clang-64.zip)
+            set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/macos-intel-clang-64.zip)
         endif()
     else()
         message(FATAL_ERROR "Unsupported operating system: ${CMAKE_SYSTEM_NAME}")
     endif()
 
+    set(DOCFILTERS_BINARIES_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    if ("${DOCFILTERS_BINARIES_OUTPUT_DIRECTORY}" STREQUAL "")
+        set(DOCFILTERS_BINARIES_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+    endif()
+
     # Configure and build the external project
-    ExternalProject_Add(${EXTERNAL_PROJECT_NAME}_download
-        PREFIX ${EXTERNAL_PROJECT_PREFIX}
-        URL ${EXTERNAL_PROJECT_URL}
-        DOWNLOAD_NAME "${EXTERNAL_PROJECT_NAME}.zip"
+    ExternalProject_Add(${DOCFILTERS_BINARIES_PROJECT}_download
+        PREFIX ${DOCFILTERS_BINARIES_PROJECT_PREFIX}
+        URL ${DOCFILTERS_BINARIES_URL}
+        DOWNLOAD_NAME "${DOCFILTERS_BINARIES_PROJECT}.zip"
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
     )
 
-    # Define a custom target to execute after building the external project
-    add_custom_target(${EXTERNAL_PROJECT_NAME}_unzip
-        COMMAND ${CMAKE_COMMAND} -E tar xf ${EXTERNAL_PROJECT_PREFIX}/src/${EXTERNAL_PROJECT_NAME}.zip
+    # Define a custom target to unzip and copy the contents to the bin directory
+    add_custom_target(${DOCFILTERS_BINARIES_PROJECT}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${DOCFILTERS_BINARIES_PROJECT_PREFIX}/src/${DOCFILTERS_BINARIES_PROJECT}_download ${DOCFILTERS_BINARIES_OUTPUT_DIRECTORY}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
-    add_dependencies(${EXTERNAL_PROJECT_NAME}_unzip ${EXTERNAL_PROJECT_NAME}_download)
-
-    # Define a custom target to copy the contents to the bin directory
-    add_custom_target(${EXTERNAL_PROJECT_NAME}
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${EXTERNAL_PROJECT_PREFIX}/src/${EXTERNAL_PROJECT_NAME}_download ${CMAKE_BINARY_DIR}/bin
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    )
-    add_dependencies(${EXTERNAL_PROJECT_NAME} ${EXTERNAL_PROJECT_NAME}_unzip)
+    add_dependencies(${DOCFILTERS_BINARIES_PROJECT} ${DOCFILTERS_BINARIES_PROJECT}_download)
+    add_dependencies(DocumentFilters ${DOCFILTERS_BINARIES_PROJECT})
 
     # Install the extracted files (assumes the contents need to be installed to a specific location)
     if (DOCFILTERS_INSTALL_BINARIES)
-        install(DIRECTORY ${EXTERNAL_PROJECT_PREFIX}/src/${EXTERNAL_PROJECT_NAME}_download/ DESTINATION ${CMAKE_INSTALL_PREFIX}/bin FILES_MATCHING PATTERN "*")  
+        install(DIRECTORY ${DOCFILTERS_BINARIES_PROJECT_PREFIX}/src/${DOCFILTERS_BINARIES_PROJECT}_download/ DESTINATION ${CMAKE_INSTALL_PREFIX}/bin FILES_MATCHING PATTERN "*")
     endif()
 
     # Configure and build the assets project (fonts, ocr data, etc.)
-    set(EXTERNAL_PROJECT_ASSETS_NAME DocumentFiltersAssets)
-    set(EXTERNAL_PROJECT_ASSETS_PREFIX ${CMAKE_BINARY_DIR}/${EXTERNAL_PROJECT_NAME})    
-    set(EXTERNAL_PROJECT_ASSESTS_URL "${DOCFILTERS_RELEASES_URL}/assets.zip")
-    ExternalProject_Add(${EXTERNAL_PROJECT_ASSETS_NAME}_download
-        PREFIX ${EXTERNAL_PROJECT_ASSETS_PREFIX}
-        URL ${EXTERNAL_PROJECT_ASSESTS_URL}
+    set(DOCFILTERS_ASSETS_PROJECT DocumentFiltersAssets)
+    set(DOCFILTERS_ASSETS_PROJECT_PREFIX ${CMAKE_BINARY_DIR}/${DOCFILTERS_BINARIES_PROJECT})
+    set(DOCFILTERS_ASSETS_URL "${DOCFILTERS_RELEASES_URL}/assets.zip")
+    ExternalProject_Add(${DOCFILTERS_ASSETS_PROJECT}_download
+        PREFIX ${DOCFILTERS_ASSETS_PROJECT_PREFIX}
+        URL ${DOCFILTERS_ASSETS_URL}
         UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
     )
 
-    # # Define a custom target to execute after building the external project
-    add_custom_target(${EXTERNAL_PROJECT_ASSETS_NAME}_unzip
-    set(EXTERNAL_PROJECT_ASSETS_PREFIX ${CMAKE_BINARY_DIR}/${EXTERNAL_PROJECT_NAME})    
-        COMMAND ${CMAKE_COMMAND} -E tar xf ${EXTERNAL_PROJECT_ASSETS_PREFIX}/src/${T}.zip
+    # Define a custom target to unzip and copy the contents to the bin directory
+    add_custom_target(${DOCFILTERS_ASSETS_PROJECT}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${DOCFILTERS_ASSETS_PROJECT_PREFIX}/src/${DOCFILTERS_ASSETS_PROJECT}_download ${DOCFILTERS_BINARIES_OUTPUT_DIRECTORY}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
-    add_dependencies(${EXTERNAL_PROJECT_ASSETS_NAME}_unzip ${EXTERNAL_PROJECT_ASSETS_NAME}_download)
-
-    # Define a custom target to copy the contents to the bin directory
-    add_custom_target(${EXTERNAL_PROJECT_ASSETS_NAME}
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${EXTERNAL_PROJECT_ASSETS_PREFIX}/src/${EXTERNAL_PROJECT_ASSETS_NAME}_download ${CMAKE_BINARY_DIR}/bin
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    )
-    add_dependencies(${EXTERNAL_PROJECT_ASSETS_NAME} ${EXTERNAL_PROJECT_ASSETS_NAME}_unzip)
+    add_dependencies(${DOCFILTERS_ASSETS_PROJECT} ${DOCFILTERS_ASSETS_PROJECT}_download)
+    add_dependencies(DocumentFilters ${DOCFILTERS_ASSETS_PROJECT})
 
     if (DOCFILTERS_INSTALL_ASSETS)
-        install(DIRECTORY ${EXTERNAL_PROJECT_ASSETS_PREFIX}/src/${EXTERNAL_PROJECT_ASSETS_NAME}_download/ DESTINATION ${CMAKE_INSTALL_PREFIX}/bin FILES_MATCHING PATTERN "*")  
+        install(DIRECTORY ${DOCFILTERS_ASSETS_PROJECT_PREFIX}/src/${DOCFILTERS_ASSETS_PROJECT}_download/ DESTINATION ${CMAKE_INSTALL_PREFIX}/bin FILES_MATCHING PATTERN "*")
     endif()
 
 endif()
