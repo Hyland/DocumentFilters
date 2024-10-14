@@ -111,8 +111,8 @@ public:
                     canvas.RenderPage(page);
 
                     DF::AnnotationNamedDestination dest;
-					dest.name = L"D" + std::to_wstring(file_index + 1) + L"P" + std::to_wstring(page_index + 1);
-					dest.rect = { 0, 0, static_cast<int32_t>(page.getWidth()), static_cast<int32_t>(page.getHeight()) };
+					dest.setName(L"D" + std::to_wstring(file_index + 1) + L"P" + std::to_wstring(page_index + 1));
+					dest.setRect({ 0, 0, static_cast<int32_t>(page.getWidth()), static_cast<int32_t>(page.getHeight()) });
 
                     canvas.Annotate(dest);
 
@@ -367,9 +367,9 @@ private:
                 canvas.TextOut(tile_rect.left + (tile_rect.width() - caption_width) / 2, tile_rect.bottom - caption_height, caption + caption_suffix);
 
                 DF::AnnotationLink link;
-                link.rect = tile_rect;
-                link.action.type = DF::AnnotationAction::ActionType::GoTo;
-                link.action.name = L"D" + std::to_wstring(info.extractor_index + 1) + L"P" + std::to_wstring(info.page_index + 1);
+                link.setRect(tile_rect);
+                link.getAction().setType(DF::AnnotationAction::ActionType::GoTo);
+                link.getAction().setName(L"D" + std::to_wstring(info.extractor_index + 1) + L"P" + std::to_wstring(info.page_index + 1));
                 canvas.Annotate(link);
 
                 x += m_thumbNailWidth;

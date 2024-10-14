@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    api(files("./lib/ISYS11df.jar"))
+    api(files("../../../bindings/java/lib/ISYS11df.jar"))
 }
 
 description = "Document Filters Sample Base"

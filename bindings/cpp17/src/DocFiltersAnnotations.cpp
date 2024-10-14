@@ -11,6 +11,20 @@ namespace Hyland
 {
 	namespace DocFilters
 	{
+		namespace
+		{
+			template <typename Str> Str normalize_json_name(const Str& name)
+			{
+				if (name.empty())
+					return name;
+				if (name[0] < L'A' || name[0] > L'Z')
+					return name;
+				Str res = name;
+				res[0] = res[0] - L'A' + L'a';
+				return res;
+			}
+		}
+
 		class JsonWriter
 		{
 		private:
@@ -211,7 +225,7 @@ namespace Hyland
 		std::optional<std::wstring> AnnoBind::get_string(const std::wstring& name, size_t max_length) const
 		{
 			static const size_t max_length_default = 1024;
-			static const size_t size_for_text = 128*1024;
+			static const size_t size_for_text = 128 * 1024;
 
 			Error_Control_Block ecb = { 0 };
 			if (name == L"text")
@@ -222,7 +236,7 @@ namespace Hyland
 			std::wstring full_name = prefix + name;
 			if (full_name.empty())
 				return std::optional<std::wstring>();
-			
+
 			if (full_name.size() > 1 && full_name.back() == L'.')
 				full_name.pop_back();
 
@@ -245,7 +259,7 @@ namespace Hyland
 			std::wstring full_name = prefix + name;
 			if (full_name.empty())
 				return std::optional<IGR_LONG>();
-			
+
 			if (full_name.size() > 1 && full_name.back() == L'.')
 				full_name.pop_back();
 
@@ -258,7 +272,7 @@ namespace Hyland
 			{
 				return res;
 			}
-			
+
 			return std::optional<IGR_LONG>();
 		}
 
@@ -271,7 +285,7 @@ namespace Hyland
 		{
 			if (name.empty())
 				return *this;
-			
+
 			return { anno, prefix + name + L"." };
 		}
 
@@ -400,7 +414,7 @@ namespace Hyland
 
 		template <typename T>
 		std::optional<T>& json_bind(const AnnoBind& src, const std::wstring& name, std::optional<T>& dest)
-		{	
+		{
 			if (!dest.has_value())
 				dest = T();
 			json_bind(src, name, *dest);
@@ -434,7 +448,7 @@ namespace Hyland
 			}
 			return dest;
 		}
-		
+
 		Point& json_bind(const AnnoBind& src, const std::wstring& name, Point& dest)
 		{
 			AnnoBind inner = src.inner(name);
@@ -534,7 +548,7 @@ namespace Hyland
 		template <typename Enum, size_t Size>
 		inline Enum string_to_enum(const std::optional<std::wstring>& value, std::pair<Enum, const char*> const (&mappings)[Size], Enum default_value, bool is_set = false)
 		{
-			auto compare = [](const char* a, const char* b) -> bool
+			auto compare = [ ] (const char* a, const char* b) -> bool
 				{
 					if (a == nullptr || b == nullptr)
 						return false;
@@ -560,7 +574,7 @@ namespace Hyland
 			(void) is_set;
 
 			auto it = std::find_if(std::begin(mappings), std::end(mappings),
-				[v, compare](const std::pair<Enum, const char*>& ej_pair) -> bool
+				[ v, compare ] (const std::pair<Enum, const char*>& ej_pair) -> bool
 				{
 					return ej_pair.second && compare(v.c_str(), ej_pair.second);
 				});
@@ -576,7 +590,7 @@ namespace Hyland
 			if (!is_set)
 			{
 				auto it = std::find_if(std::begin(mappings), std::end(mappings),
-					[e](const std::pair<Enum, const char*>& ej_pair) -> bool
+					[ e ] (const std::pair<Enum, const char*>& ej_pair) -> bool
 					{
 						return ej_pair.first == e;
 					});
@@ -597,7 +611,7 @@ namespace Hyland
 				{
 					if (static_cast<uint32_t>(it->first) == 0)
 						continue;
-					
+
 					if ((static_cast<uint32_t>(e) & static_cast<uint32_t>(it->first)) == static_cast<uint32_t>(it->first))
 					{
 						if (it->second != nullptr)
@@ -662,7 +676,7 @@ namespace Hyland
 		{
 			return writer;
 		}
-		
+
 		JsonWriter& json_write(JsonWriter& writer, const AnnotationSerializable& /*src*/)
 		{
 			return writer;
@@ -708,10 +722,10 @@ namespace Hyland
 		template <> JsonWriter& json_write<RectI32>(JsonWriter& writer, const RectI32& value)
 		{
 			return writer.object_begin()
-				.key("left").value(value.left)
-				.key("top").value(value.top)
-				.key("right").value(value.right)
-				.key("bottom").value(value.bottom)
+				.key("left").value(static_cast<int>(value.left))
+				.key("top").value(static_cast<int>(value.top))
+				.key("right").value(static_cast<int>(value.right))
+				.key("bottom").value(static_cast<int>(value.bottom))
 				.object_end();
 		}
 
@@ -747,9 +761,9 @@ namespace Hyland
 		return enum_to_json(writer, e, m, false);                                                 \
 	}
 
-#define DOCFILTERS_JSON_TO(prop) if (!is_empty(src.prop)) { writer.key(#prop); json_write(writer, src.prop); }
-#define DOCFILTERS_JSON_FROM(prop) json_bind(obj, WSTR(#prop), dest.prop);
-#define DOCFILTERS_JSON_COMPARE(prop) result &= json_equal(prop, other.prop);
+#define DOCFILTERS_JSON_TO(prop) if (!is_empty(src.get##prop())) { writer.key(normalize_json_name<std::string>(#prop)); json_write(writer, src.get##prop()); }
+#define DOCFILTERS_JSON_FROM(prop) json_bind(obj, normalize_json_name<std::wstring>(WSTR(#prop)), dest.get##prop());
+#define DOCFILTERS_JSON_COMPARE(prop) result &= json_equal(get##prop(), other.get##prop());
 
 #define DOCFILTERS_SERIALIZABLE_OBJECT(Type, Base, ...)  \
     Type& json_bind(const AnnoBind& src, const std::wstring& name, Type& dest) { \
@@ -885,29 +899,29 @@ namespace Hyland
 			{ AnnotationAction::ActionType::Named, "Named"}
 			});
 
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::AppearanceStream, AnnotationSerializable, content, contentType, encoding);
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::AppearanceStreams, AnnotationSerializable, normal, rollover, down);
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::LineEndings, AnnotationSerializable, begin, end);
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::BorderStyle, AnnotationSerializable, type, width, intensity, dash);
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::DefaultAppearance, AnnotationSerializable, fontName, fontSize, textColor);
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase, AnnotationSerializable, type, flags, name, dateModified, border, color, rect, text);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::AppearanceStream, AnnotationSerializable, Content, ContentType, Encoding);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::AppearanceStreams, AnnotationSerializable, Normal, Rollover, Down);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::LineEndings, AnnotationSerializable, Begin, End);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::BorderStyle, AnnotationSerializable, Type, Width, Intensity, Dash);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::DefaultAppearance, AnnotationSerializable, FontName, FontSize, TextColor);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase, AnnotationSerializable, Type, Flags, Name, DateModified, Border, Color, Rect, Text);
 
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationAction, AnnotationSerializable, newWindow, type, page, uri, name, zoom, rect, filename);
-		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationNote, AnnotationBase, state, stateModel, author);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(Annotation, AnnotationBase, subject, title, intent, opacity, dateCreated, defaultAppearance, popup, replies, appearance, points);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationPopup, AnnotationBase, open);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationStickyNote, Annotation, iconName, open, author, state, stateModel);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationLink, Annotation, highlight, action);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationFreeText, Annotation, defaultAppearance, alignment);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationLine, Annotation, lineEndings, interiorColor);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationRectangle, Annotation, lineEndings, interiorColor, rectDifferences);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationEllipse, Annotation, interiorColor, rectDifferences);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationPolygon, Annotation, interiorColor);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationPolyline, Annotation, lineEndings);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationStamp, Annotation, defaultAppearance);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationInk, Annotation, inkList);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationBarcode, Annotation, subType, bgColor, caption, content, errorCorrectionLevel, margin);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationGS1_128, AnnotationBarcode, autoCaption, parts);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationAction, AnnotationSerializable, NewWindow, Type, Page, Uri, Name, Zoom, Rect, Filename);
+		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationNote, AnnotationBase, State, StateModel, Author);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(Annotation, AnnotationBase, Subject, Title, Intent, Opacity, DateCreated, DefaultAppearance, Popup, Replies, Appearance, Points);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationPopup, AnnotationBase, Open);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationStickyNote, Annotation, IconName, Open, Author, State, StateModel);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationLink, Annotation, Highlight, Action);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationFreeText, Annotation, DefaultAppearance, Alignment);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationLine, Annotation, LineEndings, InteriorColor);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationRectangle, Annotation, LineEndings, InteriorColor, RectDifferences);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationEllipse, Annotation, InteriorColor, RectDifferences);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationPolygon, Annotation, InteriorColor);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationPolyline, Annotation, LineEndings);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationStamp, Annotation, DefaultAppearance);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationInk, Annotation, InkList);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationBarcode, Annotation, SubType, BgColor, Caption, Content, ErrorCorrectionLevel, Margin);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationGS1_128, AnnotationBarcode, AutoCaption, Parts);
 
 		DOCFILTERS_SERIALIZABLE_ANNOTATION_EMPTY(AnnotationMarkup, Annotation);
 		DOCFILTERS_SERIALIZABLE_ANNOTATION_EMPTY(AnnotationHighlight, AnnotationMarkup);
@@ -927,7 +941,7 @@ namespace Hyland
 
 		std::unique_ptr<Annotation> Annotation::make(const IGR_Annotation& anno)
 		{
-			auto create = [anno]() -> std::unique_ptr<Annotation> {
+			auto create = [ anno ] () -> std::unique_ptr<Annotation> {
 				switch (anno.type)
 				{
 				case IGR_ANNOTATION_TEXT:
@@ -965,7 +979,7 @@ namespace Hyland
 				case IGR_ANNOTATION_NAMED_DESTINATION:
 					return std::make_unique<AnnotationNamedDestination>();
 
-				// No mappings...				
+					// No mappings...				
 				case IGR_ANNOTATION_CARET:
 				case IGR_ANNOTATION_FILEATTACHMENT:
 				case IGR_ANNOTATION_SOUND:

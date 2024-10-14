@@ -284,7 +284,7 @@ namespace Hyland
 		{
 		public:
 			/// @brief An iterator for lazy_loader_indexed.
-			class const_iterator 
+			class const_iterator
 			{
 			public:
 				using iterator_category = std::input_iterator_tag;
@@ -422,7 +422,7 @@ namespace Hyland
 			};
 
 			/// @brief Iterator class for the enumerable collection.
-			class const_iterator 
+			class const_iterator
 			{
 			public:
 				using iterator_category = std::input_iterator_tag;
@@ -742,7 +742,7 @@ namespace Hyland
 			/// @brief Converts the DateTime object to an ISO 8601 string.
 			/// @return The ISO 8601 string representation of the DateTime object.
 			std::string ToIsoString() const;
-			
+
 			/// @brief Converts the internal date-time representation to a std::tm structure.
 			/// @param as_utc If true, the date-time is converted to UTC. Otherwise, it is converted to local time.
 			/// @return An optional std::tm structure representing the date-time. If the conversion fails, the optional is empty.
@@ -1952,14 +1952,14 @@ namespace Hyland
 			/// @return The capabilities state.
 			bool getSupportsHtml() { return getFileCapabilities() & IGR_FILE_SUPPORTS_HDHTML; }
 
-            /**
-             * @brief Retrieves the next block of Text from the file.
-             *
-             * @param max_length The maximum length of the block to retrieve.
-             * @param strip_control_chars Flag indicating whether to strip control characters from the Text.
-             * @return The next block of Text as a wide string.
-             */
-            std::wstring getText(size_t max_length, bool strip_control_chars = false);
+			/**
+			 * @brief Retrieves the next block of Text from the file.
+			 *
+			 * @param max_length The maximum length of the block to retrieve.
+			 * @param strip_control_chars Flag indicating whether to strip control characters from the Text.
+			 * @return The next block of Text as a wide string.
+			 */
+			std::wstring getText(size_t max_length, bool strip_control_chars = false);
 
 			/// @brief Returns the end-of-file status of the object.
 			///
@@ -3476,6 +3476,11 @@ namespace Hyland
 		std::string serialize() const override; \
 		bool operator==(const TYPE& other) const; \
 		bool operator!=(const TYPE& other) const { return !(*this == other); } 
+#define DOCFILTERS_ANNOTATION_PROPERTY(TYPE, NAME, DEFAULT_VALUE) \
+	private: TYPE m_##NAME = DEFAULT_VALUE; \
+	public: const TYPE& get##NAME() const { return m_##NAME; } \
+	public: TYPE& get##NAME() { return m_##NAME; } \
+	public: void set##NAME(const TYPE& value) { m_##NAME = value; } 
 
 		class AnnotationBase : public AnnotationSerializable
 		{
@@ -3568,8 +3573,8 @@ namespace Hyland
 			public:
 				LineEndings() = default;
 
-				LineEndingType begin = LineEndingType::None;
-				LineEndingType end = LineEndingType::None;
+				DOCFILTERS_ANNOTATION_PROPERTY(LineEndingType, Begin, LineEndingType::None);
+				DOCFILTERS_ANNOTATION_PROPERTY(LineEndingType, End, LineEndingType::None);
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(LineEndings)
 			};
@@ -3579,10 +3584,10 @@ namespace Hyland
 			public:
 				BorderStyle() = default;
 
-				BorderStyleType type = BorderStyleType::Solid;
-				int width = 1;
-				int intensity = 0;
-				std::vector<int> dash;
+				DOCFILTERS_ANNOTATION_PROPERTY(BorderStyleType, Type, BorderStyleType::Solid);
+				DOCFILTERS_ANNOTATION_PROPERTY(int, Width, 1);
+				DOCFILTERS_ANNOTATION_PROPERTY(int, Intensity, 0);
+				DOCFILTERS_ANNOTATION_PROPERTY(std::vector<int>, Dash, std::vector<int>());
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(BorderStyle);
 			};
@@ -3592,9 +3597,9 @@ namespace Hyland
 			public:
 				DefaultAppearance() = default;
 
-				std::wstring fontName = L"Helvetica";
-				double fontSize = 14;
-				Color textColor = Color::black();
+				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, FontName, L"Helvetica");
+				DOCFILTERS_ANNOTATION_PROPERTY(double, FontSize, 14);
+				DOCFILTERS_ANNOTATION_PROPERTY(Color, TextColor, Color::black());
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(DefaultAppearance)
 			};
@@ -3602,18 +3607,18 @@ namespace Hyland
 			class AppearanceStream : public AnnotationSerializable
 			{
 			public:
-				std::string content;
-				std::wstring contentType;
-				std::wstring encoding = L"Base64";
+				DOCFILTERS_ANNOTATION_PROPERTY(std::string, Content, std::string());
+				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, ContentType, std::wstring());
+				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Encoding, L"Base64");
 
 				void load_from_bytes(const void* buffer, size_t size)
 				{
-					content = base64_encode(buffer, size);
+					setContent(base64_encode(buffer, size));
 				}
 
 				bool empty() const
 				{
-					return content.empty();
+					return getContent().empty();
 				}
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(AppearanceStream)
@@ -3622,33 +3627,34 @@ namespace Hyland
 			class AppearanceStreams : public AnnotationSerializable
 			{
 			public:
-				AppearanceStream normal;
-				AppearanceStream rollover;
-				AppearanceStream down;
+				DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStream, Normal, AppearanceStream());
+				DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStream, Rollover, AppearanceStream());
+				DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStream, Down, AppearanceStream());
 
 				bool empty() const
 				{
-					return normal.empty() && rollover.empty() && down.empty();
+					return getNormal().empty() && getRollover().empty() && getDown().empty();
 				}
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(AppearanceStreams);
 			};
 
 			AnnotationBase(Type type = Type::Unknown)
-				: type(type) {}
+				: type(type) {
+			}
 			virtual ~AnnotationBase() = default;
 
 			// Properties
+			DOCFILTERS_ANNOTATION_PROPERTY(Flags, Flags, Flags::Print);
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Name, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(DateTime, DateModified, DateTime());
+			DOCFILTERS_ANNOTATION_PROPERTY(Color, Color, Color::transparent());
+			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, Rect, RectI32());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Text, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::optional<BorderStyle>, Border, std::nullopt);
 
-			Flags flags = Flags::Print;
-			std::wstring name;
-			DateTime dateModified;
-			Color color = Color::transparent();
-			RectI32 rect = { 0,0,0,0 };
-			std::wstring text;
-			std::optional<BorderStyle> border;
-
-			Type get_type() const { return type; }
+			const Type& getType() const { return type; }
+			Type& getType() { return type; }
 
 			DOCFILTERS_OBJECT_SERIALIZE_METHODS(AnnotationBase);
 		protected:
@@ -3672,18 +3678,18 @@ namespace Hyland
 			DOCFILTERS_OBJECT_SERIALIZE_METHODS(AnnotationNote);
 
 			// Properties
-			std::wstring state;
-			std::wstring stateModel;
-			std::wstring author;
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, State, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, StateModel, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Author, std::wstring());
 
 			static AnnotationNote CreateReply(const std::wstring& text
 				, const std::wstring& author = std::wstring()
 				, Flags flags = Flags::Print)
 			{
 				AnnotationNote note;
-				note.text = text;
-				note.author = author;
-				note.flags = flags;
+				note.setText(text);
+				note.setAuthor(author);
+				note.setFlags(flags);
 				return note;
 			}
 		};
@@ -3698,16 +3704,16 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(Annotation);
 
 			// Properties
-			std::wstring subject;
-			std::wstring title;
-			std::wstring intent;
-			double opacity = 1;
-			DateTime dateCreated;
-			std::shared_ptr<DefaultAppearance> defaultAppearance;
-			AppearanceStreams appearance;
-			std::vector<AnnotationNote> replies;
-			std::vector<Point> points;
-			std::shared_ptr<AnnotationPopup> popup;
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Subject, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Title, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Intent, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(double, Opacity, 1);
+			DOCFILTERS_ANNOTATION_PROPERTY(DateTime, DateCreated, DateTime());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::shared_ptr<DefaultAppearance>, DefaultAppearance, nullptr);
+			DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStreams, Appearance, AppearanceStreams());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::vector<AnnotationNote>, Replies, std::vector<AnnotationNote>());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::vector<Point>, Points, std::vector<Point>());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::shared_ptr<AnnotationPopup>, Popup, nullptr);
 
 			static bool is_equal(const Annotation& a, const Annotation& b);
 			bool is_equal(const Annotation& other) const;
@@ -3721,7 +3727,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationPopup, AnnotationBase::Type::Popup);
 
 			// Properties
-			bool open = false;
+			DOCFILTERS_ANNOTATION_PROPERTY(bool, Open, false);
 		};
 
 		class AnnotationAction
@@ -3739,14 +3745,14 @@ namespace Hyland
 			DOCFILTERS_OBJECT_SERIALIZE_METHODS(AnnotationAction);
 
 			// Properties
-			ActionType type = ActionType::Unknown;
-			bool newWindow = false;
-			int page = 0;
-			std::wstring uri;
-			std::wstring name;
-			double zoom = 0;
-			RectI32 rect;
-			std::wstring filename;
+			DOCFILTERS_ANNOTATION_PROPERTY(ActionType, Type, ActionType::Unknown);
+			DOCFILTERS_ANNOTATION_PROPERTY(bool, NewWindow, false);
+			DOCFILTERS_ANNOTATION_PROPERTY(int, Page, 0);
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Uri, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Name, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(double, Zoom, 0);
+			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, Rect, RectI32());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Filename, std::wstring());
 		};
 
 		class AnnotationStickyNote
@@ -3757,11 +3763,11 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationStickyNote, AnnotationBase::Type::Text);
 
 			// Properties
-			std::wstring state;
-			std::wstring stateModel;
-			std::wstring iconName;
-			bool open = false;
-			std::wstring author;
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, State, std::wstring())
+				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, StateModel, std::wstring())
+				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Author, std::wstring())
+				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, IconName, std::wstring())
+				DOCFILTERS_ANNOTATION_PROPERTY(bool, Open, false)
 		};
 
 		class AnnotationLink
@@ -3781,18 +3787,18 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationLink, AnnotationBase::Type::Link);
 
 			// Properties
-			HighlightType highlight = HighlightType::None;
-			AnnotationAction action;
+			DOCFILTERS_ANNOTATION_PROPERTY(HighlightType, Highlight, HighlightType::None);
+			DOCFILTERS_ANNOTATION_PROPERTY(AnnotationAction, Action, AnnotationAction());
 
 			void setUri(const std::wstring& uri)
 			{
-				action.type = AnnotationAction::ActionType::Uri;
-				action.uri = uri;
+				getAction().setType(AnnotationAction::ActionType::Uri);
+				getAction().setUri(uri);
 			}
-			void setGoTo(int Page)
+			void setGoTo(int page)
 			{
-				action.type = AnnotationAction::ActionType::GoTo;
-				action.page = Page;
+				getAction().setType(AnnotationAction::ActionType::GoTo);
+				getAction().setPage(page);
 			}
 		};
 
@@ -3804,7 +3810,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationFreeText, AnnotationBase::Type::Freetext);
 
 			// Properties
-			AlignmentType alignment = AlignmentType::Left;
+			DOCFILTERS_ANNOTATION_PROPERTY(AlignmentType, Alignment, AlignmentType::Left);
 		};
 
 		class AnnotationLine
@@ -3815,8 +3821,8 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationLine, AnnotationBase::Type::Line);
 
 			// Properties
-			LineEndings lineEndings;
-			Color interiorColor;
+			DOCFILTERS_ANNOTATION_PROPERTY(LineEndings, LineEndings, LineEndings());
+			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
 		};
 
 		class AnnotationRectangle
@@ -3827,9 +3833,9 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationRectangle, AnnotationBase::Type::Rectangle);
 
 			// Properties
-			LineEndings lineEndings;
-			Color interiorColor = Color::transparent();
-			RectI32 rectDifferences = { 0, 0, 0, 0 };
+			DOCFILTERS_ANNOTATION_PROPERTY(LineEndings, LineEndings, LineEndings());
+			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
+			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, RectDifferences, RectI32());
 		};
 
 		class AnnotationEllipse
@@ -3840,8 +3846,8 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationEllipse, AnnotationBase::Type::Ellipse);
 
 			// Properties
-			Color interiorColor;
-			RectI32 rectDifferences = { 0, 0, 0, 0 };
+			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
+			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, RectDifferences, RectI32());
 		};
 
 		class AnnotationPolygon
@@ -3852,7 +3858,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationPolygon, AnnotationBase::Type::Polygon);
 
 			// Properties
-			Color interiorColor = Color::transparent();
+			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
 		};
 
 		class AnnotationPolyline
@@ -3863,7 +3869,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationPolyline, AnnotationBase::Type::Polyline);
 
 			// Properties
-			LineEndings lineEndings;
+			DOCFILTERS_ANNOTATION_PROPERTY(LineEndings, LineEndings, LineEndings());
 		};
 
 		class AnnotationMarkup : public Annotation
@@ -3933,7 +3939,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationInk, AnnotationBase::Type::Ink)
 
 				// Properties
-				std::vector<std::vector<Point>> inkList;
+				DOCFILTERS_ANNOTATION_PROPERTY(std::vector<std::vector<Point>>, InkList, std::vector<std::vector<Point>>());
 		};
 
 		class AnnotationBarcode
@@ -3945,17 +3951,17 @@ namespace Hyland
 
 			AnnotationBarcode(const std::wstring& subType)
 				: Annotation(Type::Barcode)
-				, subType(subType)
+				, m_SubType(subType)
 			{
 			}
 
 			// Properties
-			std::wstring subType;
-			Color bgColor;
-			std::wstring caption;
-			std::wstring content;
-			int errorCorrectionLevel = 3;
-			int margin = 0;
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, SubType, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(Color, BgColor, Color::transparent());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Caption, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Content, std::wstring());
+			DOCFILTERS_ANNOTATION_PROPERTY(int, ErrorCorrectionLevel, 3);
+			DOCFILTERS_ANNOTATION_PROPERTY(int, Margin, 0);
 		};
 
 		class AnnotationQrCode
@@ -3974,7 +3980,6 @@ namespace Hyland
 			AnnotationAztec() : AnnotationBarcode(L"aztec") {}
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationAztec)
-
 		};
 
 		class AnnotationDatamatrix
@@ -3984,7 +3989,6 @@ namespace Hyland
 			AnnotationDatamatrix() : AnnotationBarcode(L"datamatrix") {}
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationDatamatrix)
-
 		};
 
 		class AnnotationPDF417
@@ -3994,7 +3998,6 @@ namespace Hyland
 			AnnotationPDF417() : AnnotationBarcode(L"pdf417") {}
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationPDF417)
-
 		};
 
 		class AnnotationCode39
@@ -4004,7 +4007,6 @@ namespace Hyland
 			AnnotationCode39() : AnnotationBarcode(L"code39") {}
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationCode39)
-
 		};
 
 		class AnnotationCode93
@@ -4031,13 +4033,15 @@ namespace Hyland
 		public:
 			AnnotationGS1_128() : AnnotationBarcode(L"gs1-128") {}
 
+			using PartMap = std::map<std::wstring, std::wstring>;
+
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationGS1_128);
 
-			void AddPart(const std::wstring& name, const std::wstring& value) { parts[name] = value; }
+			void AddPart(const std::wstring& name, const std::wstring& value) { m_Parts[name] = value; }
 
 			// Properties
-			bool autoCaption = false;
-			std::map<std::wstring, std::wstring> parts;
+			DOCFILTERS_ANNOTATION_PROPERTY(bool, AutoCaption, false);
+			DOCFILTERS_ANNOTATION_PROPERTY(PartMap, Parts, PartMap());
 		};
 
 		class AnnotationNamedDestination

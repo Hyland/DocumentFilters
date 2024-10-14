@@ -28,7 +28,7 @@ pip install .
 If you're using a requirements.txt file for your project, you can add the following line to include the Python bindings:
 
 ```text
-DocumentFilters @ git+https://github.com/Hyland/DocumentFilters.git@<desired-tag-or-branch>#egg=Hyland-DocumentFilters&subdirectory=binder/python
+DocumentFilters @ git+https://github.com/Hyland/DocumentFilters.git@<desired-tag-or-branch>#subdirectory=binder/python
 ```
 
 Replace `<desired-tag-or-branch>` with the specific tag or branch you want to

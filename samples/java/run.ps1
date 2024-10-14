@@ -6,7 +6,8 @@ $RUNTIME_DIR = Join-Path $SCRIPT_DIR "runtimes"
 $ARTIFACT_URL = "https://github.com/HylandSoftware/DocumentFilters/releases/download/v$VERSION/$ARTIFACT.zip"
 $ASSETS_URL = "https://github.com/HylandSoftware/DocumentFilters/releases/download/v$VERSION/assets.zip"
 
-if ($env:DOCFILTERS_RELEASES_URL -ne "") {
+if ($null -ne ${env:DOCFILTERS_RELEASES_URL} -and ${env:DOCFILTERS_RELEASES_URL}.Trim() -ne "") {
+    Write-Host "Using custom release URL: $($env:DOCFILTERS_RELEASES_URL)"
     $ARTIFACT_URL = "$($env:DOCFILTERS_RELEASES_URL)/$ARTIFACT.zip"
     $ASSETS_URL = "$($env:DOCFILTERS_RELEASES_URL)/assets.zip"
 }

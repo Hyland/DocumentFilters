@@ -69,15 +69,15 @@ int main(int argc, char* argv[]) {
 		canvas.BlankPage(options.width, options.height);
 
 		DF::AnnotationBarcode barcode;
-		barcode.subType = options.type == BarCodeType::Qr ? L"qr" :
+		barcode.setSubType(options.type == BarCodeType::Qr ? L"qr" :
 			options.type == BarCodeType::Dm ? L"dm" :
 			options.type == BarCodeType::Pdf417 ? L"pdf417" :
 			options.type == BarCodeType::Code39 ? L"code39" :
 			options.type == BarCodeType::Code93 ? L"code93" :
-			options.type == BarCodeType::Code128 ? L"code128" : L"gs1";
-		barcode.caption = DF::u8_to_w(options.caption);
-		barcode.text = DF::u8_to_w(options.text);
-		barcode.rect = DF::Rect::ltrb(options.margin, options.margin, options.width - options.margin, options.height - options.margin);
+			options.type == BarCodeType::Code128 ? L"code128" : L"gs1");
+		barcode.setCaption(DF::u8_to_w(options.caption));
+		barcode.setText(DF::u8_to_w(options.text));
+		barcode.setRect(DF::Rect::ltrb(options.margin, options.margin, options.width - options.margin, options.height - options.margin));
 
 		canvas.Annotate(barcode);
 		canvas.Close();
