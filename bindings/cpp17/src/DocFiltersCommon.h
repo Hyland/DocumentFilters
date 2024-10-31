@@ -15,6 +15,7 @@
 #include "DocumentFiltersObjects.h"
 #include <stack>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Hyland
