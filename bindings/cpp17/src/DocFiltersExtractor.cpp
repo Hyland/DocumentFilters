@@ -16,18 +16,21 @@
 #include "DocFiltersCommon.h"
 #include <algorithm>
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <intrin.h>
-#define TARGET_LITTLE_ENDIAN 1
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#	define TARGET_LITTLE_ENDIAN 1
+#elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#	define TARGET_LITTLE_ENDIAN 0
+#elif defined(_WIN32) || defined(_WIN64) || defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64) || defined(__arm__) || defined(__aarch64__)
+#	define TARGET_LITTLE_ENDIAN 1
 #else
-#include <endian.h>
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-#define TARGET_LITTLE_ENDIAN 1
-#elif __BYTE_ORDER == __BIG_ENDIAN
-#define TARGET_LITTLE_ENDIAN 0
-#else
-#error "Unknown endianess"
-#endif
+#	include <endian.h>
+#	if __BYTE_ORDER == __LITTLE_ENDIAN
+#		define TARGET_LITTLE_ENDIAN 1
+#	elif __BYTE_ORDER == __BIG_ENDIAN
+#		define TARGET_LITTLE_ENDIAN 0
+#	else
+#		error "Unknown endianess"
+#	endif
 #endif
 
 namespace Hyland
