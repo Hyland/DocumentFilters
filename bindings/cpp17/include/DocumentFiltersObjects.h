@@ -3480,7 +3480,7 @@ namespace Hyland
 	private: TYPE m_##NAME = DEFAULT_VALUE; \
 	public: const TYPE& get##NAME() const { return m_##NAME; } \
 	public: TYPE& get##NAME() { return m_##NAME; } \
-	public: void set##NAME(const TYPE& value) { m_##NAME = value; } 
+	public: TYPE& set##NAME(const TYPE& value) { m_##NAME = value; return m_##NAME; } 
 
 		class AnnotationBase : public AnnotationSerializable
 		{
@@ -3651,7 +3651,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(Color, Color, Color::transparent());
 			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, Rect, RectI32());
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Text, std::wstring());
-			DOCFILTERS_ANNOTATION_PROPERTY(std::optional<BorderStyle>, Border, std::nullopt);
+			DOCFILTERS_ANNOTATION_PROPERTY(std::shared_ptr<BorderStyle>, Border, nullptr);
 
 			const Type& getType() const { return type; }
 			Type& getType() { return type; }
@@ -3668,6 +3668,8 @@ namespace Hyland
 		public:
 			static const AnnotationBase::Type AnnoType = Type;
 		};
+
+		using AnnotationBorderStyle = AnnotationBase::BorderStyle;
 
 		class AnnotationNote
 			: public AnnotationBase
