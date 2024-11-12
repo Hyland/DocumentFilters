@@ -1,4 +1,0 @@
-cmake_minimum_required(VERSION 3.15)
-
-add_executable (ConvertDocumentToMarkdown "ConvertDocumentToMarkdown.cpp")
-target_link_libraries (ConvertDocumentToMarkdown PUBLIC DocumentFiltersSamples)

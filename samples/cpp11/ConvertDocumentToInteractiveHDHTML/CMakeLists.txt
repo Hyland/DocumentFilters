@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+
+add_executable (ConvertDocumentToInteractiveHDHTML "ConvertDocumentToInteractiveHDHTML.cpp")
+target_link_libraries (ConvertDocumentToInteractiveHDHTML PUBLIC DocumentFiltersSamples)
+install(TARGETS ConvertDocumentToInteractiveHDHTML DESTINATION bin)

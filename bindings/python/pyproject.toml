@@ -1,0 +1,16 @@
+[project]
+name = "DocumentFilters"
+version = "24.4.0"  # You can set this dynamically if needed
+description = "Document Filters python API"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+authors = [
+    {name = "Hyland Software, Inc."}
+]
+urls = { "Homepage" = "https://github.com/Hyland/DocumentFilters" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["DocumentFilters"]
+

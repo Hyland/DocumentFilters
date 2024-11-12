@@ -2,11 +2,11 @@
 **/v16/*
 **/*.vcxproj.user
 **/Win32/*
-**/x64/*
 **/bin/*
 **/obj/*
 **/obj_net2.0/*
 **/*.bak
 **/CMakeSettings.json
 **/.sarif
+**/build/*
 .vs

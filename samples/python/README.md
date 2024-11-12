@@ -42,15 +42,31 @@ section in the documentation.
 | [DocumentFiltersLicense.py](./DocumentFiltersLicense.py)                   | Update with your Document Filters License Key                                                                         |
 | [DocumentFiltersSample.py](./DocumentFiltersSample.py)                     | Utility functions for setup Document Filters objects.                                                                 |
 
+## Before You Begin
+
+You will need to install the Document Filters Python bindings to be able to
+run the samples. To do so, run:
+
+```bash
+pip3 install -r requirements.txt
+```
+
+or 
+
+```
+python -m pip install -r requirements.txt
+```
+
 ## Getting Started
 
-You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
+You can run the sample applications without a license key, with some
+limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
 
-To run the sample applications without feature limitations, ensure you have a valid Document Filters
-license key. You can provide this key by either modifying the
-DocumentFiltersLicense.py file or setting it in an environment variable named
-`DF_LICENSE_KEY`. Alternatively, you can pass the license key directly to the
-samples by specifying `--license-key`.
+To run the sample applications without feature limitations, ensure you have a
+valid Document Filters license key. You can provide this key by either modifying
+the DocumentFiltersLicense.py file or setting it in an environment variable
+named `DF_LICENSE_KEY`. Alternatively, you can pass the license key directly to
+the samples by specifying `--license-key`.
 
 The samples can be run by passing to the python interpreter:
 
@@ -68,7 +84,13 @@ package, making it accessible to any Python project. To perform the
 installation, execute the following command:
 
 ```bash
-python3 setup.py install --user
+python3 pip install "{bindings_dir}"
+```
+
+or add the dependency to your `requirements.txt` file.
+
+```text
+git+https://github.com/Hyland/DocumentFilters.git@v24.4.0#egg=DocumentFilters&subdirectory=bindings/python
 ```
 
 > **_IMPORTANT:_** The package does not come bundled with the native shared
@@ -79,15 +101,6 @@ python3 setup.py install --user
 > In these samples, this requirement is addressed by downloading the binaries
 > into a `runtime` directory. Subsequently, the directory name is passed as the
 > `dll_path` parameter during the invocation of the `Initialize` function.
-
-
-<!-- 
-
-You must install the python bindings before you can run the samples.
-
-```bash
-python setup.sh install --user
-``` -->
 
 ## Troubleshooting
 
