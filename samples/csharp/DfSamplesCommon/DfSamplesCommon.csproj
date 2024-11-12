@@ -8,11 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hyland.DocumentFilters" Version="24.2.1" />
-    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="24.2.1" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="24.2.1" />
-    <PackageReference Include="Hyland.DocumentFilters.MacOS" Version="24.2.1" />
-    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="24.2.1" />
+    <PackageReference Include="Hyland.DocumentFilters" Version="24.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="24.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-x64" Version="24.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-x64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-arm64" Version="24.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-arm64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-arm64" Version="24.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-arm64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-ppc64le" Version="24.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-ppc64le'" />   
+    <PackageReference Include="Hyland.DocumentFilters.MacOS" Version="24.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="24.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="24.3.0" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.0" />
   </ItemGroup>
 

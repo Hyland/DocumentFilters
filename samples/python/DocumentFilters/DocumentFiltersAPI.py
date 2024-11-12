@@ -100,6 +100,8 @@ IGR_DEVICE_IMAGE_EPS = 13
 IGR_DEVICE_IMAGE_PS = 14
 IGR_DEVICE_XML = 5
 IGR_DEVICE_HTML = 6
+IGR_DEVICE_JSON = 22
+IGR_DEVICE_MARKDOWN = 23
 IGR_TEXT_ALIGN_LEFT = 0
 IGR_TEXT_ALIGN_RIGHT = 1
 IGR_TEXT_ALIGN_CENTER = 2
@@ -178,6 +180,8 @@ IGR_FORMAT_SHORT_NAME = 1
 IGR_FORMAT_CONFIG_NAME = 2
 IGR_FORMAT_CLASS_NAME = 3
 IGR_FORMAT_LEGACY = 4
+IGR_FORMAT_MIME_TYPE = 5
+IGR_FORMAT_CATEGORY = 6
 
 IGR_MAKE_STREAM_FROM_FUNCTIONS_FLAGS_USECDECL = 1
 
@@ -358,6 +362,9 @@ IGR_FILETYPE_MULTIMEDIA_VIDEO     = 1201
 IGR_FILETYPE_MULTIMEDIA_AUDIO     = 1202
 IGR_FILETYPE_PUBLISHING           = 1300
 IGR_FILETYPE_APPDATA              = 2000
+
+IGR_SUBFILE_INFO_FLAG_PASSWORD_PROTECTED = 0x0002
+IGR_SUBFILE_INFO_FLAG_HAS_COMMENT = 0x0004
 
 def UNCHECKED(type):
     if hasattr(type, "_type_") and isinstance(type._type_, str) and type._type_ != "P":
@@ -668,6 +675,20 @@ class IGR_Page_Element(ctypes.Structure):
         ("rotation", IGR_ULONG),
     ]
 
+class IGR_Subfile_Info(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", IGR_ULONG),
+        ("flags", IGR_ULONG),
+        ("id", ctypes.POINTER(None)),
+        ("id_size", IGR_ULONG),
+        ("name", ctypes.POINTER(None)),
+        ("name_size", IGR_ULONG),
+        ("comment", ctypes.POINTER(None)),
+        ("comment_size", IGR_ULONG),
+        ("size", IGR_ULONGLONG),
+        ("date", IGR_ULONGLONG),
+    ]
+
 IGR_PAGE_ELEMENT_STYLES_CALLBACK = ctypes.CFUNCTYPE(
     IGR_LONG,
     ctypes.POINTER(IGR_UCS2),
@@ -728,7 +749,6 @@ class ISYS11dfAPI:
             res = "lib" + name + ".dylib"
         if dll_path is not None:
             res = os.path.join(dll_path, res)
-            
         return res
 
     @staticmethod
@@ -1067,6 +1087,10 @@ class ISYS11dfAPI:
         self.IGR_Subfiles_Next.argtypes = [HSUBFILES, ctypes.POINTER(None), ctypes.POINTER(None), ctypes.POINTER(IGR_LONGLONG), ctypes.POINTER(IGR_LONGLONG), ctypes.POINTER(Error_Control_Block)]
         self.IGR_Subfiles_Next.restype = IGR_RETURN_CODE
 
+        self.IGR_Subfiles_Next_Ex = self._libISYS11df.IGR_Subfiles_Next_Ex
+        self.IGR_Subfiles_Next_Ex.argtypes = [HSUBFILES, ctypes.POINTER(None), ctypes.POINTER(Error_Control_Block)]
+        self.IGR_Subfiles_Next_Ex.restype = IGR_RETURN_CODE
+
         self.IGR_Subfiles_Reset = self._libISYS11df.IGR_Subfiles_Reset
         self.IGR_Subfiles_Reset.argtypes = [HSUBFILES, ctypes.POINTER(Error_Control_Block)]
         self.IGR_Subfiles_Reset.restype = IGR_RETURN_CODE
@@ -1195,7 +1219,7 @@ class ISYS11dfAPI:
             IGR_ULONG,
             ctypes.POINTER(IGR_ULONG),
             ctypes.POINTER(IGR_Page_Element),
-            Error_Control_Block,
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Get_Page_Elements.restype = IGR_RETURN_CODE
 
@@ -1203,7 +1227,7 @@ class ISYS11dfAPI:
         self.IGR_Get_Page_Element_Root.argtypes = [
             IGR_HPAGE,
             ctypes.POINTER(IGR_Page_Element),
-            Error_Control_Block,
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Get_Page_Element_Root.restype = IGR_RETURN_CODE
 
@@ -1212,7 +1236,7 @@ class ISYS11dfAPI:
             IGR_HPAGE,
             ctypes.POINTER(IGR_Page_Element),
             ctypes.POINTER(IGR_Page_Element),
-            Error_Control_Block,
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Get_Page_Element_First_Child.restype = IGR_RETURN_CODE
 
@@ -1221,7 +1245,7 @@ class ISYS11dfAPI:
             IGR_HPAGE,
             ctypes.POINTER(IGR_Page_Element),
             ctypes.POINTER(IGR_Page_Element),
-            Error_Control_Block,
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Get_Page_Element_Next_Sibling.restype = IGR_RETURN_CODE
 
@@ -1230,8 +1254,8 @@ class ISYS11dfAPI:
             IGR_HPAGE,
             ctypes.POINTER(IGR_Page_Element),
             ctypes.POINTER(IGR_ULONG),
-            ctypes.POINTER(IGR_UCS2),
-            Error_Control_Block,
+            ctypes.POINTER(None),
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Get_Page_Element_Text.restype = IGR_RETURN_CODE
 
@@ -1241,7 +1265,7 @@ class ISYS11dfAPI:
             ctypes.POINTER(IGR_Page_Element),
             IGR_PAGE_ELEMENT_STYLES_CALLBACK,
             ctypes.c_void_p,
-            Error_Control_Block,
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Get_Page_Element_Styles.restype = IGR_RETURN_CODE
 
@@ -1252,7 +1276,7 @@ class ISYS11dfAPI:
             ctypes.POINTER(IGR_UCS2),
             ctypes.POINTER(IGR_ULONG),
             ctypes.POINTER(IGR_UCS2),
-            Error_Control_Block,
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Get_Page_Element_Style.restype = IGR_RETURN_CODE
 
@@ -1264,7 +1288,7 @@ class ISYS11dfAPI:
             IGR_ULONG,
             IGR_PAGE_ELEMENT_CALLBACK,
             ctypes.c_void_p,
-            Error_Control_Block,
+            ctypes.POINTER(Error_Control_Block),
         ]
         self.IGR_Enum_Page_Elements.restype = IGR_RETURN_CODE
 

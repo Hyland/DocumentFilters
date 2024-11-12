@@ -44,6 +44,7 @@ ASSETS_URL="https://github.com/HylandSoftware/DocumentFilters/releases/download/
 
 if [ "${DOCFILTERS_RELEASES_URL}" != "" ]; then
     ARTIFACT_URL="${DOCFILTERS_RELEASES_URL}/${ARTIFACT}.zip"
+    ASSETS_URL="${DOCFILTERS_RELEASES_URL}/assets.zip"
 fi
 
 mkdir -p "${RUNTIME_DIR}"
