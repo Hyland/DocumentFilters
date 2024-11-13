@@ -39,10 +39,12 @@ section in the documentation.
 
 ## Getting Started
 
-You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
+You can run the sample applications without a license key, with some
+limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
 
-To run the sample applications without feature limitations, ensure you have a valid Document Filters license
-key. You can provide this key by either modifying the
+To run the sample applications without feature limitations, ensure you have a
+valid Document Filters license key. You can provide this key by either modifying
+the
 `docfilters-sample/src/main/java/com/documentfilters/DocumentFiltersLicense.java`
 file or setting it in an environment variable named `DF_LICENSE_KEY`.
 
@@ -60,7 +62,8 @@ not include the native libraries. These must be passed when running each sample.
 To help facilitate this, the `run.sh` and `run.cmd` scripts will download the
 native binaries and font assets into a `runtimes` directory.
 
-The sample scan be run using the syntax of `run.sh PROJECT_NAME args...`, for example:
+The sample scan be run using the syntax of `run.sh PROJECT_NAME args...`, for
+example:
 
 **Linux and MacOS**
 

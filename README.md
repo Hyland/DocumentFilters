@@ -99,7 +99,7 @@ This repo contains samples that demonstrating using Document Filters for differe
 | Apply markup and annotations            | [MarkupAnnotationsDemo](./samples/csharp/MarkupAnnotationsDemo/) demonstrates the markup API and modifying pages in the final output.                                                                           |
 | Create a redacted version of a document | [RedactionDemo](./samples/csharp/RedactionDemo/) demonstrates redacting content while rendering to a canvas, removing text and images from the output.                                                          |
 
-Check more samples here: [C#](./samples/csharp/README.md) | [Java](./samples/java/) | [Python](./samples/python/) | [C++](./samples/cpp/)
+Check more samples here: [C#](./samples/csharp/README.md) | [Java](./samples/java/) | [Python](./samples/python/) | [C++](./samples/cpp17/)
 
 ## License
 

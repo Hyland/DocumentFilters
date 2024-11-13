@@ -1,21 +1,29 @@
 # Document Filters C# Samples
 
-![NuGet Version](https://img.shields.io/nuget/vpre/Hyland.DocumentFilters) ![NuGet Downloads](https://img.shields.io/nuget/dt/Hyland.DocumentFilters)
+![NuGet Version](https://img.shields.io/nuget/vpre/Hyland.DocumentFilters)
+![NuGet Downloads](https://img.shields.io/nuget/dt/Hyland.DocumentFilters)
 
-This repository contains samples and utilities for Document Filters, a set of tools for converting and processing various document formats. Explore the following directories and files to understand and use the capabilities of Document Filters.
+This repository contains samples and utilities for Document Filters, a set of
+tools for converting and processing various document formats. Explore the
+following directories and files to understand and use the capabilities of
+Document Filters.
 
 ## Summary
 
 The Document Filters Sample GitHub Repository includes:
 
-- Samples for converting documents to different formats such as PDF, PNG, SVG, and more.
+- Samples for converting documents to different formats such as PDF, PNG, SVG,
+  and more.
 - Utilities for common tasks like extracting words from documents.
 - A shared common library for Document Filters samples.
 - Visual Studio solution file and the license information.
 
-Explore the contents to leverage the power of Document Filters in your document processing projects.
+Explore the contents to leverage the power of Document Filters in your document
+processing projects.
 
-To get started on your own project, check out the [Getting Started](https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html) section in the documentation.
+To get started on your own project, check out the [Getting
+Started](https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html)
+section in the documentation.
 
 ## Projects and Files
 
@@ -48,12 +56,13 @@ To get started on your own project, check out the [Getting Started](https://docs
 
 ## Getting Started
 
-You can run the sample applications without a license key, with some limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
+You can run the sample applications without a license key, with some
+limitations.  See [Document Filters Evaluation](../../EVAL.md) for details.
 
-To run the sample applications without feature limitations, ensure you have a valid Document Filters
-license key. You can provide this key by either modifying the
-DocumentFiltersLicense.cs file or setting it in an environment variable named
-`DF_LICENSE_KEY`.
+To run the sample applications without feature limitations, ensure you have a
+valid Document Filters license key. You can provide this key by either modifying
+the DocumentFiltersLicense.cs file or setting it in an environment variable
+named `DF_LICENSE_KEY`.
 
 The .NET projects are compatible with win-x64, win-x64, linux-x64,
 linux-musl-x64, osx-x64, and osx-arm64.

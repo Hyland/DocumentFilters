@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+		<TargetFrameworks>netstandard2.0;net35</TargetFrameworks>
+		<Platforms>x64;Win32</Platforms>
+		<AssemblyName>Hyland.DocumentFilters</AssemblyName>
+		<RootNamespace>Hyland.DocumentFilters</RootNamespace>
+		<Configurations>Debug;Release;</Configurations>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<FileVersion>$(ISYS_BUILD_PRODUCT_VERSION)</FileVersion>
+		<Company>$(ISYS_PRODUCT_COMPANY)</Company>
+		<Authors>$(ISYS_PRODUCT_COMPANY)</Authors>
+		<Product>$(ISYS_BUILD_PRODUCT_DESCRIPTION)</Product>
+		<Description>$(ISYS_BUILD_PRODUCT_DESCRIPTION)</Description>
+		<Copyright>$(ISYS_PRODUCT_COPYRIGHT)</Copyright>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>		
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3'">
+		<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD1_3</DefineConstants>
+	</PropertyGroup>
+	<Import Project="$(SolutionDir)build\win\isysbuild.props" Condition="Exists('$(SolutionDir)build\win\isysbuild.props')" />
+	<PropertyGroup Condition="Exists('$(ISYS_Build_Folder)')">
+		<OutDir>$(ISYS_Build_Folder)/$(TargetFramework)</OutDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|win32'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="Properties\AssemblyInfo.cs" />
+		<Compile Remove="obj\**\*" />
+		<Compile Remove="obj_net2.0\**\*" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Properties\" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+	  <PackageReference Include="System.Drawing.Common">
+	    <Version>4.7.3</Version>
+	  </PackageReference>
+	</ItemGroup>
+</Project>
