@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DfSamplesCommon\DfSamplesCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Hyland.DocumentFilters">
+      <HintPath>bin\Debug\net6.0\Hyland.DocumentFilters.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -65,7 +65,7 @@ The C++ samples are constructed using cmake across all platforms. If you are on
 Linux, Mac, or Windows with CMake in your system's path, you can build using:
 
 ```bash
-cd ./samples/cpp
+cd ./samples/cpp17
 cmake -S . -B build
 cmake --build build
 ```

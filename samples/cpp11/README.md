@@ -27,28 +27,29 @@ section in the documentation.
 
 ## Projects and Files
 
-| Name                                                                       | Description                                             |
-| -------------------------------------------------------------------------- | ------------------------------------------------------- |
-| [ConvertDocumentToClassicHTML](./ConvertDocumentToClassicHTML)             | Converts documents to classic HTML format.              |
-| [ConvertDocumentToHDHTML](./ConvertDocumentToHDHTML)                       | Converts documents to high-definition HTML.             |
-| [ConvertDocumentToInteractiveHDHTML](./ConvertDocumentToInteractiveHDHTML) | Converts documents to interactive high-definition HTML. |
-| [ConvertDocumentToPDF](./ConvertDocumentToPDF)                             | Converts documents to PDF format.                       |
-| [ConvertDocumentToPNG](./ConvertDocumentToPNG)                             | Converts documents to PNG format.                       |
-| [ConvertDocumentToPostscript](./ConvertDocumentToPostscript)               | Converts documents to Postscript format.                |
-| [ConvertDocumentToStructuredXML](./ConvertDocumentToStructuredXML)         | Converts documents to structured XML format.            |
-| [ConvertDocumentToSVG](./ConvertDocumentToSVG)                             | Converts documents to SVG format.                       |
-| [ConvertDocumentToThumbnail](./ConvertDocumentToThumbnail)                 | Converts documents to thumbnail images.                 |
-| [ConvertDocumentToTIFF](./ConvertDocumentToTIFF)                           | Converts documents to TIFF format.                      |
-| [ConvertDocumentToTIFFStream](./ConvertDocumentToTIFFStream)               | Converts documents to TIFF format using streams.        |
-| [ConvertDocumentToUnicode](./ConvertDocumentToUnicode)                     | Converts documents to Unicode format.                   |
-| [ConvertDocumentToUTF8](./ConvertDocumentToUTF8)                           | Converts documents to UTF-8 format.                     |
-| [ConvertDocumentToXML](./ConvertDocumentToXML)                             | Converts documents to XML format.                       |
-| [DocumentFiltersObjects](./DocumentFiltersObjects)                         | Object library for Document Filters.                    |
-| [DocumentFiltersSamples](./DocumentFiltersSamples)                         | Sample projects demonstrating Document Filters usage.   |
-| [GetDocumentType](./GetDocumentType)                                       | Retrieves the type of a document.                       |
-| [GetDocumentWords](./GetDocumentWords)                                     | Retrieves words from documents.                         |
-| [WatermarkDocument](./WatermarkDocument)                                   | Applies a watermark to documents.                       |
-| [CMakeLists.txt](./CMakeLists.txt)                                         | CMake Project File.                                     |
+| Name                                                                       | Description                                                     |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [ConvertDocumentToClassicHTML](./ConvertDocumentToClassicHTML)             | Converts documents to classic HTML format.                      |
+| [ConvertDocumentToHDHTML](./ConvertDocumentToHDHTML)                       | Converts documents to high-definition HTML.                     |
+| [ConvertDocumentToInteractiveHDHTML](./ConvertDocumentToInteractiveHDHTML) | Converts documents to interactive high-definition HTML.         |
+| [ConvertDocumentToPDF](./ConvertDocumentToPDF)                             | Converts documents to PDF format.                               |
+| [ConvertDocumentToPNG](./ConvertDocumentToPNG)                             | Converts documents to PNG format.                               |
+| [ConvertDocumentToPostscript](./ConvertDocumentToPostscript)               | Converts documents to Postscript format.                        |
+| [ConvertDocumentToStructuredXML](./ConvertDocumentToStructuredXML)         | Converts documents to structured XML format.                    |
+| [ConvertDocumentToSVG](./ConvertDocumentToSVG)                             | Converts documents to SVG format.                               |
+| [ConvertDocumentToThumbnail](./ConvertDocumentToThumbnail)                 | Converts documents to thumbnail images.                         |
+| [ConvertDocumentToTIFF](./ConvertDocumentToTIFF)                           | Converts documents to TIFF format.                              |
+| [ConvertDocumentToTIFFStream](./ConvertDocumentToTIFFStream)               | Converts documents to TIFF format using streams.                |
+| [ConvertDocumentToUnicode](./ConvertDocumentToUnicode)                     | Converts documents to Unicode format.                           |
+| [ConvertDocumentToUTF8](./ConvertDocumentToUTF8)                           | Converts documents to UTF-8 format.                             |
+| [ConvertDocumentToUTF8WithOCR](./ConvertDocumentToUTF8WithOCR)             | Converts documents to text using Optical Character Recognition. |
+| [ConvertDocumentToXML](./ConvertDocumentToXML)                             | Converts documents to XML format.                               |
+| [DocumentFiltersObjects](./DocumentFiltersObjects)                         | Object library for Document Filters.                            |
+| [DocumentFiltersSamples](./DocumentFiltersSamples)                         | Sample projects demonstrating Document Filters usage.           |
+| [GetDocumentType](./GetDocumentType)                                       | Retrieves the type of a document.                               |
+| [GetDocumentWords](./GetDocumentWords)                                     | Retrieves words from documents.                                 |
+| [WatermarkDocument](./WatermarkDocument)                                   | Applies a watermark to documents.                               |
+| [CMakeLists.txt](./CMakeLists.txt)                                         | CMake Project File.                                             |
 
 ## Getting Started
 
@@ -66,7 +67,7 @@ The C++ samples are constructed using cmake across all platforms. If you are on
 Linux, Mac, or Windows with CMake in your system's path, you can build using:
 
 ```bash
-cd ./samples/cpp
+cd ./samples/cpp11
 cmake -S . -B build
 cmake --build build
 ```
