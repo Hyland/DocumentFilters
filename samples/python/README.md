@@ -90,8 +90,11 @@ python3 pip install "{bindings_dir}"
 or add the dependency to your `requirements.txt` file.
 
 ```text
-git+https://github.com/Hyland/DocumentFilters.git@v24.4.0#egg=DocumentFilters&subdirectory=bindings/python
+git+https://github.com/Hyland/DocumentFilters.git@<desired-tag-or-branch>#egg=DocumentFilters&subdirectory=bindings/python
 ```
+
+Replace `<desired-tag-or-branch>` with the specific tag or branch you want to
+use.
 
 > **_IMPORTANT:_** The package does not come bundled with the native shared
 > libraries of Document Filters. It is essential to ensure that these files are

@@ -16,21 +16,18 @@
 #include "DocFiltersCommon.h"
 #include <algorithm>
 
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#	define TARGET_LITTLE_ENDIAN 1
-#elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#	define TARGET_LITTLE_ENDIAN 0
-#elif defined(_WIN32) || defined(_WIN64) || defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64) || defined(__arm__) || defined(__aarch64__)
-#	define TARGET_LITTLE_ENDIAN 1
+#if defined(_WIN32) || defined(_WIN64)
+#include <intrin.h>
+#define TARGET_LITTLE_ENDIAN 1
 #else
-#	include <endian.h>
-#	if __BYTE_ORDER == __LITTLE_ENDIAN
-#		define TARGET_LITTLE_ENDIAN 1
-#	elif __BYTE_ORDER == __BIG_ENDIAN
-#		define TARGET_LITTLE_ENDIAN 0
-#	else
-#		error "Unknown endianess"
-#	endif
+#include <endian.h>
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define TARGET_LITTLE_ENDIAN 1
+#elif __BYTE_ORDER == __BIG_ENDIAN
+#define TARGET_LITTLE_ENDIAN 0
+#else
+#error "Unknown endianess"
+#endif
 #endif
 
 namespace Hyland
@@ -83,6 +80,8 @@ namespace Hyland
 			Extractor::password_callback_t m_password_callback;
 			Extractor::localize_callback_t m_localize_callback;
 			Extractor::heartbeat_callback_t m_heartbeat_callback;
+			Extractor::log_level_callback_t m_log_level_callback;
+			Extractor::log_message_callback_t m_log_message_callback;
 			std::optional<Extractor::pages_t> m_pages_loader;
 			std::shared_ptr<subfile_enumerable_t> m_subfiles;
 			std::shared_ptr<subfile_enumerable_t> m_images;
@@ -230,6 +229,32 @@ namespace Hyland
 						else if (impl->m_callback)
 							return impl->m_callback(action, payload);
 						break;
+					case IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
+						if (impl->m_log_level_callback)
+						{
+							auto* p = reinterpret_cast<IGR_Open_Callback_Action_Log_Level*>(payload);
+							if (p->struct_size > sizeof(*p))
+							{
+								p->result = impl->m_log_level_callback(p->module);
+								return IGR_OK;
+							}
+						}
+						else if (impl->m_callback)
+							return impl->m_callback(action, payload);
+						break;
+					case IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
+						if (impl->m_log_message_callback)
+						{
+							auto* p = reinterpret_cast<IGR_Open_Callback_Action_Log_Message*>(payload);
+							if (p->struct_size > sizeof(*p))
+							{
+								impl->m_log_message_callback(p->log_level, std::string(&p->module[0]), std::string(&p->message[0]));
+								return IGR_OK;
+							}
+						}
+						else if (impl->m_callback)
+							return impl->m_callback(action, payload);
+						break;
 					default:
 						if (impl->m_callback)
 							return impl->m_callback(action, payload);
@@ -276,6 +301,16 @@ namespace Hyland
 		void Extractor::setHeartbeatCallback(const heartbeat_callback_t& callback)
 		{
 			m_impl->m_heartbeat_callback = callback;
+		}
+
+		void Extractor::setLogLevelCallback(const log_level_callback_t& callback)
+		{
+			m_impl->m_log_level_callback = callback;
+		}
+
+		void Extractor::setLogMessageCallback(const log_message_callback_t& callback)
+		{
+			m_impl->m_log_message_callback = callback;
 		}
 
 		uint32_t Extractor::getFileType() const

@@ -16,12 +16,6 @@
 #include "DocFiltersCommon.h"
 #include <cstring>
 
-#if defined(__APPLE__) || defined(__hpux) || defined(__pseries) || defined(__FreeBSD__)
-#define ftello64 ftello
-#define fseeko64 fseeko
-#define fopen64 fopen
-#endif
-
 namespace Hyland
 {
 	namespace DocFilters

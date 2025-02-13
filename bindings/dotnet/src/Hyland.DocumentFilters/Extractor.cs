@@ -953,6 +953,16 @@ namespace Hyland.DocumentFilters
                             callback.Localize = Marshaler.PtrToStructure<IGR_Open_Callback_Action_Localize>(actionData);
                             break;
                         }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
+                        {
+                            callback.LogLevel = Marshaler.PtrToStructure<IGR_Open_Callback_Action_Log_Level>(actionData);
+                            break;
+                        }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
+                        {
+                            callback.LogMessage = Marshaler.PtrToStructure<IGR_Open_Callback_Action_Log_Message>(actionData);
+                            break;
+                        }
                 }
 
                 if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOCALIZE)
@@ -995,6 +1005,18 @@ namespace Hyland.DocumentFilters
                         {
                             if (callback.Localize != null)
                                 Marshaler.StructureToPtr<IGR_Open_Callback_Action_Localize>(callback.Localize, actionData, true);
+                            break;
+                        }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
+                        {
+                            if (callback.LogLevel != null)
+                                Marshaler.StructureToPtr<IGR_Open_Callback_Action_Log_Level>(callback.LogLevel, actionData, true);
+                            break;
+                        }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
+                        {
+                            if (callback.LogMessage != null)
+                                Marshaler.StructureToPtr<IGR_Open_Callback_Action_Log_Message>(callback.LogMessage, actionData, true);
                             break;
                         }
                 }

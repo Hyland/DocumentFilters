@@ -1,6 +1,6 @@
 [project]
 name = "DocumentFilters"
-version = "24.4.0"  # You can set this dynamically if needed
+version = "25.1.0"  # You can set this dynamically if needed
 description = "Document Filters python API"
 readme = "README.md"
 requires-python = ">=3.6"
