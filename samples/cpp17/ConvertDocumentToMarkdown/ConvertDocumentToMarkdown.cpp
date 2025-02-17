@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
 		app.add_option("-o,--output", options.output_dir, "Output directory");
 		app.add_option("-l,--license", options.license_key, "License key for Document Filters");
 		app.add_option("--metadata", options.metadata_format, "Include metadata in the markdown output")
+			->required()
 			->transform(CLI::CheckedTransformer(metadata_format_map, CLI::ignore_case));
 		app.add_option("--heading-style", options.heading_style, "Heading style to use in the markdown output")
 			->transform(CLI::CheckedTransformer(heading_style_map, CLI::ignore_case));
