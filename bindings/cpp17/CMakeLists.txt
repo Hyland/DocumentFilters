@@ -1,4 +1,18 @@
-set(LIBRARY_NAME "DocumentFilters")
+cmake_minimum_required(VERSION 3.16)
+
+# Enable Hot Reload for MSVC compilers if supported.
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
+project(DocumentFilters
+    VERSION 25.1.0
+    DESCRIPTION "Document Filters - c++17 bindings"
+    LANGUAGES CXX
+)
+
+set(LIBRARY_NAME "DocumentFiltersObjects")
 
 set(SOURCES
     "src/DocumentFiltersObjects.cpp"
@@ -29,18 +43,18 @@ set(SOURCES
     "src/DocFiltersWord.cpp"
 )
 
-set(HEADERS
-    include/DocumentFiltersObjects.h
-)
+set(HEADERS include/DocumentFiltersObjects.h)
 
-set(DEPENDENCIES
-    ISYS11df
-)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../c bindings)
 
-# Create the executable
-add_library(${LIBRARY_NAME} ${SOURCES} ${HEADERS})
-target_compile_features(${LIBRARY_NAME} PRIVATE cxx_std_17)
-target_compile_definitions(${LIBRARY_NAME} PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+# Create the library for the C++17 bindings
+add_library(${LIBRARY_NAME} STATIC ${SOURCES} ${HEADERS})
+set_property(TARGET ${LIBRARY_NAME} PROPERTY CXX_STANDARD 17)
 target_include_directories(${LIBRARY_NAME} PUBLIC include)
-target_link_libraries(${LIBRARY_NAME} ${DEPENDENCIES})
-target_link_directories(${LIBRARY_NAME} PUBLIC /usr/local/lib "$ENV{HOME}/builds/df/develop/linux-intel-gcc-64" "c:\\dev\\builds\\x64")
+target_compile_definitions(${LIBRARY_NAME} PRIVATE _LARGEFILE64_SOURCE)
+target_link_libraries(${LIBRARY_NAME} PUBLIC DocumentFilters)
+
+# Create an alias for the library
+add_library(DocumentFilters::Cpp17 ALIAS ${LIBRARY_NAME})
+
+export(TARGETS ${LIBRARY_NAME} FILE ${LIBRARY_NAME}Config.cmake)

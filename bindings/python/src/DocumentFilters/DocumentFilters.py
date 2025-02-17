@@ -2807,7 +2807,7 @@ class DocumentFilters(DocumentFiltersBase):
             self._eof = size.value == 0
             result =  DocumentFiltersBase._FromUTF16(data, size.value)
             if stripControlCodes:
-                result = re.sub('[\x01-\x08,\x0b,\x0c-\x10]', '', result.replace('\x0e', '\n'))
+                result = re.sub('[\x01-\x08\x0b-\x10]', '', result.replace('\x0e', '\n'))
 
             return result
 

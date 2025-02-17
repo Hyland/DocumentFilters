@@ -369,7 +369,6 @@ private:
                 DF::AnnotationLink link;
                 link.setRect(tile_rect);
                 link.getAction().setType(DF::AnnotationAction::ActionType::GoTo);
-                link.getAction().setType(DF::AnnotationAction::ActionType::GoTo);
                 link.getAction().setName(L"D" + std::to_wstring(info.extractor_index + 1) + L"P" + std::to_wstring(info.page_index + 1));
                 canvas.Annotate(link);
 
