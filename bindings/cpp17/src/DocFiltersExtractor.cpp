@@ -19,6 +19,10 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <intrin.h>
 #define TARGET_LITTLE_ENDIAN 1
+#elif defined(DOCUMENT_FILTERS_PLATFORM_LITTLE_ENDIAN)
+#define TARGET_LITTLE_ENDIAN 1
+#elif defined(DOCUMENT_FILTERS_PLATFORM_BIG_ENDIAN)
+#define TARGET_LITTLE_ENDIAN 0
 #else
 #include <endian.h>
 #if __BYTE_ORDER == __LITTLE_ENDIAN

@@ -1889,7 +1889,7 @@ namespace Hyland
 			typedef std::function<std::wstring(IGR_ULONG, const std::wstring&)> localize_callback_t;
 			typedef std::function<int()> heartbeat_callback_t;
 			typedef std::function<IGR_LOG_LEVEL_TYPE(const std::string&)> log_level_callback_t;
-			typedef std::function<void(IGR_LOG_LEVEL_TYPE, const std::string&, std::string&)> log_message_callback_t;
+			typedef std::function<void(IGR_LOG_LEVEL_TYPE, const std::string&, const std::string&)> log_message_callback_t;
 			typedef lazy_loader_indexed<Page> pages_t;
 			typedef enumerable_t<Subfile> subfiles_t;
 
