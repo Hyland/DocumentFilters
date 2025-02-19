@@ -2487,6 +2487,32 @@ class DocumentFilters(DocumentFiltersBase):
                 if value is not None:
                     DocumentFiltersBase._ToUTF16Array(self._internal.replacement, value)
 
+        class ActionLogLevel:
+            def __init__(self, internal):
+                self._internal: IGR_Open_Callback_Action_Log_Level = internal
+
+            @property
+            def Level(self) -> int: return self._internal.result
+
+            @Level.setter
+            def Level(self, value): self._internal.result = value
+
+            @property 
+            def Module(self) -> str: return self._internal.module.decode('utf8')
+
+        class ActionLogMessage:
+            def __init__(self, internal):
+                self._internal: IGR_Open_Callback_Action_Log_Message = internal
+
+            @property
+            def Level(self) -> int: return self._internal.log_level
+
+            @property
+            def Module(self) -> str: return self._internal.module.decode('utf8')
+
+            @property
+            def Message(self) -> str: return self._internal.message.decode('utf8')
+
         @property
         def Action(self) -> int: return self._action
     
@@ -2498,6 +2524,12 @@ class DocumentFilters(DocumentFiltersBase):
         
         @property
         def Localize(self) -> ActionLocalize: return self._localize
+
+        @property
+        def LogLevel(self) -> ActionLogLevel: return self._logLevel
+
+        @property
+        def LogMessage(self) -> ActionLogMessage: return self._logMessage
 
     class Extractor(DocumentFiltersBase):
         class SubFileEnumerator(DocumentFiltersBase):
@@ -2666,6 +2698,10 @@ class DocumentFilters(DocumentFiltersBase):
                     callbackRequest._password = DocumentFilters.OpenCallback.ActionPassword(IGR_Open_Callback_Action_Password.from_address(payload))
                 elif action == IGR_OPEN_CALLBACK_ACTION_LOCALIZE:
                     callbackRequest._localize = DocumentFilters.OpenCallback.ActionLocalize(IGR_Open_Callback_Action_Localize.from_address(payload))
+                elif action == IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
+                    callbackRequest._logLevel = DocumentFilters.OpenCallback.ActionLogLevel(IGR_Open_Callback_Action_Log_Level.from_address(payload))
+                elif action == IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
+                    callbackRequest._logMessage = DocumentFilters.OpenCallback.ActionLogMessage(IGR_Open_Callback_Action_Log_Message.from_address(payload))
                 
                 result = None
                 if action == IGR_OPEN_CALLBACK_ACTION_LOCALIZE:

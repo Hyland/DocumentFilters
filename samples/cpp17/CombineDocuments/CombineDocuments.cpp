@@ -112,7 +112,7 @@ public:
 
                     DF::AnnotationNamedDestination dest;
 					dest.setName(L"D" + std::to_wstring(file_index + 1) + L"P" + std::to_wstring(page_index + 1));
-					dest.setRect({ 0, 0, static_cast<int32_t>(page.getWidth()), static_cast<int32_t>(page.getHeight()) });
+					dest.setRect({0, 0, static_cast<int32_t>(page.getWidth()), static_cast<int32_t>(page.getHeight())});
 
                     canvas.Annotate(dest);
 

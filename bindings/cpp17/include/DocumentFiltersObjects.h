@@ -1888,6 +1888,8 @@ namespace Hyland
 			typedef std::function<std::wstring(const std::wstring&)> password_callback_t;
 			typedef std::function<std::wstring(IGR_ULONG, const std::wstring&)> localize_callback_t;
 			typedef std::function<int()> heartbeat_callback_t;
+			typedef std::function<IGR_LOG_LEVEL_TYPE(const std::string&)> log_level_callback_t;
+			typedef std::function<void(IGR_LOG_LEVEL_TYPE, const std::string&, const std::string&)> log_message_callback_t;
 			typedef lazy_loader_indexed<Page> pages_t;
 			typedef enumerable_t<Subfile> subfiles_t;
 
@@ -2055,6 +2057,15 @@ namespace Hyland
 			///
 			/// @param callback The callback function to be called when a heartbeat event occurs.
 			void setHeartbeatCallback(const heartbeat_callback_t& callback);
+
+			/// Sets the callback function for the log level.
+			///
+			/// @param callback The callback function to be called when the log level is set.
+			void setLogLevelCallback(const log_level_callback_t& callback);
+
+			/// Sets the callback function for log messages.
+			/// @param callback The callback function to be called when a log message is generated.
+			void setLogMessageCallback(const log_message_callback_t& callback);
 
 			/// Retrieves the bookmarks in the document.
 			///

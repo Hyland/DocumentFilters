@@ -69,6 +69,9 @@ namespace Hyland.DocumentFilters
         // IGR_FILE_SUPPORTS_HDHTML -> 4
         public const int IGR_FILE_SUPPORTS_HDHTML = 4;
 
+        // IGR_FILE_CORRUPT_OR_TRUNCATED -> 0x2000
+        public const int IGR_FILE_CORRUPT_OR_TRUNCATED = 0x2000;
+
         // IGR_OK -> 0
         public const int IGR_OK = 0;
 
@@ -417,6 +420,8 @@ namespace Hyland.DocumentFilters
         public const int IGR_OPEN_CALLBACK_ACTION_HEARTBEAT = 0;
         public const int IGR_OPEN_CALLBACK_ACTION_PASSWORD = 1;
         public const int IGR_OPEN_CALLBACK_ACTION_LOCALIZE = 2;
+        public const int IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL = 3;
+        public const int IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE = 4;
 
         public const int IGR_COMPARE_DOCUMENTS_DIFFERENCE_EQUAL = 0;
         public const int IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT = 1;
@@ -496,6 +501,14 @@ namespace Hyland.DocumentFilters
 
         public const int IGR_SUBFILE_INFO_FLAG_PASSWORD_PROTECTED = 0x0002;
         public const int IGR_SUBFILE_INFO_FLAG_HAS_COMMENT = 0x0004;
+
+        public const int IGR_LOG_LEVEL_NONE = 0;
+        public const int IGR_LOG_LEVEL_CRITICAL = 1;
+        public const int IGR_LOG_LEVEL_ERROR = 2;
+        public const int IGR_LOG_LEVEL_WARNING = 3;
+        public const int IGR_LOG_LEVEL_INFORMATION = 4;
+        public const int IGR_LOG_LEVEL_DEBUG = 5;
+        public const int IGR_LOG_LEVEL_TRACE = 6;
 
     }
 
@@ -1030,6 +1043,40 @@ namespace Hyland.DocumentFilters
         [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 1024)]
         public string replacement;
     };
+
+
+    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+    public class IGR_Open_Callback_Action_Log_Level
+    {
+        // [out] Indicate the size of this structure; must be populated.
+        public uint struct_size;
+
+        // Indicates the module that the log level is being requested.
+        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 16)]
+        public string module;
+
+        // User sets with the desired log level for the module. Defaults to IGR_LOG_LEVEL_NONE
+        public uint result;
+    };
+
+    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+    public class IGR_Open_Callback_Action_Log_Message
+    {
+        // Indicates the size of this structure; must be populated.
+        public uint struct_size;
+
+        // Indicates the module that generated the message.
+        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 16)]
+        public string module;
+
+        // Indicates the log level of the message.
+        public uint log_level;
+
+        // Contains the log message.
+        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 512)]
+        public string message;
+    };
+
 
     [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
     public struct IGR_Compare_Documents_Callback_Context

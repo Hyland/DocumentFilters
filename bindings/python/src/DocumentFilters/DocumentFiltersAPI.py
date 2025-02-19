@@ -288,6 +288,8 @@ IGR_OPEN_CALLBACK_ACTION = IGR_LONG
 IGR_OPEN_CALLBACK_ACTION_HEARTBEAT = 0
 IGR_OPEN_CALLBACK_ACTION_PASSWORD = 1
 IGR_OPEN_CALLBACK_ACTION_LOCALIZE = 2
+IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL = 3
+IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE = 4
 
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_EQUAL = 0
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT = 1
@@ -365,6 +367,14 @@ IGR_FILETYPE_APPDATA              = 2000
 
 IGR_SUBFILE_INFO_FLAG_PASSWORD_PROTECTED = 0x0002
 IGR_SUBFILE_INFO_FLAG_HAS_COMMENT = 0x0004
+
+IGR_LOG_LEVEL_NONE =  0
+IGR_LOG_LEVEL_CRITICAL =  1
+IGR_LOG_LEVEL_ERROR =  2
+IGR_LOG_LEVEL_WARNING =  3
+IGR_LOG_LEVEL_INFORMATION =  4
+IGR_LOG_LEVEL_DEBUG =  5
+IGR_LOG_LEVEL_TRACE =  6
 
 def UNCHECKED(type):
     if hasattr(type, "_type_") and isinstance(type._type_, str) and type._type_ != "P":
@@ -598,6 +608,21 @@ class IGR_Open_Callback_Action_Localize(ctypes.Structure):
         ('string_id', IGR_ULONG),
         ('original', IGR_UCS2 * 1024),
         ('replacement', IGR_UCS2 * 1024),
+    ]
+
+class IGR_Open_Callback_Action_Log_Level(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),
+        ('module', ctypes.c_char * int(16)),
+        ('result', IGR_ULONG),
+    ]
+
+class IGR_Open_Callback_Action_Log_Message(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),
+        ('module', ctypes.c_char * int(16)),
+        ('log_level', IGR_ULONG),
+        ('message', ctypes.c_char * int(512)),
     ]
 
 IGR_OPEN_CALLBACK = ctypes.CFUNCTYPE(UNCHECKED(IGR_LONG), IGR_OPEN_CALLBACK_ACTION, ctypes.POINTER(None), ctypes.POINTER(None))

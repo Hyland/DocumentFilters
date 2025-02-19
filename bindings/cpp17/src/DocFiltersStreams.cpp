@@ -16,12 +16,6 @@
 #include "DocFiltersCommon.h"
 #include <cstring>
 
-#if defined(__APPLE__) || defined(__hpux) || defined(__pseries) || defined(__FreeBSD__)
-#define ftello64 ftello
-#define fseeko64 fseeko
-#define fopen64 fopen
-#endif
-
 namespace Hyland
 {
 	namespace DocFilters
@@ -139,6 +133,9 @@ namespace Hyland
 #ifdef _WIN32
 					_fseeki64(file, offset, origin);
 					return static_cast<IGR_ULONG>(_ftelli64(file));
+#elif defined(__APPLE__)
+					fseeko(file, offset, static_cast<int>(origin));
+					return ftello(file);
 #else
 					fseeko64(file, offset, static_cast<int>(origin));
 					return ftello64(file);

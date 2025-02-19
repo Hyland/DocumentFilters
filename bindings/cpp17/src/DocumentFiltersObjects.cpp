@@ -167,7 +167,7 @@ namespace Hyland
             Error_Control_Block ecb = {0};
             IGR_Stream *Stream = nullptr;
 
-            throw_on_error(IGR_Make_Stream_From_Memory(const_cast<void *>(data), size, &deleter, &Stream, &ecb), ecb, "IGR_Make_Stream_From_Memory", "Failed to create stream from memory"); // NOLINT
+            throw_on_error(IGR_Make_Stream_From_Memory(const_cast<void *>(data), size, reinterpret_cast<void*>(deleter), &Stream, &ecb), ecb, "IGR_Make_Stream_From_Memory", "Failed to create stream from memory"); // NOLINT
             return Extractor(Stream);
         }
 

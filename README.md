@@ -4,7 +4,7 @@
 
 Providing developers with everything needed for file inspection, extraction, and transformation, in one powerful software development kit (SDK).
 
-[Home Page](http://www.documentfilters.com) | [Documentation](https://docs.hyland.com/Portal_Public/Products/en/Document_Filters.htm) | [Samples](./samples) | [Release Notes](https://docs.hyland.com/DocumentFilters/en_US/Print/release_notes/index.html) | [Security Hub](https://hyland.github.io/DocumentFilters-SecurityHub/) | [Blog](https://hyland.github.io/DocumentFilters/blog/?utm_source=github)
+[Home Page](http://www.documentfilters.com) | [Documentation](https://hyland.github.io/DocumentFilters-Docs/latest/) | [Samples](./samples) | [Release Notes](https://hyland.github.io/DocumentFilters-Docs/latest/release_notes/index.html) | [Security Hub](https://hyland.github.io/DocumentFilters-SecurityHub/) | [Blog](https://hyland.github.io/DocumentFilters/blog/?utm_source=github)
 
 </div>
 

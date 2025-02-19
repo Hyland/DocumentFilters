@@ -31,6 +31,16 @@ namespace Hyland.DocumentFilters
         /// Gets or sets the localize action payload.
         /// </summary>
         public IGR_Open_Callback_Action_Localize Localize { get; internal set; }
+
+        /// <summary>
+        /// Gets or sets the log action payload.
+        /// </summary>
+        public IGR_Open_Callback_Action_Log_Level LogLevel { get; internal set; }
+
+        /// <summary>
+        /// Gets or sets the log message action payload.
+        /// </summary>
+        public IGR_Open_Callback_Action_Log_Message LogMessage { get; internal set; }
     }
 }
 

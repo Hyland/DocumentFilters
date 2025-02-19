@@ -17,6 +17,7 @@ namespace Hyland.DocumentFilters
         public static readonly int IGR_FILE_SUPPORTS_TEXT = ISYS11dfConstants.IGR_FILE_SUPPORTS_TEXT;
         public static readonly int IGR_FILE_SUPPORTS_SUBFILES = ISYS11dfConstants.IGR_FILE_SUPPORTS_SUBFILES;
         public static readonly int IGR_FILE_SUPPORTS_HDHTML = ISYS11dfConstants.IGR_FILE_SUPPORTS_HDHTML;
+        public static readonly int IGR_FILE_CORRUPT_OR_TRUNCATED = ISYS11dfConstants.IGR_FILE_CORRUPT_OR_TRUNCATED;
         public static readonly int IGR_OK = ISYS11dfConstants.IGR_OK;
         public static readonly int IGR_E_OPEN_ERROR = ISYS11dfConstants.IGR_E_OPEN_ERROR;
         public static readonly int IGR_E_WRONG_TYPE = ISYS11dfConstants.IGR_E_WRONG_TYPE;

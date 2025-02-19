@@ -183,6 +183,7 @@ extern "C"
 #define IGR_FILE_SUPPORTS_TEXT          1
 #define IGR_FILE_SUPPORTS_SUBFILES      2
 #define IGR_FILE_SUPPORTS_HDHTML        4
+#define IGR_FILE_CORRUPT_OR_TRUNCATED	0x2000
 
 	typedef IGR_LONG IGR_RETURN_CODE;
 #define IGR_OK                          0
@@ -252,7 +253,7 @@ extern "C"
 #define IGR_DEVICE_MARKDOWN       23
 
 	/**
-	*  File type details 
+	*  File type details
 	*/
 #define IGR_FILETYPE_UNKNOWN              0
 #define IGR_FILETYPE_TEXT                 100
@@ -330,8 +331,8 @@ extern "C"
 	 */
 	typedef struct tagError_Control_Block
 	{
-	    char Msg[238];      ///< Error message.
-	    IGR_SHORT MsgId;    ///< Error message ID.
+		char Msg[238];      ///< Error message.
+		IGR_SHORT MsgId;    ///< Error message ID.
 	} Error_Control_Block;
 
 	typedef Error_Control_Block* lpECB_Type;
@@ -344,11 +345,11 @@ extern "C"
 	 */
 	typedef struct tagInstance_Status_Block
 	{
-	    char DLL_Version[16];        ///< DLL version information.
-	    IGR_SHORT RReserved;         ///< Reserved field.
-	    IGR_SHORT License_Type;      ///< Type of license.
-	    char Licensee_ID1[40];       ///< First part of the licensee ID.
-	    char Licensee_ID2[40];       ///< Second part of the licensee ID.
+		char DLL_Version[16];        ///< DLL version information.
+		IGR_SHORT RReserved;         ///< Reserved field.
+		IGR_SHORT License_Type;      ///< Type of license.
+		char Licensee_ID1[40];       ///< First part of the licensee ID.
+		char Licensee_ID2[40];       ///< Second part of the licensee ID.
 	} Instance_Status_Block, * LPInstance_Status_Block;
 
 	typedef struct IGR_Stream* PIGR_Stream;
@@ -382,10 +383,10 @@ extern "C"
 	 */
 	struct IGR_Rect
 	{
-	    IGR_ULONG left;     ///< Left edge coordinate.
-	    IGR_ULONG top;      ///< Top edge coordinate.
-	    IGR_ULONG right;    ///< Right edge coordinate.
-	    IGR_ULONG bottom;   ///< Bottom edge coordinate.
+		IGR_ULONG left;     ///< Left edge coordinate.
+		IGR_ULONG top;      ///< Top edge coordinate.
+		IGR_ULONG right;    ///< Right edge coordinate.
+		IGR_ULONG bottom;   ///< Bottom edge coordinate.
 	};
 
 	/**
@@ -394,10 +395,10 @@ extern "C"
 	 */
 	struct IGR_SRect
 	{
-	    IGR_LONG left;      ///< Left edge coordinate.
-	    IGR_LONG top;       ///< Top edge coordinate.
-	    IGR_LONG right;     ///< Right edge coordinate.
-	    IGR_LONG bottom;    ///< Bottom edge coordinate.
+		IGR_LONG left;      ///< Left edge coordinate.
+		IGR_LONG top;       ///< Top edge coordinate.
+		IGR_LONG right;     ///< Right edge coordinate.
+		IGR_LONG bottom;    ///< Bottom edge coordinate.
 	};
 
 	/**
@@ -406,10 +407,10 @@ extern "C"
 	 */
 	struct IGR_FRect
 	{
-	    IGR_FLOAT left;     ///< Left edge coordinate.
-	    IGR_FLOAT top;      ///< Top edge coordinate.
-	    IGR_FLOAT right;    ///< Right edge coordinate.
-	    IGR_FLOAT bottom;   ///< Bottom edge coordinate.
+		IGR_FLOAT left;     ///< Left edge coordinate.
+		IGR_FLOAT top;      ///< Top edge coordinate.
+		IGR_FLOAT right;    ///< Right edge coordinate.
+		IGR_FLOAT bottom;   ///< Bottom edge coordinate.
 	};
 
 	/**
@@ -417,8 +418,8 @@ extern "C"
 	 */
 	struct IGR_Size
 	{
-	    IGR_ULONG width;    ///< Width dimension.
-	    IGR_ULONG height;   ///< Height dimension.
+		IGR_ULONG width;    ///< Width dimension.
+		IGR_ULONG height;   ///< Height dimension.
 	};
 
 
@@ -427,15 +428,15 @@ extern "C"
 	 */
 	struct IGR_Page_Word
 	{
-	    IGR_LONG x;                 ///< X position of the word.
-	    IGR_LONG y;                 ///< Y position of the word.
-	    IGR_LONG width;             ///< Width of the word.
-	    IGR_LONG height;            ///< Height of the word.
-	    IGR_LONG style;             ///< Reserved for future use. Style information.
-	    const IGR_UCS2* word;       ///< Pointer to a UCS2 string representing the word.
-	    IGR_LONG wordLength;        ///< Length of the word.
-	    IGR_LONG charoffset;        ///< Character offset of the word.
-	    IGR_LONG reserved[8];       ///< Reserved data for future use.
+		IGR_LONG x;                 ///< X position of the word.
+		IGR_LONG y;                 ///< Y position of the word.
+		IGR_LONG width;             ///< Width of the word.
+		IGR_LONG height;            ///< Height of the word.
+		IGR_LONG style;             ///< Reserved for future use. Style information.
+		const IGR_UCS2* word;       ///< Pointer to a UCS2 string representing the word.
+		IGR_LONG wordLength;        ///< Length of the word.
+		IGR_LONG charoffset;        ///< Character offset of the word.
+		IGR_LONG reserved[8];       ///< Reserved data for future use.
 	};
 
 
@@ -471,21 +472,21 @@ extern "C"
 	 */
 	struct IGR_Page_Form_Element
 	{
-	    const void* reserved;       ///< Reserved data for future use.
-	    IGR_UCS2 name[255];         ///< Element form element name.
-	    IGR_LONG x;                 ///< X pixel position of the form element.
-	    IGR_LONG y;                 ///< Y pixel position of the form element.
-	    IGR_LONG width;             ///< Width in pixels of the form element.
-	    IGR_LONG height;            ///< Height in pixels of the form element.
-	    IGR_LONG type;              ///< Element type, one of IGR_PAGE_FORM_ELEMENT_TYPE_X.
-	    IGR_LONG flags;             ///< Element flags, bit set of IGR_PAGE_FORM_ELEMENT_FLAG_X.
-	    IGR_LONG fontSize;          ///< Font size of field text in points.
-	    IGR_LONG fontStyle;         ///< Bit set of IGR_TEXT_STYLE_XYZ.
-	    IGR_LONG rotation;          ///< Field rotation in degrees (0, 90, 180, 270).
-	    IGR_LONG textAlignment;     ///< Text alignment inside field, one of IGR_TEXT_ALIGN_X.
-	    IGR_LONG selectedItem;      ///< Selected item for combo boxes or single select list boxes.
-	    IGR_LONG option_count;      ///< Number of items available in a combobox or list box.
-	    IGR_LONG reserved2[8];      ///< Reserved data for future use.
+		const void* reserved;       ///< Reserved data for future use.
+		IGR_UCS2 name[255];         ///< Element form element name.
+		IGR_LONG x;                 ///< X pixel position of the form element.
+		IGR_LONG y;                 ///< Y pixel position of the form element.
+		IGR_LONG width;             ///< Width in pixels of the form element.
+		IGR_LONG height;            ///< Height in pixels of the form element.
+		IGR_LONG type;              ///< Element type, one of IGR_PAGE_FORM_ELEMENT_TYPE_X.
+		IGR_LONG flags;             ///< Element flags, bit set of IGR_PAGE_FORM_ELEMENT_FLAG_X.
+		IGR_LONG fontSize;          ///< Font size of field text in points.
+		IGR_LONG fontStyle;         ///< Bit set of IGR_TEXT_STYLE_XYZ.
+		IGR_LONG rotation;          ///< Field rotation in degrees (0, 90, 180, 270).
+		IGR_LONG textAlignment;     ///< Text alignment inside field, one of IGR_TEXT_ALIGN_X.
+		IGR_LONG selectedItem;      ///< Selected item for combo boxes or single select list boxes.
+		IGR_LONG option_count;      ///< Number of items available in a combobox or list box.
+		IGR_LONG reserved2[8];      ///< Reserved data for future use.
 	};
 
 #define IGR_BOOKMARK_FIT_NONE    0
@@ -505,21 +506,21 @@ extern "C"
 	 */
 	struct IGR_Bookmark
 	{
-	    const void* reserved;           ///< Reserved data for future use.
-	    IGR_LONG flags;                 ///< Flags indicating specific characteristics.
-	    IGR_UCS2 title[255];            ///< Display name for the bookmark.
-	    IGR_LONG action;                ///< Action to occur when the bookmark is selected.
-	    IGR_UCS2 dest[1024];            ///< Destination for the bookmark.
-	    IGR_LONG level;                 ///< Depth/level of the bookmark in the hierarchy.
-	    IGR_LONG fit;                   ///< Page fit method to use when navigating.
-	    IGR_LONG zoom;                  ///< Zoom factor to apply when navigating.
-	    IGR_LONG x;                     ///< X position in pixels of the bookmark destination.
-	    IGR_LONG y;                     ///< Y position in pixels of the bookmark destination.
-	    IGR_LONG width;                 ///< Width in pixels of the bookmark destination.
-	    IGR_LONG height;                ///< Height in pixels of the bookmark destination.
-	    IGR_LONG color;                 ///< Color used when displaying the bookmark item.
-	    IGR_LONG text_style;            ///< Text styles used when displaying the bookmark item.
-	    IGR_LONG reserved2[8];          ///< Reserved data for future use.
+		const void* reserved;           ///< Reserved data for future use.
+		IGR_LONG flags;                 ///< Flags indicating specific characteristics.
+		IGR_UCS2 title[255];            ///< Display name for the bookmark.
+		IGR_LONG action;                ///< Action to occur when the bookmark is selected.
+		IGR_UCS2 dest[1024];            ///< Destination for the bookmark.
+		IGR_LONG level;                 ///< Depth/level of the bookmark in the hierarchy.
+		IGR_LONG fit;                   ///< Page fit method to use when navigating.
+		IGR_LONG zoom;                  ///< Zoom factor to apply when navigating.
+		IGR_LONG x;                     ///< X position in pixels of the bookmark destination.
+		IGR_LONG y;                     ///< Y position in pixels of the bookmark destination.
+		IGR_LONG width;                 ///< Width in pixels of the bookmark destination.
+		IGR_LONG height;                ///< Height in pixels of the bookmark destination.
+		IGR_LONG color;                 ///< Color used when displaying the bookmark item.
+		IGR_LONG text_style;            ///< Text styles used when displaying the bookmark item.
+		IGR_LONG reserved2[8];          ///< Reserved data for future use.
 	};
 
 	typedef IGR_LONG(IGR_EXPORT* IGR_CALLBACK_BOOKMARK)(struct IGR_Bookmark* element, void* context);
@@ -532,11 +533,11 @@ extern "C"
 	 */
 	struct IGR_T_ACTION_GET_STREAM_PART
 	{
-	    IGR_ULONG size;                    ///< Size of this structure.
-	    const wchar_t* partName;           ///< Input: Part name (e.g., foo.ra01).
-	    const wchar_t* partFullName;       ///< Input: Full part name (e.g., c:\foo.ra01).
-	    IGR_LONG partIndex;                ///< Input: Part index.
-	    struct IGR_Stream* istr;           ///< Output: Pointer to the output stream.
+		IGR_ULONG size;                    ///< Size of this structure.
+		const wchar_t* partName;           ///< Input: Part name (e.g., foo.ra01).
+		const wchar_t* partFullName;       ///< Input: Full part name (e.g., c:\foo.ra01).
+		IGR_LONG partIndex;                ///< Input: Part index.
+		struct IGR_Stream* istr;           ///< Output: Pointer to the output stream.
 	};
 
 
@@ -546,9 +547,9 @@ extern "C"
 	 */
 	struct IGR_Render_Page_Form_Values
 	{
-	    const IGR_UCS2* name;    ///< Pointer to the name of the form value.
-	    const IGR_UCS2* value;   ///< Pointer to the value of the form value.
-	    IGR_LONG selected;       ///< Selection state of the form value.
+		const IGR_UCS2* name;    ///< Pointer to the name of the form value.
+		const IGR_UCS2* value;   ///< Pointer to the value of the form value.
+		IGR_LONG selected;       ///< Selection state of the form value.
 	};
 
 
@@ -561,12 +562,12 @@ extern "C"
 	 */
 	struct IGR_Render_Page_Redactions
 	{
-	    IGR_LONG x;             ///< X-coordinate of the redaction area.
-	    IGR_LONG y;             ///< Y-coordinate of the redaction area.
-	    IGR_LONG width;         ///< Width of the redaction area.
-	    IGR_LONG height;        ///< Height of the redaction area.
-	    IGR_COLOR_TYPE color;   ///< Color type used for rendering the redaction.
-	    IGR_ULONG reserved;     ///< Reserved data for future use.
+		IGR_LONG x;             ///< X-coordinate of the redaction area.
+		IGR_LONG y;             ///< Y-coordinate of the redaction area.
+		IGR_LONG width;         ///< Width of the redaction area.
+		IGR_LONG height;        ///< Height of the redaction area.
+		IGR_COLOR_TYPE color;   ///< Color type used for rendering the redaction.
+		IGR_ULONG reserved;     ///< Reserved data for future use.
 	};
 
 #define IGR_REDACT_FLAGS_TYPE						IGR_ULONG
@@ -583,14 +584,14 @@ extern "C"
 	 */
 	struct IGR_Render_Page_Properties
 	{
-	    IGR_ULONG struct_size;                          ///< Size of this structure.
-	    IGR_ULONG form_value_count;                     ///< Number of items in the form_values array.
-	    const struct IGR_Render_Page_Form_Values* form_values; ///< Pointer to the first form value item.
-	    IGR_REDACT_FLAGS_TYPE redaction_flags;          ///< Redaction flags.
-	    IGR_ULONG redaction_count;                      ///< Number of items in the redaction array.
-	    const struct IGR_Render_Page_Redactions* redactions; ///< Pointer to the first redaction item.
-	    struct IGR_Rect source_rect;                    ///< Source rectangle in pixels.
-	    struct IGR_Rect dest_rect;                      ///< Destination rectangle in pixels.
+		IGR_ULONG struct_size;                          ///< Size of this structure.
+		IGR_ULONG form_value_count;                     ///< Number of items in the form_values array.
+		const struct IGR_Render_Page_Form_Values* form_values; ///< Pointer to the first form value item.
+		IGR_REDACT_FLAGS_TYPE redaction_flags;          ///< Redaction flags.
+		IGR_ULONG redaction_count;                      ///< Number of items in the redaction array.
+		const struct IGR_Render_Page_Redactions* redactions; ///< Pointer to the first redaction item.
+		struct IGR_Rect source_rect;                    ///< Source rectangle in pixels.
+		struct IGR_Rect dest_rect;                      ///< Destination rectangle in pixels.
 	};
 
 
@@ -625,21 +626,21 @@ extern "C"
 	 */
 	struct IGR_Hyperlink
 	{
-	    const void* reserved;               ///< Reserved data for internal use.
-	    IGR_HYPERLINK_ACTION_TYPE type;     ///< Type of action to execute when the link is clicked.
-	    IGR_LONG x;                         ///< X pixel position of the hyperlink element.
-	    IGR_LONG y;                         ///< Y pixel position of the hyperlink element.
-	    IGR_LONG width;                     ///< Width in pixels of the hyperlink element.
-	    IGR_LONG height;                    ///< Height in pixels of the hyperlink element.
-	    IGR_LONG page_number;               ///< Page number to show if type is GOTO.
-	    IGR_HYPERLINK_FIT_TYPE dest_fit;    ///< Page fit to apply when navigating to the destination.
-	    IGR_LONG dest_zoom;                 ///< Zoom factor to apply when navigating.
-	    IGR_LONG dest_left;                 ///< Left position in pixels for the destination, fit value specific.
-	    IGR_LONG dest_top;                  ///< Top position in pixels for the destination, fit value specific.
-	    IGR_LONG dest_right;                ///< Right position in pixels for the destination, fit value specific.
-	    IGR_LONG dest_bottom;               ///< Bottom position in pixels for the destination, fit value specific.
-	    IGR_HYPERLINK_FLAGS_TYPE flags;     ///< Flags associated with the hyperlink.
-	    IGR_LONG reserved2[8];              ///< Reserved data for internal use.
+		const void* reserved;               ///< Reserved data for internal use.
+		IGR_HYPERLINK_ACTION_TYPE type;     ///< Type of action to execute when the link is clicked.
+		IGR_LONG x;                         ///< X pixel position of the hyperlink element.
+		IGR_LONG y;                         ///< Y pixel position of the hyperlink element.
+		IGR_LONG width;                     ///< Width in pixels of the hyperlink element.
+		IGR_LONG height;                    ///< Height in pixels of the hyperlink element.
+		IGR_LONG page_number;               ///< Page number to show if type is GOTO.
+		IGR_HYPERLINK_FIT_TYPE dest_fit;    ///< Page fit to apply when navigating to the destination.
+		IGR_LONG dest_zoom;                 ///< Zoom factor to apply when navigating.
+		IGR_LONG dest_left;                 ///< Left position in pixels for the destination, fit value specific.
+		IGR_LONG dest_top;                  ///< Top position in pixels for the destination, fit value specific.
+		IGR_LONG dest_right;                ///< Right position in pixels for the destination, fit value specific.
+		IGR_LONG dest_bottom;               ///< Bottom position in pixels for the destination, fit value specific.
+		IGR_HYPERLINK_FLAGS_TYPE flags;     ///< Flags associated with the hyperlink.
+		IGR_LONG reserved2[8];              ///< Reserved data for internal use.
 	};
 
 #define IGR_OPEN_BITMAP_PIXEL_TYPE IGR_LONG
@@ -670,16 +671,16 @@ extern "C"
 	 */
 	struct IGR_Open_DIB_Info
 	{
-	    IGR_ULONG struct_size;                  ///< Size of this structure, must be populated.
-	    IGR_ULONG flags;                        ///< Flags indicating specific characteristics.
-	    IGR_ULONG width;                        ///< Width of the bitmap, in pixels.
-	    IGR_ULONG height;                       ///< Height of the bitmap, in pixels.
-	    IGR_ULONG stride;                       ///< Number of bytes per scanline.
-	    IGR_OPEN_BITMAP_PIXEL_TYPE pixel_format;///< Format of the pixel data.
-	    const void* pixel_data;                 ///< Pointer to the raw pixel data.
-	    IGR_ULONG pixel_data_size;              ///< Size of the buffer in pixel_data.
-	    const IGR_LONG* palette;                ///< Pointer to the RGB palette information.
-	    IGR_ULONG palette_count;                ///< Number of colors in the palette.
+		IGR_ULONG struct_size;                  ///< Size of this structure, must be populated.
+		IGR_ULONG flags;                        ///< Flags indicating specific characteristics.
+		IGR_ULONG width;                        ///< Width of the bitmap, in pixels.
+		IGR_ULONG height;                       ///< Height of the bitmap, in pixels.
+		IGR_ULONG stride;                       ///< Number of bytes per scanline.
+		IGR_OPEN_BITMAP_PIXEL_TYPE pixel_format;///< Format of the pixel data.
+		const void* pixel_data;                 ///< Pointer to the raw pixel data.
+		IGR_ULONG pixel_data_size;              ///< Size of the buffer in pixel_data.
+		const IGR_LONG* palette;                ///< Pointer to the RGB palette information.
+		IGR_ULONG palette_count;                ///< Number of colors in the palette.
 	};
 
 
@@ -693,16 +694,16 @@ extern "C"
 	 */
 	struct IGR_Page_Pixels
 	{
-	    IGR_ULONG width;                        ///< Number of pixels in one scan line of the extracted pixels.
-	    IGR_ULONG height;                       ///< Number of scanlines extracted.
-	    IGR_LONG stride;                        ///< Offset, in bytes, between consecutive scan lines of the page.
-	                                            ///< If positive, scan lines are top-down; if negative, they are bottom-up.
-	    IGR_OPEN_BITMAP_PIXEL_TYPE pixel_format;///< Pixel format of the extracted pixels.
-	    IGR_OPEN_BITMAP_FLAGS_TYPE flags;       ///< Pixel format flags.
-	    void* scanline0;                        ///< Pointer to the first scan line extracted.
-	    IGR_ULONG palette_count;                ///< Number of palette colors extracted, if any.
-	    IGR_LONG palette[256];                  ///< Palette colors extracted.
-	    void* reserved;                         ///< Reserved for internal use.
+		IGR_ULONG width;                        ///< Number of pixels in one scan line of the extracted pixels.
+		IGR_ULONG height;                       ///< Number of scanlines extracted.
+		IGR_LONG stride;                        ///< Offset, in bytes, between consecutive scan lines of the page.
+		///< If positive, scan lines are top-down; if negative, they are bottom-up.
+		IGR_OPEN_BITMAP_PIXEL_TYPE pixel_format;///< Pixel format of the extracted pixels.
+		IGR_OPEN_BITMAP_FLAGS_TYPE flags;       ///< Pixel format flags.
+		void* scanline0;                        ///< Pointer to the first scan line extracted.
+		IGR_ULONG palette_count;                ///< Number of palette colors extracted, if any.
+		IGR_LONG palette[256];                  ///< Palette colors extracted.
+		void* reserved;                         ///< Reserved for internal use.
 	};
 
 #define IGR_SUBFILE_INFO_FLAG_TYPE IGR_ULONG
@@ -781,14 +782,14 @@ extern "C"
 	 */
 	struct IGR_Annotation
 	{
-	    const void* reserved;               ///< Reserved data for internal use.
-	    IGR_ANNOTATION_TYPE type;           ///< Type of the annotation.
-	    IGR_ANNOTATION_FLAGS_TYPE flags;    ///< Flags on this annotation.
-	    IGR_LONG x;                         ///< X pixel position of the annotation's bounding box.
-	    IGR_LONG y;                         ///< Y pixel position of the annotation's bounding box.
-	    IGR_LONG width;                     ///< Width in pixels of the annotation's bounding box.
-	    IGR_LONG height;                    ///< Height in pixels of the annotation's bounding box.
-	    IGR_LONG reserved2[8];              ///< Reserved data for internal use.
+		const void* reserved;               ///< Reserved data for internal use.
+		IGR_ANNOTATION_TYPE type;           ///< Type of the annotation.
+		IGR_ANNOTATION_FLAGS_TYPE flags;    ///< Flags on this annotation.
+		IGR_LONG x;                         ///< X pixel position of the annotation's bounding box.
+		IGR_LONG y;                         ///< Y pixel position of the annotation's bounding box.
+		IGR_LONG width;                     ///< Width in pixels of the annotation's bounding box.
+		IGR_LONG height;                    ///< Height in pixels of the annotation's bounding box.
+		IGR_LONG reserved2[8];              ///< Reserved data for internal use.
 	};
 
 #define IGR_MAKE_STREAM_FROM_FUNCTIONS_FLAGS_USECDECL  0x1
@@ -1702,6 +1703,17 @@ extern "C"
 #define IGR_OPEN_CALLBACK_ACTION_HEARTBEAT 0
 #define IGR_OPEN_CALLBACK_ACTION_PASSWORD 1
 #define IGR_OPEN_CALLBACK_ACTION_LOCALIZE 2
+#define IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL 3
+#define IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE 4
+
+#define IGR_LOG_LEVEL_TYPE IGR_ULONG
+#define IGR_LOG_LEVEL_NONE 0
+#define IGR_LOG_LEVEL_CRITICAL 1
+#define IGR_LOG_LEVEL_ERROR 2
+#define IGR_LOG_LEVEL_WARNING 3
+#define IGR_LOG_LEVEL_INFORMATION 4
+#define IGR_LOG_LEVEL_DEBUG 5
+#define IGR_LOG_LEVEL_TRACE 6
 
 	/**
 	* Callback that is passed to IGR_Open_Ex and called for specific events while processing the document.
@@ -1749,6 +1761,39 @@ extern "C"
 		IGR_UCS2 original[1024];
 		// Replacement string
 		IGR_UCS2 replacement[1024];
+	};
+
+	/**
+	* Structure that is payload argument for IGR_OPEN_CALLBACK when action argument is IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL.
+	*/
+	struct IGR_Open_Callback_Action_Log_Level
+	{
+		// [out] Indicate the size of this structure; must be populated.
+		IGR_ULONG struct_size;
+
+		// Indicates the module that the log level is being requested.
+		char module[16];
+
+		// User sets with the desired log level for the module. Defaults to IGR_LOG_LEVEL_NONE
+		IGR_LOG_LEVEL_TYPE result;
+	};
+
+	/**
+	* Structure that is payload argument for IGR_OPEN_CALLBACK when action argument is IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE.
+	*/
+	struct IGR_Open_Callback_Action_Log_Message
+	{
+		// Indicates the size of this structure; must be populated.
+		IGR_ULONG struct_size;
+
+		// Indicates the module that generated the message.
+		char module[16];
+
+		// Indicates the log level of the message.
+		IGR_LOG_LEVEL_TYPE log_level;
+
+		// Contains the log message.
+		char message[512];
 	};
 
 	/**
@@ -2205,3 +2250,4 @@ extern "C"
 #endif
 
 #endif // PERCEPTIVE_DOCFILTERS_H_DEF
+

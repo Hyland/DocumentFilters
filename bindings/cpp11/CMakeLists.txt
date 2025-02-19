@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(DocumentFilters
-    VERSION 24.4.0
+    VERSION 25.1.0
     DESCRIPTION "Document Filters - c++11 bindings"
     LANGUAGES CXX
 )

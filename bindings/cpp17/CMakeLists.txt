@@ -7,7 +7,7 @@ if (POLICY CMP0141)
 endif()
 
 project(DocumentFilters
-    VERSION 24.4.0
+    VERSION 25.1.0
     DESCRIPTION "Document Filters - c++17 bindings"
     LANGUAGES CXX
 )
