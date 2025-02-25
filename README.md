@@ -53,25 +53,25 @@ To use Document Filters without feature limitations, you will need either an eva
       <td>
         <img align="left" width=52px src="https://user-images.githubusercontent.com/371009/230673036-fad1e8e6-5d48-49b1-a9c1-6f9834e0d165.png" alt="C#">
         <div>
-          <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_net_api_c_and_vbnet_application.html">Using DocFilters in C#</a> &nbsp<br/>
+          <a href="https://hyland.github.io/DocumentFilters-Docs/latest/getting_started_with_document_filters/getting_started_dotnet.html">Using DocFilters in C#</a> &nbsp<br/>
         </div>
       </td>
       <td>
         <img align="left" width=52px src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python">
         <div>
-          <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_python_api_application.html">Using DocFilters in Python</a>
+          <a href="https://hyland.github.io/DocumentFilters-Docs/latest/getting_started_with_document_filters/getting_started_python.html">Using DocFilters in Python</a>
         </div>
       </td>
       <td>
         <img align="left" width=52px height=52px src="https://upload.wikimedia.org/wikipedia/en/3/30/Java_programming_language_logo.svg" alt="Java">
         <div>
-          <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_java_api_application.html">Using DocFilters in Java</a>
+          <a href="https://hyland.github.io/DocumentFilters-Docs/latest/getting_started_with_document_filters/getting_started_java.html">Using DocFilters in Java</a>
         </div>
       </td>
       <td>
         <img align="left" width=52px src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" style="padding-right:3pt" alt="C++">
         <div>
-          <a href="https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_class_wrapper_around_native_library_functions_application.html">Using DocFilters in C++</a> &nbsp<br/>
+          <a href="https://hyland.github.io/DocumentFilters-Docs/latest/getting_started_with_document_filters/getting_started_cpp.html">Using DocFilters in C++</a> &nbsp<br/>
         </div>
       </td>
     </tr>
@@ -80,11 +80,11 @@ To use Document Filters without feature limitations, you will need either an eva
 
 ## Documentation
 
-- [Getting Started](https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters.html) contains details of integrating Document Filters with your language of choice.
+- [Getting Started](https://hyland.github.io/DocumentFilters-Docs/latest/getting_started_with_document_filters.html) contains details of integrating Document Filters with your language of choice.
 
-- [API Documentation](https://docs.hyland.com/DocumentFilters/en_US/Print/reference.html) captures the details of calling Document Filters, from then low-level C API, through to object language.
+- [API Documentation](https://hyland.github.io/DocumentFilters-Docs/latest/reference.html) captures the details of calling Document Filters, from then low-level C API, through to object language.
 
-- [Platforms, Formats and More](https://docs.hyland.com/DocumentFilters/en_US/Print/supported_platforms.html) as the stats on where you can run Document Filters, and what you can process with it.
+- [Platforms, Formats and More](https://hyland.github.io/DocumentFilters-Docs/latest/supported_platforms.html) as the stats on where you can run Document Filters, and what you can process with it.
 
 ## Samples
 

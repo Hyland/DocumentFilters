@@ -134,7 +134,7 @@ make
 ## Usage
 
 Refer to the [`Hyland Document Filters SDK
-documentation`](https://docs.hyland.com/DocumentFilters/en_US/Print/index.html)
+documentation`](https://hyland.github.io/DocumentFilters-Docs/latest/index.html)
 for details on how to use the C++11 bindings in your application. The API functions
 and examples can be found within the SDK documentation.
 
