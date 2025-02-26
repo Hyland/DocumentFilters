@@ -51,7 +51,7 @@ from DocumentFilters import *
 ```
 
 Refer to the [`Hyland Document Filters SDK
-documentation`](https://docs.hyland.com/DocumentFilters/en_US/Print/index.html)
+documentation`](https://hyland.github.io/DocumentFilters-Docs/latest/index.html)
 for more details on how to utilize the API effectively.
 
 ## License

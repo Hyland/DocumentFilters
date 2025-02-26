@@ -19,7 +19,7 @@ Explore the contents to leverage the power of Document Filters in your document
 processing projects.
 
 To get started on your own project, check out the [Getting
-Started](https://docs.hyland.com/DocumentFilters/en_US/Print/getting_started_with_document_filters/create_a_c_api_class_wrapper_around_native_library_functions_application.html)
+Started](https://hyland.github.io/DocumentFilters-Docs/latest/getting_started_with_document_filters/getting_started_cpp.html)
 section in the documentation.
 
 ## Projects and Files
