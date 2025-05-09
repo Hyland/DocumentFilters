@@ -14,9 +14,10 @@
 import base64
 import datetime, re, json, io, ctypes
 from enum import Enum
-from typing import Callable
+from typing import Callable, Union
 from . DocumentFiltersAPI import *
 import subprocess
+import traceback
 
 def _IsPythonStream(obj):
     try:
@@ -59,9 +60,18 @@ def __StreamBridge_Write(stream, buffer, length):
         print("Stream_Write Error: " + str(e))
         return -1
 
+
 def __StreamBridge_Destruct(stream):
-    _1, bridge, _2 = _stream_manager._ResolveStream(stream)
+    s, bridge, _2 = _stream_manager._ResolveStream(stream)
     _stream_manager._UnregisterStream(bridge.Context)
+
+
+def __StreamBridge_Close_And_Destruct(stream):
+    s, bridge, _2 = _stream_manager._ResolveStream(stream)
+    if hasattr(s, 'close') and callable(s.close):
+        s.close()
+    __StreamBridge_Destruct(stream)
+
 
 def __StreamBridge_Action(stream, action, actionData):
     try:
@@ -101,6 +111,7 @@ FPtr_IGR_Stream_Read = IGR_Make_Stream_Read(__StreamBridge_Read)
 FPtr_IGR_Stream_Write = IGR_Make_Stream_Write(__StreamBridge_Write)
 FPtr_IGR_Stream_Action = IGR_Make_Stream_Action(__StreamBridge_Action)
 FPtr_IGR_Stream_Destruct = IGR_Make_Stream_Destruct(__StreamBridge_Destruct)
+FPtr_IGR_Stream_Close_And_Destruct = IGR_Make_Stream_Destruct(__StreamBridge_Close_And_Destruct)
 FPtr_IGR_Stream_Action2 = IGR_CALLBACK(_igrstream_action)
 
 class _StreamBridge_Manager:
@@ -111,7 +122,7 @@ class _StreamBridge_Manager:
 
     def _RegisterStream(self, stream):
         for i in range(len(self._streams)):
-            if self._streams[i] == None:
+            if self._streams[i] is None:
                 self._streams[i] = stream
                 return i
         self._streams.append(stream)
@@ -128,7 +139,7 @@ class _StreamBridge_Manager:
         bridge = ctypes.cast(stream, ctypes.POINTER(IGR_Stream))
         return self._streams[bridge.contents.Context]
 
-    def MakeStreamBridge(self, stream, allowWrites = False):
+    def MakeStreamBridge(self, stream, allowWrites=False, closeStream=False):
         api = ISYS11dfAPI.Singleton(None)
 
         if api.IGR_Make_Stream_From_Functions != None:
@@ -147,14 +158,21 @@ class _StreamBridge_Manager:
             else:
                 action = ctypes.cast(None, IGR_Make_Stream_Action)
 
-            DocumentFiltersBase._Call(api.IGR_Make_Stream_From_Functions, \
-                ctypes.byref(bridge), \
-                IGR_MAKE_STREAM_FROM_FUNCTIONS_FLAGS_USECDECL, \
-                FPtr_IGR_Stream_Seek, \
-                FPtr_IGR_Stream_Read, \
-                FPtr_IGR_Stream_Write, \
-                action, \
-                FPtr_IGR_Stream_Destruct, \
+            dtor = (
+                FPtr_IGR_Stream_Close_And_Destruct 
+                if closeStream 
+                else FPtr_IGR_Stream_Destruct
+            )
+
+            DocumentFiltersBase._Call(
+                api.IGR_Make_Stream_From_Functions,
+                ctypes.byref(bridge),
+                IGR_MAKE_STREAM_FROM_FUNCTIONS_FLAGS_USECDECL,
+                FPtr_IGR_Stream_Seek,
+                FPtr_IGR_Stream_Read,
+                FPtr_IGR_Stream_Write,
+                action,
+                dtor,
                 ctypes.byref(result))
 
             return result
@@ -269,6 +287,33 @@ class DocumentFiltersBase(object):
             epoch = datetime.datetime(1601, 1, 1)
             return epoch + datetime.timedelta(microseconds=val // 10)
         return None
+    
+    @staticmethod
+    def _RectToQuad(rect: Union[IGR_Rect, IGR_FRect, IGR_QuadPoint]):
+        result = IGR_QuadPoint()
+        if isinstance(rect, IGR_Rect):
+            result.upperLeft.x = rect.left
+            result.upperLeft.y = rect.top
+            result.upperRight.x = rect.right
+            result.upperRight.y = rect.top
+            result.lowerRight.x = rect.right
+            result.lowerRight.y = rect.bottom
+            result.lowerLeft.x = rect.left
+            result.lowerLeft.y = rect.bottom
+        elif isinstance(rect, IGR_FRect):
+            result.upperLeft.x = rect.left
+            result.upperLeft.y = rect.top
+            result.upperRight.x = rect.right
+            result.upperRight.y = rect.top
+            result.lowerRight.x = rect.right
+            result.lowerRight.y = rect.bottom
+            result.lowerLeft.x = rect.left
+            result.lowerLeft.y = rect.bottom
+        elif isinstance(rect, IGR_QuadPoint):
+            result = rect
+        else:
+            raise ValueError("Unsupported rectangle type")
+        return result
 
     class _EnumeratorOf:
         def __init__(self, first, next):
@@ -337,8 +382,8 @@ class DocumentFiltersBase(object):
 
 class StreamBridge:
     @staticmethod
-    def Make(stream, forWrite = False):
-        return _stream_manager.MakeStreamBridge(stream, forWrite)
+    def Make(stream, forWrite=False, closeStream=False):
+        return _stream_manager.MakeStreamBridge(stream, forWrite, closeStream)
 
 class IGRStream:
     class IGRStream_Data:
@@ -712,7 +757,7 @@ class DocumentFilters(DocumentFiltersBase):
                 DocumentFiltersBase._Call(API.IGR_Get_Page_Form_Elements, pageHandle, i, ctypes.byref(c), ctypes.byref(e))
                 result.append(DocumentFilters.FormElement(e))
             return result
-        
+
     class PageElement(DocumentFiltersBase):
         def __init__(self, pageHandle, info):
             self._pageHandle = pageHandle
@@ -731,10 +776,10 @@ class DocumentFilters(DocumentFiltersBase):
         @property
         def Bounds(self): return self._info.pos
 
-        @property 
+        @property
         def Text(self): return self.GetText()
 
-        @property 
+        @property
         def Styles(self):
             if self._styles == None:
                 self._styles = {}
@@ -750,16 +795,16 @@ class DocumentFilters(DocumentFiltersBase):
         def GetText(self):
             len = IGR_ULONG(0)
             DocumentFiltersBase._Call(self.API.IGR_Get_Page_Element_Text, self._pageHandle, ctypes.byref(self._info), ctypes.byref(len), None)
-            
+
             len.value += 1
             data = ctypes.create_string_buffer((len.value + 1) * 2)
             DocumentFiltersBase._Call(self.API.IGR_Get_Page_Element_Text, self._pageHandle, ctypes.byref(self._info), ctypes.byref(len),  ctypes.byref(data))
             return DocumentFiltersBase._FromUTF16(data, len.value)
-        
+
         def GetFirstChild(self):
             res = IGR_Page_Element()
             res.struct_size = ctypes.sizeof(IGR_Page_Element)
-            
+
             if DocumentFilters._Call(self.API.IGR_Get_Page_Element_First_Child, self._pageHandle, ctypes.byref(self._info), ctypes.byref(res)) == 0:
                 return DocumentFilters.PageElement(self._pageHandle, res)
             else:
@@ -768,17 +813,17 @@ class DocumentFilters(DocumentFiltersBase):
         def GetNextSibling(self):
             res = IGR_Page_Element()
             res.struct_size = ctypes.sizeof(IGR_Page_Element)
-            
+
             if DocumentFilters._Call(self.API.IGR_Get_Page_Element_Next_Sibling, self._pageHandle, ctypes.byref(self._info), ctypes.byref(res)) == 0:
                 return DocumentFilters.PageElement(self._pageHandle, res)
             else:
                 return None
-            
+
         def Children(self):
             child = self.GetFirstChild()
             while child is not None:
                 yield child
-      
+
         def AllChildren(self):
             child = self.GetFirstChild()
             while child is not None:
@@ -787,8 +832,8 @@ class DocumentFilters(DocumentFiltersBase):
                 for grandChild in child.AllChildren():
                     yield grandChild
                 child = child.GetNextSibling()
-           
-            
+
+
     class Word(DocumentFiltersBase):
         def __init__(self, item, index):
             self._item = item
@@ -1016,6 +1061,62 @@ class DocumentFilters(DocumentFiltersBase):
         def _packBookmark(self):
             return self._item
 
+    class PagePixels(DocumentFiltersBase):
+        def __init__(self, pageHandle, pixels: IGR_Page_Pixels):
+            self._pageHandle = pageHandle
+            self._pixels = pixels
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exception_type, exception_value, traceback):
+            self.Close()
+
+        def Close(self):
+            DocumentFiltersBase._Call(self.API.IGR_Free_Page_Pixels, ctypes.byref(self._pixels))
+
+        @property
+        def Width(self): return self._pixels.width
+
+        @property
+        def Height(self): return self._pixels.height
+
+        @property
+        def Stride(self): return self._pixels.stride
+
+        @property
+        def ImageSize(self): return self.Stride * self.Height
+
+        def GetScanline(self, y):
+            if y < 0 or y >= self.Height:
+                raise IndexError('page index out of bounds')
+            pix = ctypes.cast(self._pixels.scanline0, ctypes.POINTER(ctypes.c_char * self.ImageSize)).contents
+
+            if self.Stride == 0:
+                return None
+            start = self.Stride * y
+            return pix[start:start + self.Stride]
+
+        def GetPixel(self, xy):
+            x = xy[0]
+            y = xy[1]
+            if x < 0 or x >= self.Width or y < 0 or y >= self.Height:
+                raise IndexError('page index out of bounds')
+
+            pal = ctypes.cast(self._pixels.palette, ctypes.POINTER(IGR_ULONG * self._pixels.palette_count)).contents
+            scanline = self.GetScanline(y)
+            if scanline is None:
+                return None
+            if self._pixels.pixel_format == IGR_OPEN_BITMAP_PIXEL_1BPP_INDEXED:
+                pix = scanline[x // 8]
+                return ((pix & (0x80 >> (x % 8))) != 0)
+            elif self._pixels.pixel_format == IGR_OPEN_BITMAP_PIXEL_8BPP_INDEXED:
+                pix = pal[scanline[x]]
+                return ((pix & 0xFF0000) >> 16, (pix & 0x00FF00) >> 8, (pix & 0xff), 0xff)
+            elif self._pixels.pixel_format == IGR_OPEN_BITMAP_PIXEL_32BPP_8888_BGRA:
+                pix = scanline[x * 4:x * 4 + 4]
+                return (pix[0], pix[1], pix[2], pix[3])
+            return None
 
     class Page(DocumentFiltersBase):
         def __init__(self, docHandle, pageIndex):
@@ -1184,6 +1285,33 @@ class DocumentFilters(DocumentFiltersBase):
             self._annotationIndex += 1
             return result
 
+        def GetPagePixels(self,
+                          sourceRect: IGR_Rect = None,
+                          destSize: IGR_Size = None,
+                          options: str = "",
+                          pixelFormat: int = IGR_OPEN_BITMAP_PIXEL_AUTO):
+            pixels = IGR_Page_Pixels()
+            if sourceRect is None:
+                sourceRect = IGR_Rect()
+                sourceRect.right = self.Width
+                sourceRect.bottom = self.Height
+            if destSize is None:
+                destSize = IGR_Size()
+                destSize.width = self.Width
+                destSize.height = self.Height
+
+            DocumentFilters._Call(
+                self.API.IGR_Get_Page_Pixels,
+                self._pageHandle,
+                ctypes.byref(sourceRect),
+                ctypes.byref(destSize),
+                IGR_ULONG(0),
+                DocumentFiltersBase._ToUTF16(options),
+                IGR_ULONG(pixelFormat),
+                ctypes.byref(pixels))
+
+            return DocumentFilters.PagePixels(self._pageHandle, pixels)
+
         def GetPageBitmap(self, sourceRect = None, destSize = None, options = ""):
             from PIL import Image, ImageFile, ImagePalette
 
@@ -1197,10 +1325,11 @@ class DocumentFilters(DocumentFiltersBase):
                 destSize.width = self.Width
                 destSize.height = self.Height
 
-            DocumentFilters._Call(self.API.IGR_Get_Page_Pixels, 
-                self._pageHandle, 
-                ctypes.byref(sourceRect), 
-                ctypes.byref(destSize), 
+            DocumentFilters._Call(
+                self.API.IGR_Get_Page_Pixels,
+                self._pageHandle,
+                ctypes.byref(sourceRect),
+                ctypes.byref(destSize),
                 IGR_ULONG(0),
                 DocumentFiltersBase._ToUTF16(options),
                 IGR_ULONG(IGR_OPEN_BITMAP_PIXEL_AUTO),
@@ -1211,7 +1340,7 @@ class DocumentFilters(DocumentFiltersBase):
                 pix = ctypes.cast(pixels.scanline0, ctypes.POINTER(ctypes.c_char * imageSize)).contents
                 pal = ctypes.cast(pixels.palette, ctypes.POINTER(IGR_ULONG * pixels.palette_count)).contents
 
-                if pixels.pixel_format == IGR_OPEN_BITMAP_PIXEL_1BPP_INDEXED: 
+                if pixels.pixel_format == IGR_OPEN_BITMAP_PIXEL_1BPP_INDEXED:
                     res = Image.frombytes("1", (pixels.width, pixels.height), pix, "raw")
                 elif pixels.pixel_format == IGR_OPEN_BITMAP_PIXEL_8BPP_INDEXED:
                     res = Image.frombytes("P", (pixels.width, pixels.height), pix, "raw")
@@ -1227,11 +1356,11 @@ class DocumentFilters(DocumentFiltersBase):
             finally:
                 DocumentFiltersBase._Call(self.API.IGR_Free_Page_Pixels, ctypes.byref(pixels))
             return res
-        
+
         def Compare(self, otherPage, margins = None, leftMargins = None, rightMargins = None, compareSettings = None):
             if otherPage is None:
                 raise IGRException("otherPage cannot be None", 4)
-            
+
             res = IGR_HTEXTCOMPARE()
             leftHandle = self.Handle
             rightHandle = otherPage.Handle
@@ -1239,7 +1368,7 @@ class DocumentFilters(DocumentFiltersBase):
             wrappedSettings = DocumentFilters.CompareSettings()
             if isinstance(compareSettings, DocumentFilters.CompareSettings):
                 wrappedSettings = compareSettings;
-            
+
             if not isinstance(leftMargins, IGR_FRect):
                 leftMargins = margins
             if not isinstance(rightMargins, IGR_FRect):
@@ -1251,7 +1380,7 @@ class DocumentFilters(DocumentFiltersBase):
 
             DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Pages, leftHandle, ctypes.byref(leftMargins), rightHandle, ctypes.byref(rightMargins), ctypes.byref(wrappedSettings._item), ctypes.byref(res))
             return DocumentFilters.CompareResults(res)
-        
+
         def GetRootPageElement(self):
             if self._rootPageElement == None:
                 self._rootPageElement = IGR_Page_Element()
@@ -1921,7 +2050,7 @@ class DocumentFilters(DocumentFiltersBase):
                     'content': value
                 }
                 self.parts.append(part)
-            
+
             def AddPart(self, name, value): self.addPart(name, value)
 
             def GetAutoCaption(self): return self.autoCaption
@@ -2295,7 +2424,7 @@ class DocumentFilters(DocumentFiltersBase):
         @property
         def Handle(self):
             return self._needHandle()
-    
+
     class CompareSettings():
 
         def __init__(self):
@@ -2310,7 +2439,7 @@ class DocumentFilters(DocumentFiltersBase):
 
         @property
         def Flags(self): return self._item.flags
-        
+
         @Flags.setter
         def Flags(self, value): self._item.flags = value
 
@@ -2324,7 +2453,7 @@ class DocumentFilters(DocumentFiltersBase):
 
         @FirstPage.setter
         def FirstPage(self, value): self._item.doc_first_page = value
-    
+
         @property
         def PageCount(self): return self._item.doc_page_count
 
@@ -2335,8 +2464,8 @@ class DocumentFilters(DocumentFiltersBase):
         def Margins(self): return self._item.doc_margins
 
         @Margins.setter
-        def Margins(self, value): self._item.doc_margins = value        
-    
+        def Margins(self, value): self._item.doc_margins = value
+
 
     class CompareDocumentSource(CompareDocumentSettings):
         def __init__(self):
@@ -2347,7 +2476,7 @@ class DocumentFilters(DocumentFiltersBase):
         def Extractor(self): return self._extractor
 
         @Extractor.setter
-        def Extractor(self, value): 
+        def Extractor(self, value):
             if isinstance(value, DocumentFilters.Extractor):
                 self._extractor = value
                 self._item.doc_handle = value._handle
@@ -2356,7 +2485,7 @@ class DocumentFilters(DocumentFiltersBase):
         def DocumentHandle(self): return self._item.doc_handle
 
         @DocumentHandle.setter
-        def DocumentHandle(self, value): 
+        def DocumentHandle(self, value):
             self._item.doc_handle = value
 
 
@@ -2370,7 +2499,7 @@ class DocumentFilters(DocumentFiltersBase):
             return self
 
         def __exit__(self, exception_type, exception_value, traceback):
-            self.Close()            
+            self.Close()
 
         def Close(self):
             if self._handle is not None:
@@ -2379,11 +2508,11 @@ class DocumentFilters(DocumentFiltersBase):
 
         @property
         def Current(self): return self._res
-        
+
         def MoveNext(self):
             if self._handle is None:
                 return False
-            
+
             self._current = IGR_Compare_Documents_Difference()
             self._current.struct_size = ctypes.sizeof(IGR_Compare_Documents_Difference)
             self._res = None
@@ -2447,7 +2576,7 @@ class DocumentFilters(DocumentFiltersBase):
             self._bounds.right = item.bounds.right
             self._bounds.bottom = item.bounds.bottom
             self._text = DocumentFiltersBase._FromUTF16(ctypes.cast(item.text, ctypes.POINTER(ctypes.c_char)), 0xff)
-        
+
         @property
         def PageIndex(self): return self._pageIndex
 
@@ -2465,14 +2594,14 @@ class DocumentFilters(DocumentFiltersBase):
         class ActionPassword:
             def __init__(self, internal):
                 self._internal: IGR_Open_Callback_Action_Password = internal
-                
+
             def GetId(self) -> str: return DocumentFiltersBase._FromUTF16(self._internal.id)
             def SetPassword(self, value: str): DocumentFiltersBase._ToUTF16Array(self._internal.password, value)
-        
+
         class ActionLocalize:
             def __init__(self, internal):
                 self._internal: IGR_Open_Callback_Action_Localize = internal
-            
+
             @property
             def StringId(self) -> int: return self._internal.string_id
 
@@ -2483,7 +2612,7 @@ class DocumentFilters(DocumentFiltersBase):
             def Replacement(self) -> str: return DocumentFiltersBase._FromUTF16(self._internal.replacement)
 
             @Replacement.setter
-            def Replacement(self, value): 
+            def Replacement(self, value):
                 if value is not None:
                     DocumentFiltersBase._ToUTF16Array(self._internal.replacement, value)
 
@@ -2497,7 +2626,7 @@ class DocumentFilters(DocumentFiltersBase):
             @Level.setter
             def Level(self, value): self._internal.result = value
 
-            @property 
+            @property
             def Module(self) -> str: return self._internal.module.decode('utf8')
 
         class ActionLogMessage:
@@ -2513,15 +2642,97 @@ class DocumentFilters(DocumentFiltersBase):
             @property
             def Message(self) -> str: return self._internal.message.decode('utf8')
 
+        class ActionApproveExternalResource:
+            def __init__(self, internal):
+                self._internal: IGR_Open_Callback_Action_Approve_External_Resource = internal
+
+            @property
+            def Url(self) -> str: return DocumentFiltersBase._FromUTF16(self._internal.url)
+
+            @property
+            def Resource(self) -> str: return self.Url
+
+        class ActionGetResourceStream:
+            def __init__(self, internal):
+                self._internal: IGR_Open_Callback_Action_Get_Resource_Stream = internal
+
+            @property
+            def Resource(self) -> str:
+                return DocumentFiltersBase._FromUTF16(self._internal.url)
+
+            @property
+            def Url(self) -> str:
+                return self.Resource
+
+            def SetStream(self, stream, closeStream = False):
+                if _IsPythonStream(stream):
+                    self._internal.result = StreamBridge.Make(stream, False, closeStream)
+                else:
+                    self._internal.result = ctypes.cast(stream, ctypes.POINTER(IGR_Stream))
+                    
+        class ActionOcrImage:
+            def __init__(self, internal, handle):
+                self._internal: IGR_Open_Callback_Action_OCR_Image = internal
+                self._handle = handle
+
+            @property
+            def SourcePageIndex(self) -> int:
+                return self._internal.source_page_index
+
+            @property
+            def SourceRect(self) -> IGR_FRect:
+                return self._internal.source_rect
+            
+            @property
+            def SourceName(self) -> str:
+                return DocumentFiltersBase._FromUTF16(self._internal.source_name)
+            
+            @property
+            def PixelData(self) -> IGR_Open_DIB_Info:
+                return self._internal.source_image_pixels.contents
+
+            def SaveImage(self, filename, mimetype):
+                self._internal.SaveImage(
+                    self._handle,
+                    DocumentFiltersBase._ToUTF16(filename), 
+                    DocumentFiltersBase._ToUTF16(mimetype))
+                
+            def StartBlock(self, blockType: int, rect: Union[IGR_Rect, IGR_FRect, IGR_QuadPoint]):
+                quad = DocumentFiltersBase._RectToQuad(rect)
+                self._internal.StartBlock(
+                    self._handle,
+                    blockType, 
+                    ctypes.byref(quad))
+                
+            def EndBlock(self, blockType: int):
+                self._internal.EndBlock(
+                    self._handle,
+                    blockType)
+                
+            def AddText(self, text: str, rect: Union[IGR_Rect, IGR_FRect, IGR_QuadPoint], flags: int = 0, style = None):
+                quad = DocumentFiltersBase._RectToQuad(rect)
+                self._internal.AddText(
+                    self._handle,
+                    DocumentFiltersBase._ToUTF16(text),
+                    ctypes.byref(quad),
+                    flags,
+                    style)
+                
+            def Reorient(self, angle: float):
+                self._internal.Reorient(
+                    self._handle,
+                    angle)
+                                       
+
         @property
         def Action(self) -> int: return self._action
-    
+
         @property
         def Heartbeat(self) -> ActionHeartbeat: return self._heartbeat
 
         @property
         def Password(self) -> ActionPassword: return self._password
-        
+
         @property
         def Localize(self) -> ActionLocalize: return self._localize
 
@@ -2530,6 +2741,12 @@ class DocumentFilters(DocumentFiltersBase):
 
         @property
         def LogMessage(self) -> ActionLogMessage: return self._logMessage
+
+        @property
+        def ApproveExternalResource(self) -> ActionApproveExternalResource: return self._approveExternalResource
+
+        @property
+        def GetResourceStream(self) -> ActionGetResourceStream: return self._getResourceStream
 
     class Extractor(DocumentFiltersBase):
         class SubFileEnumerator(DocumentFiltersBase):
@@ -2564,11 +2781,11 @@ class DocumentFilters(DocumentFiltersBase):
 
                 def next(self):
                     return self.__next__()
-                
+
                 def close(self):
                     if self._handle is not None:
                         DocumentFiltersBase._Call(self.API.IGR_Subfiles_Close, self._handle)
-                        self._handle = None                    
+                        self._handle = None
 
         def __init__(self):
             self._handle = IGR_LONG(0)
@@ -2584,6 +2801,13 @@ class DocumentFilters(DocumentFiltersBase):
             self._FPtr_IGR_OPEN_CALLBACK = None
             self._localize = {}
             self._localizer: 'Callable[[int, str], str]' = None
+            self._getResourceStream: 'Callable[[str], IGRStream]' = None
+            self._ocrImage: 'Callable[[OpenCallback.ActionOcrImage], bool]' = None
+            self._passwordCallback: 'Callable[[str], str]' = None
+            self._heartbeatCallback: 'Callable[[], bool]' = None
+            self._approveExternalResourceCallback: 'Callable[[str], bool]' = None
+            self._logLevelCallback: 'Callable[[str], int]' = None
+            self._logMessageCallback: 'Callable[[int, str, str], None]' = None
 
         def __enter__(self):
             return self
@@ -2658,7 +2882,7 @@ class DocumentFilters(DocumentFiltersBase):
 
         def _from_filename(self, filename):
             strm = ctypes.POINTER(IGR_Stream)()
-            DocumentFiltersBase._Call(self.API.IGR_Make_Stream_From_File, DocumentFiltersBase._ToUTF16(filename), 0, ctypes.byref(strm))          
+            DocumentFiltersBase._Call(self.API.IGR_Make_Stream_From_File, DocumentFiltersBase._ToUTF16(filename), 0, ctypes.byref(strm))
             self._stream = strm
 
         def _from_stream(self, stream):
@@ -2687,7 +2911,7 @@ class DocumentFilters(DocumentFiltersBase):
                 self._stream = None
             self._eof = False
             self._FPtr_IGR_OPEN_CALLBACK = None
-        
+
         def _getOpenCallback(self, callback):
             def __IGR_Open_Callback(action, payload, context):
                 callbackRequest = DocumentFilters.OpenCallback()
@@ -2702,40 +2926,115 @@ class DocumentFilters(DocumentFiltersBase):
                     callbackRequest._logLevel = DocumentFilters.OpenCallback.ActionLogLevel(IGR_Open_Callback_Action_Log_Level.from_address(payload))
                 elif action == IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
                     callbackRequest._logMessage = DocumentFilters.OpenCallback.ActionLogMessage(IGR_Open_Callback_Action_Log_Message.from_address(payload))
-                
-                result = None
-                if action == IGR_OPEN_CALLBACK_ACTION_LOCALIZE:
-                    if len(self._localize) > 0:
-                        callbackRequest._localize.Replacement = self._localize.get(callbackRequest._localize.Original)
-                    if self._localizer is not None:
-                        callbackRequest._localize.Replacement = self._localizer(callbackRequest._localize.StringId, callbackRequest._localize.Original)
-
-                if callback is None:
-                    result = IGR_OK
+                elif action == IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE:
+                    callbackRequest._approveExternalResource = DocumentFilters.OpenCallback.ActionApproveExternalResource(IGR_Open_Callback_Action_Approve_External_Resource.from_address(payload))
+                elif action == IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM:
+                    callbackRequest._getResourceStream = DocumentFilters.OpenCallback.ActionGetResourceStream(IGR_Open_Callback_Action_Get_Resource_Stream.from_address(payload))
+                elif action == IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE:
+                    callbackRequest._ocrImage = DocumentFilters.OpenCallback.ActionOcrImage(IGR_Open_Callback_Action_OCR_Image.from_address(payload), payload)
 
                 # Handle exceptions raised from user-provided callback
                 # - Not handling these results in "Exception ignored on calling ctypes callback function" output from ctypes
+                result = None
+                handled = False
+                
                 try:
-                    if callback is not None:
-                        result = callback(callbackRequest)
+                    if action == IGR_OPEN_CALLBACK_ACTION_LOCALIZE:
+                        if len(self._localize) > 0:
+                            callbackRequest._localize.Replacement = self._localize.get(callbackRequest._localize.Original)
+                            handled = True
+                            result = IGR_OK
+                        if self._localizer is not None:
+                            callbackRequest._localize.Replacement = self._localizer(callbackRequest._localize.StringId, callbackRequest._localize.Original)
+                            handled = True
+                            result = IGR_OK
+                    elif action == IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM:
+                        if self._getResourceStream is not None:
+                            strm = self._getResourceStream(
+                                callbackRequest._getResourceStream.Resource)
+                            if strm is not None:
+                                callbackRequest._getResourceStream.SetStream(
+                                    strm, closeStream=True)
+                                result = IGR_OK
+                                handled = True
+                    elif action == IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE:
+                        if self._ocrImage is not None:
+                            if self._ocrImage(callbackRequest._ocrImage):
+                                result = IGR_OK
+                                handled = True
+                    elif action == IGR_OPEN_CALLBACK_ACTION_HEARTBEAT:
+                        if self._heartbeatCallback is not None:
+                            handled = True
+                            result = IGR_OK if self._heartbeatCallback() else IGR_CANCELLED
+                    elif action == IGR_OPEN_CALLBACK_ACTION_PASSWORD:
+                        if self._passwordCallback is not None:
+                            handled = True
+                            password = self._passwordCallback(callbackRequest._password.GetId())
+                            if password is not None:
+                                callbackRequest._password.SetPassword(password)
+                                result = IGR_OK
+                            else:
+                                result = IGR_E_ERROR
+                    elif action == IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE:
+                        if self._approveExternalResourceCallback is not None:
+                            handled = True
+                            if self._approveExternalResourceCallback(callbackRequest._approveExternalResource.Url):
+                                result = IGR_OK
+                            else:
+                                result = IGR_CANCELLED
+                    elif action == IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
+                        if self._logLevelCallback is not None:
+                            handled = True
+                            callbackRequest._logLevel.Level = self._logLevelCallback(callbackRequest._logLevel.Module)
+                            result = IGR_OK
+                        else:
+                            result = IGR_OK
+                    elif action == IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
+                        if self._logMessageCallback is not None:
+                            handled = True
+                            self._logMessageCallback(
+                                callbackRequest._logMessage.Level,
+                                callbackRequest._logMessage.Module,
+                                callbackRequest._logMessage.Message)
+                        result = IGR_OK
+                    
+
+                    if not handled:
+                        if callback is None:
+                            result = IGR_OK
+                        else:
+                            result = callback(callbackRequest)
+
                 except Exception as error:
-                    # `Exception` is the base class of all non-fatal exceptions.  It doesn't seem like we want to 
+                    # `Exception` is the base class of all non-fatal exceptions.  It doesn't seem like we want to
                     # handle `BaseException`, which includes fatal exceptions used to indicate that the program should terminate.
                     print(f"Exception raised from user-provided IGR_OPEN_CALLBACK. Handling as if IGR_E_ERROR was returned. Exception details: error={error}, type(error)={type(error)}")
+                    traceback.print_exc()
                     return IGR_E_ERROR
-                
+
                 # Handle user-provided callback returning incorrect type
                 # - Not handling this results in "Exception ignored on converting result of ctypes callback function" output from ctypes
                 try:
                     # Throws TypeError if conversion to int is not possible.
-                    # For some reason we get "Exception ignored on converting result of ctypes callback function: 'c_int' object cannot 
+                    # For some reason we get "Exception ignored on converting result of ctypes callback function: 'c_int' object cannot
                     # be interpreted as an integer" if this is IGR_LONG(result) or IGR_SHORT(result).
                     return int(result)
                 except TypeError as error:
                     print(f"Return value from user-provided IGR_OPEN_CALLBACK cannot be interpreted as an integer. Handling as if IGR_E_ERROR was returned. Exception details: error={error}, type(error)={type(error)}")
                     return IGR_E_ERROR
-                
-            if callback == None and len(self._localize) == 0 and self._localizer is None:
+
+            if (
+                callback == None and 
+                len(self._localize) == 0 and 
+                self._localizer is None and 
+                self._getResourceStream is None and 
+                self._ocrImage is None and 
+                self._passwordCallback is None and 
+                self._heartbeatCallback is None and 
+                self._approveExternalResourceCallback is None and 
+                self._logLevelCallback is None and 
+                self._logMessageCallback is None
+            ):
                 return None
             else:
                 return IGR_OPEN_CALLBACK(__IGR_Open_Callback)
@@ -2743,7 +3042,7 @@ class DocumentFilters(DocumentFiltersBase):
         def Open(self, flags = IGR_BODY_AND_META, options = "", callback: 'Callable[[DocumentFilters.OpenCallback], int]' = None):
             if self._handle.value > 0:
                 self.Close(False)
-            
+
             FPtr_IGR_OPEN_CALLBACK = self._getOpenCallback(callback)
 
             DocumentFiltersBase._Call(self.API.IGR_Open_Ex, \
@@ -2757,7 +3056,7 @@ class DocumentFilters(DocumentFiltersBase):
                 FPtr_IGR_OPEN_CALLBACK,
                 0,
                 ctypes.byref(self._handle))
-                
+
             # Store _FuncPointer as member of Extractor so it does not get garbage collected
             self._FPtr_IGR_OPEN_CALLBACK = FPtr_IGR_OPEN_CALLBACK
 
@@ -2807,7 +3106,7 @@ class DocumentFilters(DocumentFiltersBase):
             self._eof = size.value == 0
             result =  DocumentFiltersBase._FromUTF16(data, size.value)
             if stripControlCodes:
-                result = re.sub('[\x01-\x08\x0b-\x10]', '', result.replace('\x0e', '\n'))
+                result = re.sub('[\x01-\x08,\x0b,\x0c-\x10]', '', result.replace('\x0e', '\n'))
 
             return result
 
@@ -2904,11 +3203,11 @@ class DocumentFilters(DocumentFiltersBase):
             res = IGR_Bookmark()
             DocumentFiltersBase._Call(self.API.IGR_Get_Bookmark_Root, self._needHandle(), ctypes.byref(res))
             return DocumentFilters.Bookmark(self._needHandle(), res)
-        
+
         def Compare(self, otherDocument, otherDocumentSettings = None, thisDocumentSettings = None, compareSettings = None):
             if otherDocument is None:
                 raise IGRException("otherDocument cannot be None", 4)
-            
+
             otherDocumentSource = None
             if isinstance(otherDocument, DocumentFilters.CompareDocumentSource):
                 otherDocumentSource = otherDocument
@@ -2929,19 +3228,19 @@ class DocumentFilters(DocumentFiltersBase):
                 thisDocumentSource.FirstPage = thisDocumentSettings.FirstPage
                 thisDocumentSource.PageCount = thisDocumentSettings.PageCount
                 thisDocumentSource.Margins = thisDocumentSettings.Margins
-            
+
             res = IGR_HTEXTCOMPARE()
 
             wrappedSettings = DocumentFilters.CompareSettings()
             if isinstance(compareSettings, DocumentFilters.CompareSettings):
                 wrappedSettings = compareSettings
-            
+
             DocumentFiltersBase._Call(self.API.IGR_Text_Compare_Documents
                                       , ctypes.byref(thisDocumentSource._item)
                                       , ctypes.byref(otherDocumentSource._item)
                                       , ctypes.byref(wrappedSettings._item)
                                       , ctypes.byref(res))
-            return DocumentFilters.CompareResults(res)        
+            return DocumentFilters.CompareResults(res)
 
         def GetMimeType(self):
             return self.getFileType(5)
@@ -3010,12 +3309,68 @@ class DocumentFilters(DocumentFiltersBase):
         def Localize(self): return self._localize
 
         @property
-        def Localizer(self) -> 'Callable[[int, str], str]': 
+        def Localizer(self) -> 'Callable[[int, str], str]':
             return self._localizer
 
         @Localizer.setter
-        def Localizer(self, value: 'Callable[[int, str], str]'): 
-            self._localizer = value        
+        def Localizer(self, value: 'Callable[[int, str], str]'):
+            self._localizer = value
+
+        @property
+        def GetResourceStreamCallback(self) -> 'Callable[[str], IGRStream]':
+            return self._getResourceStream
+
+        @GetResourceStreamCallback.setter
+        def GetResourceStreamCallback(self, value: 'Callable[[str], IGRStream]'):
+            self._getResourceStream = value
+
+        @property
+        def OcrImageCallback(self) -> 'Callable[[OpenCallback.ActionOcrImage], bool]':
+            return self._ocrImage
+        
+        @OcrImageCallback.setter
+        def OcrImageCallback(self, value: 'Callable[[OpenCallback.ActionOcrImage], bool]'):
+            self._ocrImage = value
+            
+        @property
+        def PasswordCallback(self) -> 'Callable[[str], str]':
+            return self._passwordCallback
+        
+        @PasswordCallback.setter
+        def PasswordCallback(self, value: 'Callable[[str], str]'):
+            self._passwordCallback = value
+            
+        @property
+        def HeartbeatCallback(self) -> 'Callable[[], bool]':
+            return self._heartbeatCallback
+        
+        @HeartbeatCallback.setter
+        def HeartbeatCallback(self, value: 'Callable[[], bool]'):
+            self._heartbeatCallback = value
+            
+        @property
+        def ApproveExternalResourceCallback(self) -> 'Callable[[str], bool]':
+            return self._approveExternalResourceCallback
+        
+        @ApproveExternalResourceCallback.setter
+        def ApproveExternalResourceCallback(self, value: 'Callable[[str], bool]'):
+            self._approveExternalResourceCallback = value
+            
+        @property
+        def LogLevelCallback(self) -> 'Callable[[str], int]':
+            return self._logLevelCallback
+        
+        @LogLevelCallback.setter
+        def LogLevelCallback(self, value: 'Callable[[str], int]'):
+            self._logLevelCallback = value
+            
+        @property
+        def LogMessageCallback(self) -> 'Callable[[int, str, str], None]':
+            return self._logMessageCallback
+        
+        @LogMessageCallback.setter
+        def LogMessageCallback(self, value: 'Callable[[int, str, str], None]'):
+            self._logMessageCallback = value
 
         @property
         def MimeType(self): return self.GetMimeType()
@@ -3212,3 +3567,31 @@ AnnotationCode93 = Annotations.Code93
 AnnotationCode128 = Annotations.Code128
 AnnotationStrikeout = Annotations.Strikeout
 AnnotationPolyLine = Annotations.Polyline
+Bookmark = DocumentFilters.Bookmark
+Canvas = DocumentFilters.Canvas
+CompareDocumentSettings = DocumentFilters.CompareDocumentSettings
+CompareDocumentSource = DocumentFilters.CompareDocumentSource
+CompareResultDifference = DocumentFilters.CompareResultDifference
+CompareResultDifferenceDetail = DocumentFilters.CompareResultDifferenceDetail
+CompareResults = DocumentFilters.CompareResults
+CompareSettings = DocumentFilters.CompareSettings
+Extractor = DocumentFilters.Extractor
+Format = DocumentFilters.Format
+FormElement = DocumentFilters.FormElement
+Hyperlink = DocumentFilters.Hyperlink
+OpenCallback = DocumentFilters.OpenCallback
+OpenCallbackApproveExternalResource = DocumentFilters.OpenCallback.ActionApproveExternalResource
+OpenCallbackGetResourceStream = DocumentFilters.OpenCallback.ActionGetResourceStream
+OpenCallbackHeartbeat = DocumentFilters.OpenCallback.ActionHeartbeat
+OpenCallbackLocalize = DocumentFilters.OpenCallback.ActionLocalize
+OpenCallbackLogLevel = DocumentFilters.OpenCallback.ActionLogLevel
+OpenCallbackLogMessage = DocumentFilters.OpenCallback.ActionLogMessage
+OpenCallbackOcrImage = DocumentFilters.OpenCallback.ActionOcrImage
+OpenCallbackPassword = DocumentFilters.OpenCallback.ActionPassword
+Option = DocumentFilters.Option
+Page = DocumentFilters.Page
+PageElement = DocumentFilters.PageElement
+PagePixels = DocumentFilters.PagePixels
+RenderPageProperties = DocumentFilters.RenderPageProperties
+SubFile = DocumentFilters.SubFile
+Word = DocumentFilters.Word

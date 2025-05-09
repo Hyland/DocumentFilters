@@ -22,6 +22,7 @@ namespace Hyland.DocumentFilters
     using IGR_HPAGE = System.Int32;
     using IGR_UCS2 = System.UInt16;
     using IGR_RETURN_CODE = System.Int32;
+    using IGR_FLOAT = System.Single;
 
     public partial class ISYS11dfConstants
     {
@@ -422,6 +423,9 @@ namespace Hyland.DocumentFilters
         public const int IGR_OPEN_CALLBACK_ACTION_LOCALIZE = 2;
         public const int IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL = 3;
         public const int IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE = 4;
+        public const int IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE = 5;
+        public const int IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM = 6;
+        public const int IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE = 7;
 
         public const int IGR_COMPARE_DOCUMENTS_DIFFERENCE_EQUAL = 0;
         public const int IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT = 1;
@@ -548,7 +552,7 @@ namespace Hyland.DocumentFilters
         public string Licensee_ID2;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Page_Form_Element
     {
 
@@ -556,7 +560,7 @@ namespace Hyland.DocumentFilters
         public System.IntPtr reserved;
 
         // IGR_UCS2[255]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 255)]
         public string name;
 
         // IGR_LONG->int
@@ -596,7 +600,7 @@ namespace Hyland.DocumentFilters
         public int option_count;
 
         // IGR_LONG[8]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = System.Runtime.InteropServices.UnmanagedType.I4)]
+        [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = UnmanagedType.I4)]
         public int[] reserved2;
     }
 
@@ -796,7 +800,24 @@ namespace Hyland.DocumentFilters
         }
     }
 
-        
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IGR_FPoint
+    {
+        public float x;
+
+        public float y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IGR_QuadPoint
+    {
+        public IGR_FPoint upperLeft;
+		public IGR_FPoint upperRight;
+		public IGR_FPoint lowerRight;     
+		public IGR_FPoint lowerLeft;
+    }
+
+
     [StructLayout(LayoutKind.Sequential)]
     public struct IGR_Render_Page_Properties
     {
@@ -818,7 +839,7 @@ namespace Hyland.DocumentFilters
         public IGR_Rect dest_rect;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Bookmark
     {
 
@@ -829,14 +850,14 @@ namespace Hyland.DocumentFilters
         public int flags;
 
         // IGR_UCS2[255]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 255)]
         public string title;
 
         // IGR_LONG->int
         public int action;
 
         // IGR_UCS2[1024]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 1024)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 1024)]
         public string dest;
 
         // IGR_LONG->int
@@ -867,13 +888,13 @@ namespace Hyland.DocumentFilters
         public int text_style;
 
         // IGR_LONG[8]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = System.Runtime.InteropServices.UnmanagedType.I4)]
+        [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = UnmanagedType.I4)]
         public int[] reserved2;
     }
 
     public delegate int IGR_CALLBACK_BOOKMARK(ref IGR_Bookmark element, System.IntPtr context);
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Hyperlink
     {
         // void*
@@ -919,11 +940,11 @@ namespace Hyland.DocumentFilters
         public int flags;
 
         // IGR_LONG[8]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = System.Runtime.InteropServices.UnmanagedType.I4)]
+        [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = UnmanagedType.I4)]
         public int[] reserved2;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Annotation
     {
         // void*
@@ -944,11 +965,11 @@ namespace Hyland.DocumentFilters
         public int height;
 
         // IGR_LONG[8]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = System.Runtime.InteropServices.UnmanagedType.I4)]
+        [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 8, ArraySubType = UnmanagedType.I4)]
         public int[] reserved2;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Open_DIB_Info
     {
         // Indicate the size of this structure, must be populated
@@ -972,7 +993,7 @@ namespace Hyland.DocumentFilters
         public uint palette_count;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Page_Pixels
     {
         // Number of pixel in one scan line of the extracted pixels.
@@ -990,7 +1011,7 @@ namespace Hyland.DocumentFilters
         // Indicates the number of palette colors extracted, if any
         public uint palette_count;
         // Indicates the palette colors extracted
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 256, ArraySubType = System.Runtime.InteropServices.UnmanagedType.I4)]
+        [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 256, ArraySubType = UnmanagedType.I4)]
         public int[] palette;
         // Reserved for internal use
         public IntPtr reserved;
@@ -999,7 +1020,7 @@ namespace Hyland.DocumentFilters
     /**
     * Structure that is payload argument for IGR_OPEN_CALLBACK when action argument is IGR_OPEN_CALLBACK_ACTION_HEARTBEAT.
     */
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public class IGR_Open_Callback_Action_Heartbeat
     { 
         // [out] Indicate the size of this structure; must be populated.
@@ -1009,26 +1030,26 @@ namespace Hyland.DocumentFilters
     /**
 	* Structure that is payload argument for IGR_OPEN_CALLBACK when action argument is IGR_OPEN_CALLBACK_ACTION_PASSWORD.
 	*/
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public class IGR_Open_Callback_Action_Password
     {
         // [out] Indicate the size of this structure; must be populated.
         public uint struct_size;
         // [out] Subfile Id indicating which subfile the password is requested for. May be empty to indicate the top level document password is requested. Null terminated.
         // IGR_UCS2[4096]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 4096)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 4096)]
         public string id;
 
         // [in] Password string to be used to decode the requested document or subfile. Must be null terminated.
         // IGR_UCS2[4096]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 4096)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 4096)]
         public string password;
     };
 
     /**
 	* Structure that is payload argument for IGR_OPEN_CALLBACK when action argument is IGR_OPEN_CALLBACK_ACTION_LOCALIZE.
 	*/
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public class IGR_Open_Callback_Action_Localize
     {
         // [out] Indicate the size of this structure; must be populated.
@@ -1036,49 +1057,175 @@ namespace Hyland.DocumentFilters
         public uint string_id;
         // Original string
         // IGR_UCS2[4096]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 1024)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 1024)]
         public string original;
         // Replacement string
         // IGR_UCS2[4096]
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 1024)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 1024)]
         public string replacement;
     };
 
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public class IGR_Open_Callback_Action_Log_Level
     {
         // [out] Indicate the size of this structure; must be populated.
         public uint struct_size;
 
         // Indicates the module that the log level is being requested.
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 16)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 16)]
         public string module;
 
         // User sets with the desired log level for the module. Defaults to IGR_LOG_LEVEL_NONE
         public uint result;
     };
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public class IGR_Open_Callback_Action_Log_Message
     {
         // Indicates the size of this structure; must be populated.
         public uint struct_size;
 
         // Indicates the module that generated the message.
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 16)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 16)]
         public string module;
 
         // Indicates the log level of the message.
         public uint log_level;
 
         // Contains the log message.
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 512)]
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string message;
     };
 
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class IGR_Open_Callback_Action_Approve_External_Resource
+    {
+        // Indicates the size of this structure; must be populated.
+        public uint struct_size;
+
+        // [in] Original URL string of the external resource (e.g., image URL).
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 1024)]
+        public string url;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class IGR_Open_Callback_Action_Get_Resource_Stream
+    {
+        // Indicates the size of this structure; must be populated.
+        public uint struct_size;
+
+        // [in] Original URL string of the external resource (e.g., image URL).
+        [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 1024)]
+        public string url;
+
+        // [out] Stream to the external resource.
+        public IntPtr stream;
+    };
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_OCR_Image_GetMetadataDelegate(
+        IntPtr action,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string name,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        StringBuilder dest,
+        UIntPtr dest_size
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_OCR_Image_SaveImageDelegate(
+        IntPtr action,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string filename,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string mimetype
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_OCR_Image_StartBlockDelegate(
+        IntPtr action,
+        uint block_type,
+        ref IGR_QuadPoint rect
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_OCR_Image_EndBlockDelegate(
+        IntPtr action,
+        uint block_type
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_OCR_Image_AddTextDelegate(
+        IntPtr action,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string text,
+        ref IGR_QuadPoint rect,
+        uint flags,
+        IntPtr font_style
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_OCR_Image_AddTextWithOffsetsDelegate(
+        IntPtr action,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string text,
+        [MarshalAs(UnmanagedType.LPArray)]
+        float[] offsets,
+        ref IGR_QuadPoint rect,
+        uint flags,
+        IntPtr font_style
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_OCR_Image_ReorientDelegate(
+        IntPtr action,
+        float degrees
+    );
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class IGR_Open_Callback_Action_OCR_Image_Style_Info
+    {
+        public uint struct_size;
+        public IGR_FLOAT font_size;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+        public string font_family;
+        public IGR_ULONG text_style;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class IGR_Open_Callback_Action_OCR_Image
+    {
+        public uint struct_size;
+
+        public IntPtr reserved;
+
+        public IntPtr source_image_pixels;
+
+        public IGR_ULONG source_page_index;
+
+        public IGR_Rect source_rect;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string source_name;
+
+        public IGR_Open_Callback_Action_OCR_Image_GetMetadataDelegate GetMetadata;
+
+        public IGR_Open_Callback_Action_OCR_Image_SaveImageDelegate SaveImage;
+
+        public IGR_Open_Callback_Action_OCR_Image_StartBlockDelegate StartBlock;
+
+        public IGR_Open_Callback_Action_OCR_Image_EndBlockDelegate EndBlock;
+
+        public IGR_Open_Callback_Action_OCR_Image_AddTextDelegate AddText;
+
+        public IGR_Open_Callback_Action_OCR_Image_AddTextWithOffsetsDelegate AddTextWithOffsets;
+
+        public IGR_Open_Callback_Action_OCR_Image_ReorientDelegate Reorient;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Compare_Documents_Callback_Context
     {
         public IGR_ULONG struct_size;
@@ -1088,7 +1235,7 @@ namespace Hyland.DocumentFilters
         public IGR_HPAGE page_handle;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_FRect
     {
         public float left;
@@ -1097,17 +1244,17 @@ namespace Hyland.DocumentFilters
         public float bottom;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Compare_Documents_Difference_Item
     {
         public IGR_ULONG struct_size;
         public IGR_ULONG page_index;
         public IGR_FRect bounds;
-        [System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.LPWStr)]
+        [MarshalAsAttribute(UnmanagedType.LPWStr)]
         public string text;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Compare_Documents_Difference
     {
         public IGR_ULONG struct_size;
@@ -1127,7 +1274,7 @@ namespace Hyland.DocumentFilters
     public delegate IGR_RETURN_CODE IGR_Text_Compare_Settings_HandleError(IntPtr a, IGR_Compare_Documents_Callback_Context b, IntPtr c);
 
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Text_Compare_Settings
     {
         public IGR_ULONG struct_size;
@@ -1148,7 +1295,7 @@ namespace Hyland.DocumentFilters
         public IGR_Text_Compare_Settings_HandleError HandleError;
     }
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Text_Compare_Document_Source
     {
         public IGR_ULONG struct_size;
@@ -1173,7 +1320,7 @@ namespace Hyland.DocumentFilters
     public delegate int IGR_PAGE_ELEMENT_STYLES_CALLBACK([MarshalAs(UnmanagedType.LPWStr)] string name, [MarshalAs(UnmanagedType.LPWStr)] string value, IntPtr context);
     public delegate int IGR_PAGE_ELEMENT_CALLBACK(IntPtr page, ref IGR_Page_Element item, IntPtr context);
 
-    [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Subfile_Info
     {
         public uint struct_size;             // < Size of this structure, must be populated.
@@ -1973,7 +2120,7 @@ namespace Hyland.DocumentFilters
         ///pageHandle: HPAGE->IGR_LONG->int
         ///count: IGR_LONG*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Element_Count")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Element_Count")]
         public static extern int IGR_Get_Page_Form_Element_Count(int pageHandle, ref int count, ref Error_Control_Block error);
 
 
@@ -1983,7 +2130,7 @@ namespace Hyland.DocumentFilters
         ///count: IGR_LONG*
         ///items: IGR_Page_Form_Element*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Elements")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Elements")]
         public static extern int IGR_Get_Page_Form_Elements(int pageHandle, int index, ref int count, ref IGR_Page_Form_Element items, ref Error_Control_Block error);
 
 
@@ -1993,7 +2140,7 @@ namespace Hyland.DocumentFilters
         ///char_count: IGR_LONG->int
         ///buffer: IGR_UCS2*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Element_Str")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Element_Str")]
         public static extern int IGR_Get_Page_Form_Element_Str(ref IGR_Page_Form_Element items, int value_type, int char_count, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buffer, ref Error_Control_Block error);
 
 
@@ -2004,7 +2151,7 @@ namespace Hyland.DocumentFilters
         ///char_count: IGR_LONG->int
         ///buffer: IGR_UCS2*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Element_Option_Str")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Form_Element_Option_Str")]
         public static extern int IGR_Get_Page_Form_Element_Option_Str(ref IGR_Page_Form_Element items, int value_type, int option_index, int char_count, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buffer, ref Error_Control_Block error);
         // Return Type: IGR_RETURN_CODE->IGR_LONG->int
         ///docHandle: IGR_LONG->int
@@ -2013,7 +2160,7 @@ namespace Hyland.DocumentFilters
         ///callback: IGR_CALLBACK_BOOKMARK
         ///context: void*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Enum_Bookmarks")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Enum_Bookmarks")]
         public static extern int IGR_Enum_Bookmarks(int docHandle, ref IGR_Bookmark root, int recurse_depth, IGR_CALLBACK_BOOKMARK callback, System.IntPtr context, ref Error_Control_Block error);
 
 
@@ -2021,7 +2168,7 @@ namespace Hyland.DocumentFilters
         ///docHandle: IGR_LONG->int
         ///dest: IGR_Bookmark*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Bookmark_Root")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Bookmark_Root")]
         public static extern int IGR_Get_Bookmark_Root(int docHandle, ref IGR_Bookmark dest, ref Error_Control_Block error);
 
 
@@ -2030,7 +2177,7 @@ namespace Hyland.DocumentFilters
         ///root: IGR_Bookmark*
         ///dest: IGR_Bookmark*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Bookmark_First_Child")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Bookmark_First_Child")]
         public static extern int IGR_Get_Bookmark_First_Child(int docHandle, ref IGR_Bookmark root, ref IGR_Bookmark dest, ref Error_Control_Block error);
 
 
@@ -2039,17 +2186,17 @@ namespace Hyland.DocumentFilters
         ///root: IGR_Bookmark*
         ///dest: IGR_Bookmark*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Bookmark_Next_Sibling")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Bookmark_Next_Sibling")]
         public static extern int IGR_Get_Bookmark_Next_Sibling(int docHandle, ref IGR_Bookmark root, ref IGR_Bookmark dest, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Canvas_Annotate_JSON")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Canvas_Annotate_JSON")]
         public static extern int IGR_Canvas_Annotate_JSON(int canvas, [In()] [MarshalAs(UnmanagedType.LPWStr)] string json, ref Error_Control_Block error);
 
         // Return Type: IGR_RETURN_CODE->IGR_LONG->int
         ///pageHandle: HPAGE->IGR_LONG->int
         ///count: IGR_LONG*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Hyperlink_Count")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Hyperlink_Count")]
         public static extern int IGR_Get_Page_Hyperlink_Count(int pageHandle, ref int count, ref Error_Control_Block error);
 
         // Return Type: IGR_RETURN_CODE->IGR_LONG->int
@@ -2058,7 +2205,7 @@ namespace Hyland.DocumentFilters
         ///count: IGR_LONG*
         ///items: IGR_Hyperlink*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Hyperlinks")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Hyperlinks")]
         public static extern int IGR_Get_Page_Hyperlinks(int pageHandle, int index, ref int count, ref IGR_Hyperlink items, ref Error_Control_Block error);
 
         // Return Type: IGR_RETURN_CODE->IGR_LONG->int
@@ -2067,29 +2214,29 @@ namespace Hyland.DocumentFilters
         ///char_count: IGR_LONG->int
         ///buffer: IGR_UCS2*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Hyperlink_Str")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Hyperlink_Str")]
         public static extern int IGR_Get_Page_Hyperlink_Str(ref IGR_Hyperlink items, int value_type, int char_count, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buffer, ref Error_Control_Block error);
 
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Subfiles_Enumerator")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Subfiles_Enumerator")]
         public static extern int IGR_Get_Subfiles_Enumerator(int docHandle, ref System.IntPtr enumerator, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Next")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Next")]
         public static extern int IGR_Subfiles_Next(System.IntPtr handle, [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder id, [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder name, ref long date, ref long size, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Next_Ex")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Next_Ex")]
         public static extern int IGR_Subfiles_Next_Ex(System.IntPtr handle, ref IGR_Subfile_Info result, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Reset")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Reset")]
         public static extern int IGR_Subfiles_Reset(System.IntPtr handle, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Close")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Subfiles_Close")]
         public static extern int IGR_Subfiles_Close(System.IntPtr handle, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Images_Enumerator")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Images_Enumerator")]
         public static extern int IGR_Get_Images_Enumerator(int docHandle, ref System.IntPtr enumerator, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Images_Enumerator")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Images_Enumerator")]
         public static extern int IGR_Get_Page_Images_Enumerator(int docHandle, ref System.IntPtr enumerator, ref Error_Control_Block error);
 
         [DllImport("ISYS11df", EntryPoint = "IGR_Canvas_Blank_Page")]
@@ -2099,7 +2246,7 @@ namespace Hyland.DocumentFilters
         ///pageHandle: HPAGE->IGR_LONG->int
         ///count: IGR_LONG*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotation_Count")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotation_Count")]
         public static extern int IGR_Get_Page_Annotation_Count(int pageHandle, ref int count, ref Error_Control_Block error);
 
         // Return Type: IGR_RETURN_CODE->IGR_LONG->int
@@ -2108,7 +2255,7 @@ namespace Hyland.DocumentFilters
         ///count: IGR_LONG*
         ///items: IGR_Annotation*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotations")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotations")]
         public static extern int IGR_Get_Page_Annotations(int pageHandle, int index, ref int count, ref IGR_Annotation items, ref Error_Control_Block error);
 
         // Return Type: IGR_RETURN_CODE->IGR_LONG->int
@@ -2117,7 +2264,7 @@ namespace Hyland.DocumentFilters
         ///char_count: IGR_LONG*
         ///buffer: IGR_UCS2*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotation_Str")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotation_Str")]
         public static extern int IGR_Get_Page_Annotation_Str(ref IGR_Annotation item, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder path, ref int char_count, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buffer, ref Error_Control_Block error);
 
         // Return Type: IGR_RETURN_CODE->IGR_LONG->int
@@ -2125,10 +2272,10 @@ namespace Hyland.DocumentFilters
         ///path: IGR_UCS2*
         ///buffer: IGR_LONG*
         ///error: Error_Control_Block*
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotation_Long")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Annotation_Long")]
         public static extern int IGR_Get_Page_Annotation_Long(ref IGR_Annotation item, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder path, ref int buffer, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Pixels")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Pixels")]
         public static extern int IGR_Get_Page_Pixels(int pageHandle,
             [In] ref IGR_Rect sourceRect,
             [In] ref IGR_Size destRect,
@@ -2138,16 +2285,16 @@ namespace Hyland.DocumentFilters
             ref IGR_Page_Pixels pixel_data,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Free_Page_Pixels")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Free_Page_Pixels")]
         public static extern int IGR_Free_Page_Pixels(ref IGR_Page_Pixels pixel_data, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Canvas_Bookmarks_Clear")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Canvas_Bookmarks_Clear")]
         public static extern int IGR_Canvas_Bookmarks_Clear(int canvasHandle, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Canvas_Bookmarks_Append")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Canvas_Bookmarks_Append")]
         public static extern int IGR_Canvas_Bookmarks_Append(int canvasHandle, ref IGR_Bookmark bookmark, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Documents")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Documents")]
         public static extern int IGR_Text_Compare_Documents(
             ref IGR_Text_Compare_Document_Source doc1,
             ref IGR_Text_Compare_Document_Source doc2,
@@ -2155,7 +2302,7 @@ namespace Hyland.DocumentFilters
             out IntPtr enumerator,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Pages")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Pages")]
         public static extern int IGR_Text_Compare_Pages(
             IGR_HPAGE page1,
             IntPtr page1_margins,
@@ -2165,7 +2312,7 @@ namespace Hyland.DocumentFilters
             out IntPtr enumerator,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Elements")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Elements")]
         public static extern int IGR_Text_Compare_Elements(
             IntPtr page1,
             IntPtr page1_ele_root,
@@ -2175,49 +2322,49 @@ namespace Hyland.DocumentFilters
             out IntPtr enumerator,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Close")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Close")]
         public static extern int IGR_Text_Compare_Close(
             IntPtr enumerator,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Reset")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Reset")]
         public static extern int IGR_Text_Compare_Reset(
             IntPtr enumerator,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Next")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Next")]
         public static extern int IGR_Text_Compare_Next(
             IntPtr enumerator,
             ref IGR_Compare_Documents_Difference result,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Difference_Dispose")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Text_Compare_Difference_Dispose")]
         public static extern int IGR_Text_Compare_Difference_Dispose(
             ref IGR_Compare_Documents_Difference result,
             ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Elements")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Elements")]
         public static extern IGR_RETURN_CODE IGR_Get_Page_Elements(IntPtr page, IntPtr parent, IGR_ULONG first, ref IGR_ULONG dest_count, [In, Out] IGR_Page_Element[] dest, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Root")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Root")]
         public static extern IGR_RETURN_CODE IGR_Get_Page_Element_Root(IntPtr page, [In, Out] ref IGR_Page_Element dest, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_First_Child")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_First_Child")]
         public static extern IGR_RETURN_CODE IGR_Get_Page_Element_First_Child(IntPtr page, ref IGR_Page_Element parent, [In, Out] ref IGR_Page_Element dest, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Next_Sibling")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Next_Sibling")]
         public static extern IGR_RETURN_CODE IGR_Get_Page_Element_Next_Sibling(IntPtr page, ref IGR_Page_Element element, [In, Out] ref IGR_Page_Element dest, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Text")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Text")]
         public static extern IGR_RETURN_CODE IGR_Get_Page_Element_Text(IntPtr page, ref IGR_Page_Element source, ref IGR_ULONG char_count, [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder buffer, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Styles")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Styles")]
         public static extern IGR_RETURN_CODE IGR_Get_Page_Element_Styles(IntPtr page, ref IGR_Page_Element source, IGR_PAGE_ELEMENT_STYLES_CALLBACK callback, IntPtr context, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Style")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Get_Page_Element_Style")]
         public static extern IGR_RETURN_CODE IGR_Get_Page_Element_Style(IntPtr page, ref IGR_Page_Element source, [In(), MarshalAs(UnmanagedType.LPWStr)] string name, ref IGR_ULONG char_count, [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder buffer, ref Error_Control_Block error);
 
-        [System.Runtime.InteropServices.DllImportAttribute("ISYS11df", EntryPoint = "IGR_Enum_Page_Elements")]
+        [DllImportAttribute("ISYS11df", EntryPoint = "IGR_Enum_Page_Elements")]
         public static extern IGR_RETURN_CODE IGR_Enum_Page_Elements(IntPtr page, ref IGR_Page_Element source, IGR_ULONG flags, IGR_ULONG max_depth, IGR_PAGE_ELEMENT_CALLBACK callback, IntPtr context, ref Error_Control_Block error);
 
     }

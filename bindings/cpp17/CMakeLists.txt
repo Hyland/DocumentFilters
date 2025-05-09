@@ -7,7 +7,7 @@ if (POLICY CMP0141)
 endif()
 
 project(DocumentFilters
-    VERSION 25.1.0
+    VERSION 25.2.0
     DESCRIPTION "Document Filters - c++17 bindings"
     LANGUAGES CXX
 )
@@ -32,6 +32,8 @@ set(SOURCES
     "src/DocFiltersFormat.cpp"
     "src/DocFiltersFormElement.cpp"
     "src/DocFiltersHyperlink.cpp"
+    "src/DocFiltersOcrImage.cpp"
+    "src/DocFiltersOcrStyleInfo.cpp"
     "src/DocFiltersOption.cpp"
     "src/DocFiltersPage.cpp"
     "src/DocFiltersPageElement.cpp"

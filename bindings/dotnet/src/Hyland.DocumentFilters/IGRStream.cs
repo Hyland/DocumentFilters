@@ -48,6 +48,17 @@ namespace Hyland.DocumentFilters
 #endif
         }
 
+        public static IntPtr StructureToPtr<T>(T structure)
+        {
+            if (structure == null)
+                return IntPtr.Zero;
+
+            int size = SizeOf<T>();
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            StructureToPtr(structure, ptr, false);
+            return ptr;
+        }
+
     }
 
     /// <summary>
