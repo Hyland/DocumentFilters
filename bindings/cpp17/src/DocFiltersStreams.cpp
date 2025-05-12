@@ -111,6 +111,7 @@ namespace Hyland
 		{
 			return bridge_stream_t<std::iostream, iostream_traits>(stream, own_stream, igr_stream);
 		}
+
 		IGR_Stream* Stream::bridge_istream(std::istream* stream, bool own_stream, IGR_Stream** igr_stream)
 		{
 			return bridge_stream_t<std::istream, iostream_traits>(stream, own_stream, igr_stream);
@@ -285,5 +286,64 @@ namespace Hyland
 
 			return &m_data[0];
 		}
+
+		// --------------------------------------------------------------------------------
+
+		FileStream::FileStream(std::istream* stream, bool own_stream)
+		{
+			if (!stream)
+				throw std::invalid_argument("stream cannot be null");
+			Stream::bridge_istream(stream, own_stream, reinterpret_cast<IGR_Stream**>(&m_inner));
+		}
+
+		FileStream::FileStream(std::iostream* stream, bool own_stream)
+		{
+			if (!stream)
+				throw std::invalid_argument("stream cannot be null");
+
+			Stream::bridge_iostream(stream, own_stream, reinterpret_cast<IGR_Stream**>(&m_inner));
+		}
+
+		FileStream::FileStream(FILE* stream, bool own_stream)
+		{
+			if (!stream)
+				throw std::invalid_argument("stream cannot be null");
+
+			Stream::bridge_file(stream, own_stream, reinterpret_cast<IGR_Stream**>(&m_inner));
+		}
+
+		FileStream::FileStream(const std::string& filename)
+		{
+			auto strm = std::make_unique<std::ifstream>(filename, std::ios::binary);
+			if (!strm || strm->bad())
+				throw std::runtime_error("Failed to open file");
+
+			Stream::bridge_istream(strm.release(), true, reinterpret_cast<IGR_Stream**>(&m_inner));
+		}
+
+		FileStream::FileStream(const std::wstring& filename)
+		{
+			auto strm = std::make_unique<std::ifstream>(w_to_u8(filename), std::ios::binary);
+			if (!strm || strm->bad())
+				throw std::runtime_error("Failed to open file");
+
+			Stream::bridge_istream(strm.release(), true, reinterpret_cast<IGR_Stream**>(&m_inner));
+		}
+
+		std::streamoff FileStream::seek(std::streampos offset, std::ios_base::seekdir way)
+		{
+			return m_inner->base.Seek(&m_inner->base, offset, way);
+		}
+
+		size_t FileStream::read(void* buffer, size_t size)
+		{
+			return m_inner->base.Read(&m_inner->base, buffer, static_cast<IGR_ULONG>(size));
+		}
+
+		size_t FileStream::write(const void* buffer, size_t size)
+		{
+			return m_inner->Write(m_inner, const_cast<void*>(buffer), static_cast<IGR_ULONG>(size));
+		}
+
 	} // namespace DocFilters
 } // namespace Hyland

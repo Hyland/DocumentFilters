@@ -81,6 +81,8 @@ namespace Hyland
 		class Hyperlink;
 		class Format;
 		class Option;
+		class OcrImage;
+		class OcrStyleInfo;
 		class Page;
 		class PageElement;
 		class PagePixels;
@@ -92,6 +94,7 @@ namespace Hyland
 		struct Color;
 		struct AnnoBind;
 		class JsonWriter;
+		
 
 		/// @brief Converts a UTF-16 encoded string to a wide string.
 		/// @param str The UTF-16 encoded string.
@@ -399,7 +402,6 @@ namespace Hyland
 			std::function<T(size_t)> m_loader; ///< Function to load elements by index.
 		};
 
-
 		/// @brief Template class for creating enumerable collections.
 		/// @tparam T The type of elements in the collection.
 		template <typename T>
@@ -657,6 +659,22 @@ namespace Hyland
 				return *this;
 			}
 
+			/// @brief Converts a rectangle to a quadrilateral point representation.
+			/// @return An IGR_QuadPoint object representing the rectangle as a quadrilateral with four corner points: upper-left, upper-right, lower-right, and lower-left.
+			IGR_QuadPoint to_quadpoint() const
+			{
+				IGR_QuadPoint quad{};
+				quad.upperLeft.x = static_cast<IGR_FLOAT>(RectType::left);
+				quad.upperLeft.y = static_cast<IGR_FLOAT>(RectType::top);
+				quad.upperRight.x = static_cast<IGR_FLOAT>(RectType::right);
+				quad.upperRight.y = static_cast<IGR_FLOAT>(RectType::top);
+				quad.lowerRight.x = static_cast<IGR_FLOAT>(RectType::right);
+				quad.lowerRight.y = static_cast<IGR_FLOAT>(RectType::bottom);
+				quad.lowerLeft.x = static_cast<IGR_FLOAT>(RectType::left);
+				quad.lowerLeft.y = static_cast<IGR_FLOAT>(RectType::bottom);
+				return quad;
+			}
+
 			/// @brief Creates a rectangle from left, top, right, and bottom coordinates.
 			/// @param left The left coordinate.
 			/// @param top The top coordinate.
@@ -825,6 +843,7 @@ namespace Hyland
 		};
 
 
+		/// @brief The `DocumentFilters` class provides functionality for managing document filters, initializing with licenses and paths, and retrieving or opening extractors for various data sources.
 		class DocumentFilters
 		{
 		public:
@@ -1146,7 +1165,7 @@ namespace Hyland
 			/// @param own_stream A boolean indicating whether the function should take ownership of the stream.
 			/// @param igr_stream A pointer to the IGR_Stream to be bridged.
 			/// @return A pointer to the bridged IGR_Stream.
-			static IGR_Stream* bridge_iostream(std::iostream* Stream, bool own_stream, IGR_Stream** igr_stream);
+			static IGR_Stream* bridge_iostream(std::iostream* stream, bool own_stream, IGR_Stream** igr_stream);
 
 			/// @brief Bridges a standard istream to an IGR_Stream.
 			///
@@ -1156,7 +1175,7 @@ namespace Hyland
 			/// @param own_stream A boolean indicating whether the function should take ownership of the stream.
 			/// @param igr_stream A pointer to the IGR_Stream to be bridged.
 			/// @return A pointer to the bridged IGR_Stream.
-			static IGR_Stream* bridge_istream(std::istream* Stream, bool own_stream, IGR_Stream** igr_stream);
+			static IGR_Stream* bridge_istream(std::istream* stream, bool own_stream, IGR_Stream** igr_stream);
 
 			/// @brief Bridges a standard file to an IGR_Stream.
 			///
@@ -1176,7 +1195,7 @@ namespace Hyland
 			/// @param own_stream A boolean indicating whether the function should take ownership of the stream.
 			/// @param igr_stream A pointer to the IGR_Stream to be bridged.
 			/// @return A pointer to the bridged IGR_Stream.
-			static IGR_Stream* bridge_stream(Hyland::DocFilters::Stream* Stream, bool own_stream, IGR_Stream** igr_stream);
+			static IGR_Stream* bridge_stream(Hyland::DocFilters::Stream* stream, bool own_stream, IGR_Stream** igr_stream);
 
 		};
 
@@ -1258,6 +1277,37 @@ namespace Hyland
 			void* resize_buffer(void* buffer, size_t new_size) override;
 		private:
 			std::vector<uint8_t> m_data; ///< Vector storing the stream data.
+		};
+
+		/// @brief A class for handling file streams, inheriting from the Stream class.
+		class FileStream : public Stream
+		{
+		public:
+			FileStream(std::istream* stream, bool own_stream);
+			FileStream(std::iostream* stream, bool own_stream);
+			FileStream(FILE* stream, bool own_stream);
+			FileStream(const std::string& filename);
+			FileStream(const std::wstring& filename);
+
+			/// @brief Seeks to a specific position in the stream.
+			/// @param offset The position to seek to.
+			/// @param way The direction to seek (beginning, current, end).
+			/// @return The new position in the stream.
+			std::streamoff seek(std::streampos offset, std::ios_base::seekdir way) override;
+
+			/// @brief Reads data from the stream into a buffer.
+			/// @param buffer The buffer to read data into.
+			/// @param size The number of bytes to read.
+			/// @return The number of bytes actually read.
+			size_t read(void* buffer, size_t size) override;
+
+			/// @brief Writes data from a buffer to the stream.
+			/// @param buffer The buffer containing data to write.
+			/// @param size The number of bytes to write.
+			/// @return The number of bytes actually written (default is 0).
+			size_t write(const void* buffer, size_t size) override;
+		protected:
+			IGR_Writable_Stream* m_inner = nullptr;
 		};
 
 		/// @brief Represents a color with red, green, blue, and alpha components.
@@ -1882,6 +1932,7 @@ namespace Hyland
 			std::shared_ptr<impl_t> m_impl;
 		};
 
+		/// @brief The `Extractor` class provides functionality for handling and processing documents, including opening, saving, copying, retrieving metadata, and managing callbacks for various events.
 		class Extractor
 		{
 		public:
@@ -1890,6 +1941,9 @@ namespace Hyland
 			typedef std::function<int()> heartbeat_callback_t;
 			typedef std::function<IGR_LOG_LEVEL_TYPE(const std::string&)> log_level_callback_t;
 			typedef std::function<void(IGR_LOG_LEVEL_TYPE, const std::string&, const std::string&)> log_message_callback_t;
+			typedef std::function<bool(const std::wstring&)> approve_external_resource_callback_t;
+			typedef std::function<std::unique_ptr<Stream>(const std::wstring&)> get_resource_stream_callback_t;
+			typedef std::function<bool(OcrImage&)> ocr_image_callback_t;
 			typedef lazy_loader_indexed<Page> pages_t;
 			typedef enumerable_t<Subfile> subfiles_t;
 
@@ -2066,6 +2120,21 @@ namespace Hyland
 			/// Sets the callback function for log messages.
 			/// @param callback The callback function to be called when a log message is generated.
 			void setLogMessageCallback(const log_message_callback_t& callback);
+
+			/// Sets the callback function for approving external resources.
+			/// 
+			/// @param callback The callback function to be called when an external resource is requested.
+			void setApproveExternalResourceCallback(const approve_external_resource_callback_t& callback);
+
+			/// Sets the callback function for getting a resource stream.
+			/// 
+			/// @param callback The callback function to be called when a resource stream is requested.
+			void setGetResourceStreamCallback(const get_resource_stream_callback_t& callback);
+
+			/// @brief Sets the callback function for OCR image processing.
+			/// 
+			/// @param callback The callback function to be set for OCR image processing.
+			void setOcrImageCallback(const ocr_image_callback_t& callback);
 
 			/// Retrieves the bookmarks in the document.
 			///
@@ -3470,8 +3539,119 @@ namespace Hyland
 			std::shared_ptr<impl_t> m_impl;
 		};
 
-
 		template<> struct EnableBitMaskOperators<Hyperlink::Flags> { static const bool enable = true; };
+
+		/// @brief Represents style information for OCR (Optical Character Recognition) text, including font family, font size, and text style.
+		class OcrStyleInfo
+		{
+		public:
+			enum class TextStyle
+			{
+				None = 0,
+				Bold = IGR_TEXT_STYLE_BOLD,
+				Italic = IGR_TEXT_STYLE_ITALIC,
+				Underline = IGR_TEXT_STYLE_UNDERLINE,
+			};
+
+			/// @brief Default constructor for OcrStyleInfo.
+			OcrStyleInfo();
+
+			/// @brief Retrieves the font family as a wide string.
+			/// @return A wide string representing the font family.
+			std::wstring getFontFamily() const;
+
+			/// @brief Sets the font family for text rendering.
+			/// @param fontFamily A wide string representing the name of the font family to set.
+			OcrStyleInfo& setFontFamily(const std::wstring& fontFamily);
+
+			/// @brief Retrieves the current font size.
+			/// @return The font size as a floating-point number.
+			float getFontSize() const;
+
+			/// @brief Sets the font size for text rendering.
+			/// @param fontSize The desired font size, specified as a floating-point value.
+			OcrStyleInfo& setFontSize(float fontSize);
+
+			/// @brief Retrieves the text style associated with the object.
+			/// @return The text style as a TextStyle object.
+			TextStyle getTextStyle() const;
+
+			/// @brief Sets the text style for rendering text.
+			/// @param textStyle The text style to apply, such as font, size, or weight.
+			OcrStyleInfo& setTextStyle(TextStyle textStyle);
+
+			/// @brief Retrieves a constant reference to the raw OCR image style information.
+			/// @return A constant reference to an object of type IGR_Open_Callback_Action_OCR_Image_Style_Info representing the raw OCR image style information.
+			const IGR_Open_Callback_Action_OCR_Image_Style_Info& raw() const;
+		private:
+			IGR_Open_Callback_Action_OCR_Image_Style_Info m_style{};
+		};
+
+		template<> struct EnableBitMaskOperators<OcrStyleInfo::TextStyle> { static const bool enable = true; };
+
+		/// @brief Represents an OCR image object with methods for managing image data, blocks, text, and orientation.
+		class OcrImage
+		{
+		public:
+			/// @brief Processes an OCR image using the provided callback action.
+			/// @param dest A pointer to an IGR_Open_Callback_Action_OCR_Image object that will handle the OCR image processing.
+			OcrImage(IGR_Open_Callback_Action_OCR_Image* dest);
+
+			/// @brief Retrieves a raw pointer to an OCR image callback action.
+			/// @return A constant pointer to an `IGR_Open_Callback_Action_OCR_Image` object.
+			const IGR_Open_Callback_Action_OCR_Image* raw() const;
+
+			/// @brief Retrieves a pointer to the pixel data information of the image.
+			/// @return A constant pointer to an IGR_Open_DIB_Info structure containing the pixel data information.
+			const IGR_Open_DIB_Info* getPixelData() const;
+
+			/// @brief Retrieves the index of the source page.
+			/// @return The index of the source page as a size_t value.
+			size_t getSourcePageIndex() const;
+
+			/// @brief Retrieves the source rectangle.
+			/// @return A Rect object representing the source rectangle.
+			Rect getSourceRect() const;
+
+			/// @brief Saves an image to a file with the specified filename and MIME type.
+			/// @param filename The name of the file where the image will be saved, including its path.
+			/// @param mimeType The MIME type of the image format to use for saving (e.g., 'image/png', 'image/jpeg').
+			void SaveImage(const std::wstring& filename, const std::wstring& mimeType) const;
+
+			/// @brief Begins a block of a specified type and associates it with a rectangular region.
+			/// @param blockType An integer representing the type of block to start.
+			/// @param rect A constant reference to a Rect object defining the rectangular region associated with the block.
+			void StartBlock(int blockType, const Rect& rect) const;
+
+			/// @brief Starts a block of a specified type and associates it with a quadrilateral point.
+			/// @param blockType The type of block to start, represented as an integer.
+			/// @param quad A constant reference to an IGR_QuadPoint object representing the quadrilateral point associated with the block.
+			void StartBlock(int blockType, const IGR_QuadPoint& quad) const;
+
+			/// @brief Ends a block of the specified type.
+			/// @param blockType The type of block to end, represented as an integer.
+			void EndBlock(int blockType) const;
+
+			/// @brief Adds text to a specified rectangular area with optional styling and flags.
+			/// @param text The text to be added, represented as a wide string.
+			/// @param rect The rectangular area where the text will be added.
+			/// @param flags Optional flags that modify the behavior of the text addition. Defaults to 0.
+			/// @param style Optional style information for the text, represented as an OcrStyleInfo object. Defaults to a default-constructed OcrStyleInfo object.
+			void AddText(const std::wstring& text, const Rect& rect, uint32_t flags = 0, const OcrStyleInfo& style = OcrStyleInfo()) const;
+
+			/// @brief Adds a text element to a specified quadrilateral region with optional styling and flags.
+			/// @param text The text to be added, represented as a wide string.
+			/// @param quad The quadrilateral region where the text will be placed.
+			/// @param flags Optional flags to modify the behavior of the text addition. Defaults to 0.
+			/// @param style Optional styling information for the text. Defaults to an instance of OcrStyleInfo with default values.
+			void AddText(const std::wstring& text, const IGR_QuadPoint& quad, uint32_t flags = 0, const OcrStyleInfo& style = OcrStyleInfo()) const;
+
+			/// @brief Adjusts the orientation of an object by a specified angle.
+			/// @param angle The angle, in degrees, by which to reorient the object. 
+			void Reorient(float angle) const;
+		private:
+			IGR_Open_Callback_Action_OCR_Image* m_dest;
+		};
 
 		// --------------------------------------------------------------------------------
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -38,9 +39,14 @@ namespace Hyland.DocumentFilters
         FormatText = ISYS11dfConstants.IGR_FORMAT_TEXT,
 
         /// <summary>
-        /// Indicates that the content should be extracted as HTML.
+        /// Indicates that the content should be extracted as text-mode HTML.
         /// </summary>
         FormatHTML = ISYS11dfConstants.IGR_FORMAT_HTML,
+
+        /// <summary>
+        /// Indicates that the content should be extracted as text-mode Markdown.
+        /// </summary>
+        FormatMarkdown = ISYS11dfConstants.IGR_FORMAT_MARKDOWN,
 
         /// <summary>
         /// Indicates that the content should be extracted as XML.
@@ -53,7 +59,7 @@ namespace Hyland.DocumentFilters
         FormatHTMLIfYouCan = ISYS11dfConstants.IGR_FORMAT_HDHTML_IFYOUCAN,
 
         /// <summary>
-        /// Indicated that the content should be extracted as an paginated/image.
+        /// Indicates that the content should be extracted as an paginated/image.
         /// </summary>
         FormatImage = ISYS11dfConstants.IGR_FORMAT_IMAGE,
 
@@ -203,6 +209,45 @@ namespace Hyland.DocumentFilters
         /// Provides a function that can be used to localize the metadata strings in the document.
         /// </summary>
         public Func<uint, string, string> Localizer { get; set; }
+
+        /// <summary>
+        /// Set the callback for the GetResource action.
+        /// </summary>
+        public Func<string, Stream> GetResourceStreamCallback { get; set; }
+
+        /// <summary>
+        /// Represents a callback action that processes an object related to OCR image results. It allows for custom
+        /// handling of OCR output.
+        /// </summary>
+        public Func<OpenCallbackActionOcrImage, bool> OcrImageCallback { get; set; }
+
+        /// <summary>
+        /// A delegate that represents a callback function returning a boolean value. It is used to handle heartbeat
+        /// events.
+        /// </summary>
+        public Func<bool> HeartbeatCallback { get; set; }
+
+        /// <summary>
+        /// A delegate that represents a method for handling password input. It takes a string as input and returns a
+        /// string.
+        /// </summary>
+        public Func<string, string> PasswordCallback { get; set; }
+
+        /// <summary>
+        /// A callback function that takes a string input and returns an integer, typically used for logging levels. It
+        /// allows dynamic handling of log levels.
+        /// </summary>
+        public Func<string, int> LogLevelCallback { get; set; }
+
+        /// <summary>
+        /// A callback that is called when a message is logged.
+        /// </summary>
+        public Action<int, string, string> LogMessageCallback { get; set; }
+
+        /// <summary>
+        /// A callback that is called when an external resource is requested.
+        /// </summary>
+        public Func<string, bool> ApproveExternalResourceCallback { get; set; }
 
         /// <summary>
         /// Internal constructor for Extractor
@@ -385,7 +430,16 @@ namespace Hyland.DocumentFilters
             IntPtr cbPtr = IntPtr.Zero;
             _userCallback = callback;
 
-            if (callback != null || _localized.Count > 0 || Localizer != null)
+            if (callback != null 
+                || _localized.Count > 0 
+                || Localizer != null 
+                || GetResourceStreamCallback != null 
+                || OcrImageCallback != null 
+                || PasswordCallback != null 
+                || HeartbeatCallback != null 
+                || LogLevelCallback != null
+                || LogMessageCallback != null
+                || ApproveExternalResourceCallback != null)
             {
                 IGR_CALLBACK cb = new IGR_CALLBACK(Open_Callback);
                 cbPtr = Marshal.GetFunctionPointerForDelegate(cb);
@@ -933,7 +987,8 @@ namespace Hyland.DocumentFilters
 
             try
             {
-                OpenCallback callback = new OpenCallback() { Action = actionID };
+                OpenCallback callback = new OpenCallback() { Action = actionID, Handle = actionData };
+                bool handled = false;
 
                 //prepare for user's callback
                 switch (actionID)
@@ -963,6 +1018,21 @@ namespace Hyland.DocumentFilters
                             callback.LogMessage = Marshaler.PtrToStructure<IGR_Open_Callback_Action_Log_Message>(actionData);
                             break;
                         }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE:
+                        {
+                            callback.ApproveExternalResource = Marshaler.PtrToStructure<IGR_Open_Callback_Action_Approve_External_Resource>(actionData);
+                            break;
+                        }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM:
+                        {
+                            callback.GetResourceStream = Marshaler.PtrToStructure<IGR_Open_Callback_Action_Get_Resource_Stream>(actionData);
+                            break;
+                        }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE:
+                        {
+                            callback.GetOcrImage = Marshaler.PtrToStructure<IGR_Open_Callback_Action_OCR_Image>(actionData);
+                            break;
+                        }
                 }
 
                 if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOCALIZE)
@@ -982,43 +1052,116 @@ namespace Hyland.DocumentFilters
                         retval = ISYS11dfConstants.IGR_OK;
                     }
                 }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM)
+                {
+                    if (GetResourceStreamCallback != null)
+                    {
+                        var stream = GetResourceStreamCallback(callback.GetResourceStream.url);
+                        if (stream != null)
+                        {
+                            callback.GetResourceStream.stream = new IGRStreamBridge(stream).NewStreamPtr();
+                            retval = ISYS11dfConstants.IGR_OK;
+                        }
+                    }
+                }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE)
+                {
+                    if (OcrImageCallback != null)
+                    {
+                        var payload = new OpenCallbackActionOcrImage(callback);
+                        if (OcrImageCallback(payload))
+                            retval = ISYS11dfConstants.IGR_OK;
+                    }
+                }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_HEARTBEAT)
+                {
+                    if (HeartbeatCallback != null && !HeartbeatCallback())
+                    {
+                        retval = ISYS11dfConstants.IGR_CANCELLED;
+                        handled = true;
+                    }
+                }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE)
+                {
+                    if (ApproveExternalResourceCallback != null)
+                    {
+                        if (ApproveExternalResourceCallback(callback.ApproveExternalResource.url))
+                            retval = ISYS11dfConstants.IGR_OK;
+                        else
+                            retval = ISYS11dfConstants.IGR_CANCELLED;
+                        handled = true;
+                    }
+                }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_PASSWORD)
+                {
+                    if (PasswordCallback != null)
+                    {
+                        var res = PasswordCallback(callback.Password.id);
+                        if (!string.IsNullOrEmpty(res))
+                        {
+                            callback.Password.password = res;
+                            retval = ISYS11dfConstants.IGR_OK;
+                            handled = true;
+                        }
+                    }
+                }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL)
+                {
+                    if (LogLevelCallback != null)
+                    {
+                        callback.LogLevel.result = (uint) LogLevelCallback(callback.LogLevel.module);
+                        retval = ISYS11dfConstants.IGR_OK;
+                        handled = true;
+                    }
+                }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE)
+                {
+                    if (LogMessageCallback != null)
+                    {
+                        LogMessageCallback((int) callback.LogMessage.log_level, callback.LogMessage.module, callback.LogMessage.message);
+                        retval = ISYS11dfConstants.IGR_OK;
+                        handled = true;
+                    }
+                }
 
                 //call user's callback and marshal the data back for unmanaged code
-                if (_userCallback != null)
+                if (_userCallback != null && !handled)
                     retval = _userCallback(callback);
 
                 switch (actionID)
                 {
                     case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_HEARTBEAT:
-                        {
-                            if (callback.Heartbeat != null)
-                                Marshaler.StructureToPtr<IGR_Open_Callback_Action_Heartbeat>(callback.Heartbeat, actionData, true);
-                            break;
-                        }
+                        if (callback.Heartbeat != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Heartbeat>(callback.Heartbeat, actionData, true);
+                        break;
                     case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_PASSWORD:
-                        {
-                            if (callback.Password != null)
-                                Marshaler.StructureToPtr<IGR_Open_Callback_Action_Password>(callback.Password, actionData, true);
-                            break;
-                        }
+                        if (callback.Password != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Password>(callback.Password, actionData, true);
+                        break;
                     case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOCALIZE:
-                        {
-                            if (callback.Localize != null)
-                                Marshaler.StructureToPtr<IGR_Open_Callback_Action_Localize>(callback.Localize, actionData, true);
-                            break;
-                        }
+                        if (callback.Localize != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Localize>(callback.Localize, actionData, true);
+                        break;
                     case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
-                        {
-                            if (callback.LogLevel != null)
-                                Marshaler.StructureToPtr<IGR_Open_Callback_Action_Log_Level>(callback.LogLevel, actionData, true);
-                            break;
-                        }
+                        if (callback.LogLevel != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Log_Level>(callback.LogLevel, actionData, true);
+                        break;
                     case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
-                        {
-                            if (callback.LogMessage != null)
-                                Marshaler.StructureToPtr<IGR_Open_Callback_Action_Log_Message>(callback.LogMessage, actionData, true);
-                            break;
-                        }
+                        if (callback.LogMessage != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Log_Message>(callback.LogMessage, actionData, true);
+                        break;
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE:
+                        if (callback.ApproveExternalResource != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Approve_External_Resource>(callback.ApproveExternalResource, actionData, true);
+                        break;
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM:
+                        if (callback.GetResourceStream != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Get_Resource_Stream>(callback.GetResourceStream, actionData, true);
+                        break;
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE:
+                        if (callback.GetOcrImage != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_OCR_Image>(callback.GetOcrImage, actionData, true);
+                        break;
                 }
             }
             catch(Exception ex)

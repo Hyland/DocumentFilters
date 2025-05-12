@@ -86,6 +86,9 @@ namespace Hyland
 			Extractor::heartbeat_callback_t m_heartbeat_callback;
 			Extractor::log_level_callback_t m_log_level_callback;
 			Extractor::log_message_callback_t m_log_message_callback;
+			Extractor::approve_external_resource_callback_t m_approve_external_resource_callback;
+			Extractor::get_resource_stream_callback_t m_get_resource_stream_callback;
+			Extractor::ocr_image_callback_t m_ocr_image_callback;
 			std::optional<Extractor::pages_t> m_pages_loader;
 			std::shared_ptr<subfile_enumerable_t> m_subfiles;
 			std::shared_ptr<subfile_enumerable_t> m_images;
@@ -199,72 +202,134 @@ namespace Hyland
 				, [](IGR_OPEN_CALLBACK_ACTION action, void* payload, void* context) -> IGR_LONG
 				{
 					auto* impl = reinterpret_cast<impl_t*>(context);
-					switch (action)
+					try
 					{
-					case IGR_OPEN_CALLBACK_ACTION_HEARTBEAT:
-						if (impl->m_heartbeat_callback)
-							return impl->m_heartbeat_callback();
-						else if (impl->m_callback)
-							return impl->m_callback(action, payload);
-						break;
-					case IGR_OPEN_CALLBACK_ACTION_PASSWORD:
-						if (impl->m_password_callback)
+						switch (action)
 						{
-							auto *p = reinterpret_cast<IGR_Open_Callback_Action_Password*>(payload);
-							std::wstring res = impl->m_password_callback(u16_to_w(p->id));
-							if (res.empty())
-								return IGR_E_ERROR;
-							copy_string(w_to_u16(res), p->password);
-							return IGR_OK;
-						}
-						else if (impl->m_callback)
-							return impl->m_callback(action, payload);
-						break;
-					case IGR_OPEN_CALLBACK_ACTION_LOCALIZE:
-						if (impl->m_localize_callback)
-						{
-							auto *p = reinterpret_cast<IGR_Open_Callback_Action_Localize*>(payload);
-							std::wstring res = impl->m_localize_callback(p->string_id, u16_to_w(p->original));
-							if (res.empty())
-								return IGR_E_ERROR;
-							copy_string(w_to_u16(res), p->replacement);
-							return IGR_OK;
-						}
-						else if (impl->m_callback)
-							return impl->m_callback(action, payload);
-						break;
-					case IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
-						if (impl->m_log_level_callback)
-						{
-							auto* p = reinterpret_cast<IGR_Open_Callback_Action_Log_Level*>(payload);
-							if (p->struct_size > sizeof(*p))
+						case IGR_OPEN_CALLBACK_ACTION_HEARTBEAT:
+							if (impl->m_heartbeat_callback)
+								return impl->m_heartbeat_callback();
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						case IGR_OPEN_CALLBACK_ACTION_PASSWORD:
+							if (impl->m_password_callback)
 							{
-								p->result = impl->m_log_level_callback(p->module);
+								auto* p = reinterpret_cast<IGR_Open_Callback_Action_Password*>(payload);
+								std::wstring res = impl->m_password_callback(u16_to_w(p->id));
+								if (res.empty())
+									return IGR_E_ERROR;
+								copy_string(w_to_u16(res), p->password);
 								return IGR_OK;
 							}
-						}
-						else if (impl->m_callback)
-							return impl->m_callback(action, payload);
-						break;
-					case IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
-						if (impl->m_log_message_callback)
-						{
-							auto* p = reinterpret_cast<IGR_Open_Callback_Action_Log_Message*>(payload);
-							if (p->struct_size > sizeof(*p))
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						case IGR_OPEN_CALLBACK_ACTION_LOCALIZE:
+							if (impl->m_localize_callback)
 							{
-								impl->m_log_message_callback(p->log_level, std::string(&p->module[0]), std::string(&p->message[0]));
+								auto* p = reinterpret_cast<IGR_Open_Callback_Action_Localize*>(payload);
+								std::wstring res = impl->m_localize_callback(p->string_id, u16_to_w(p->original));
+								if (res.empty())
+									return IGR_E_ERROR;
+								copy_string(w_to_u16(res), p->replacement);
 								return IGR_OK;
 							}
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						case IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL:
+							if (impl->m_log_level_callback)
+							{
+								auto* p = reinterpret_cast<IGR_Open_Callback_Action_Log_Level*>(payload);
+								if (p->struct_size >= sizeof(*p))
+								{
+									p->result = impl->m_log_level_callback(p->module);
+									return IGR_OK;
+								}
+							}
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						case IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE:
+							if (impl->m_log_message_callback)
+							{
+								auto* p = reinterpret_cast<IGR_Open_Callback_Action_Log_Message*>(payload);
+								if (p->struct_size >= sizeof(*p))
+								{
+									impl->m_log_message_callback(p->log_level, std::string(&p->module[0]), std::string(&p->message[0]));
+									return IGR_OK;
+								}
+							}
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						case IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE:
+							if (impl->m_approve_external_resource_callback)
+							{
+								auto* p = reinterpret_cast<IGR_Open_Callback_Action_Approve_External_Resource*>(payload);
+								if (p->struct_size >= sizeof(*p))
+								{
+									auto res = impl->m_approve_external_resource_callback(u16_to_w(p->url));
+									if (res)
+										return IGR_OK;
+									return IGR_CANCELLED;
+								}
+							}
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						case IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM:
+							if (impl->m_get_resource_stream_callback)
+							{
+								auto* p = reinterpret_cast<IGR_Open_Callback_Action_Get_Resource_Stream*>(payload);
+								if (p->struct_size >= sizeof(*p))
+								{
+									auto strm = impl->m_get_resource_stream_callback(u16_to_w(p->url));
+									if (strm)
+									{
+										Stream::bridge_stream(strm.release(), true, &p->result);
+										return IGR_OK;
+									}
+									return IGR_CANCELLED;
+								}
+							}
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						case IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE:
+							if (impl->m_ocr_image_callback)
+							{
+								auto* p = reinterpret_cast<IGR_Open_Callback_Action_OCR_Image*>(payload);
+								if (p->struct_size >= sizeof(*p))
+								{
+									OcrImage ocr_image(p);
+
+									auto res = impl->m_ocr_image_callback(ocr_image);
+									if (res)
+										return IGR_OK;
+									return IGR_CANCELLED;
+								}
+							}
+							else if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
+						default:
+							if (impl->m_callback)
+								return impl->m_callback(action, payload);
+							break;
 						}
-						else if (impl->m_callback)
-							return impl->m_callback(action, payload);
-						break;
-					default:
-						if (impl->m_callback)
-							return impl->m_callback(action, payload);
-						break;
 					}
-					return 0; }, m_impl.get(), m_impl->m_handle.attach(), &ecb),
+					catch (const std::exception& e)
+					{
+						std::cerr << "Error in callback: " << e.what() << std::endl;
+						return IGR_E_BAD_ERROR;
+					}
+					catch (...) 
+					{
+						return IGR_E_BAD_ERROR;
+					}
+					return IGR_OK; }, m_impl.get(), m_impl->m_handle.attach(), &ecb),
 				ecb, "IGR_Open_Ex");
 			;
 		}
@@ -315,6 +380,21 @@ namespace Hyland
 		void Extractor::setLogMessageCallback(const log_message_callback_t& callback)
 		{
 			m_impl->m_log_message_callback = callback;
+		}
+
+		void Extractor::setApproveExternalResourceCallback(const approve_external_resource_callback_t& callback)
+		{
+			m_impl->m_approve_external_resource_callback = callback;
+		}
+
+		void Extractor::setGetResourceStreamCallback(const get_resource_stream_callback_t& callback)
+		{
+			m_impl->m_get_resource_stream_callback = callback;
+		}
+
+		void Extractor::setOcrImageCallback(const ocr_image_callback_t& callback)
+		{
+			m_impl->m_ocr_image_callback = callback;
 		}
 
 		uint32_t Extractor::getFileType() const

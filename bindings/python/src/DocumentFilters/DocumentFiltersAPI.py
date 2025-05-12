@@ -292,6 +292,9 @@ IGR_OPEN_CALLBACK_ACTION_PASSWORD = 1
 IGR_OPEN_CALLBACK_ACTION_LOCALIZE = 2
 IGR_OPEN_CALLBACK_ACTION_LOG_LEVEL = 3
 IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE = 4
+IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE = 5
+IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM = 6
+IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE = 7
 
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_EQUAL = 0
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT = 1
@@ -454,6 +457,23 @@ class IGR_Size(ctypes.Structure):
         ('height', IGR_ULONG),
     ]
 
+
+class IGR_FPoint(ctypes.Structure):
+    _fields_ = [
+        ('x', IGR_FLOAT),  # X position.
+        ('y', IGR_FLOAT),  # Y position.
+    ]
+
+
+class IGR_QuadPoint(ctypes.Structure):
+    _fields_ = [
+        ('upperLeft', IGR_FPoint),   # Upper left corner.
+        ('upperRight', IGR_FPoint),  # Upper right corner.
+        ('lowerRight', IGR_FPoint),  # Lower right corner.
+        ('lowerLeft', IGR_FPoint),   # Lower left corner.
+    ]
+
+
 class IGR_Page_Word(ctypes.Structure):
     _fields_ = [
         ('x', ctypes.c_int),
@@ -592,10 +612,12 @@ class IGR_Page_Pixels(ctypes.Structure):
 
 IGR_CALLBACK = ctypes.CFUNCTYPE(UNCHECKED(IGR_LONG), ctypes.c_int, ctypes.POINTER(None), ctypes.POINTER(None))
 
+
 class IGR_Open_Callback_Action_Heartbeat(ctypes.Structure):
     _fields_ = [
         ('struct_size', IGR_ULONG),
     ]
+
 
 class IGR_Open_Callback_Action_Password(ctypes.Structure):
     _fields_ = [
@@ -603,6 +625,7 @@ class IGR_Open_Callback_Action_Password(ctypes.Structure):
         ('id', IGR_UCS2 * 4096),
         ('password', IGR_UCS2 * 4096),
     ]
+
 
 class IGR_Open_Callback_Action_Localize(ctypes.Structure):
     _fields_ = [
@@ -612,12 +635,14 @@ class IGR_Open_Callback_Action_Localize(ctypes.Structure):
         ('replacement', IGR_UCS2 * 1024),
     ]
 
+
 class IGR_Open_Callback_Action_Log_Level(ctypes.Structure):
     _fields_ = [
         ('struct_size', IGR_ULONG),
         ('module', ctypes.c_char * int(16)),
         ('result', IGR_ULONG),
     ]
+
 
 class IGR_Open_Callback_Action_Log_Message(ctypes.Structure):
     _fields_ = [
@@ -626,6 +651,106 @@ class IGR_Open_Callback_Action_Log_Message(ctypes.Structure):
         ('log_level', IGR_ULONG),
         ('message', ctypes.c_char * int(512)),
     ]
+
+
+class IGR_Open_Callback_Action_Approve_External_Resource(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),
+        ('url', IGR_UCS2 * 1024),
+    ]
+    
+class IGR_Open_Callback_Action_Get_Resource_Stream(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),
+        ('url', IGR_UCS2 * 1024),
+        ('result', ctypes.POINTER(IGR_Stream)),
+    ]
+    
+    
+class IGR_Open_DIB_Info(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),                  # Size of this structure, must be populated.
+        ('flags', IGR_ULONG),                       # Flags indicating specific characteristics.
+        ('width', IGR_ULONG),                       # Width of the bitmap, in pixels.
+        ('height', IGR_ULONG),                      # Height of the bitmap, in pixels.
+        ('stride', IGR_ULONG),                      # Number of bytes per scanline.
+        ('pixel_format', IGR_LONG),                 # Format of the pixel data (IGR_OPEN_BITMAP_PIXEL_TYPE).
+        ('pixel_data', ctypes.POINTER(ctypes.c_void_p)), # Pointer to the raw pixel data.
+        ('pixel_data_size', IGR_ULONG),             # Size of the buffer in pixel_data.
+        ('palette', ctypes.POINTER(IGR_LONG)),      # Pointer to the RGB palette information.
+        ('palette_count', IGR_ULONG),               # Number of colors in the palette.
+        ('dpi_x', IGR_ULONG),                       # Horizontal resolution of the bitmap.
+        ('dpi_y', IGR_ULONG),                       # Vertical resolution of the bitmap.
+        ('orientation', IGR_ULONG),                 # Orientation of the bitmap.
+    ]
+    
+
+class IGR_Open_Callback_Action_OCR_Image_Style_Info(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),  # Indicate the size of this structure; must be populated.
+        ('font_size', IGR_FLOAT),  # The size of the font as reported by the OCR engine.
+        ('font_family', IGR_UCS2 * 256),  # The font family as reported by the OCR engine.
+        ('text_style', IGR_ULONG),  # The font style, using the IGR_TEXT_STYLE_ bitfield.
+    ]
+
+
+class IGR_Open_Callback_Action_OCR_Image(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),  # Indicate the size of this structure; must be populated.
+        ('reserved', ctypes.c_void_p),  # Reserved for internal use.
+        ('source_image_pixels', ctypes.POINTER(IGR_Open_DIB_Info)),  # The image data to process.
+        ('source_page_index', IGR_ULONG),  # The page-index of the page containing the image.
+        ('source_rect', IGR_Rect),  # The rectangle of the image in the source document.
+        ('source_name', IGR_UCS2 * 128),  # The name of the source image, if known.
+
+        # Function pointers for callbacks
+        ('GetMetadata', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            ctypes.POINTER(None),  # Name
+            ctypes.POINTER(None),  # Destination buffer
+            ctypes.c_size_t)),  # Destination buffer size
+
+        ('SaveImage', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            ctypes.POINTER(None),  # Filename
+            ctypes.POINTER(None))),  # Mime type
+
+        ('StartBlock', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            IGR_ULONG,  # Block type
+            ctypes.POINTER(IGR_QuadPoint))),  # Rectangle
+
+        ('EndBlock', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            IGR_ULONG)),  # Block type
+
+        ('AddText', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            ctypes.POINTER(None),  # Text
+            ctypes.POINTER(IGR_QuadPoint),  # Rectangle
+            IGR_ULONG,  # Flags
+            ctypes.POINTER(IGR_Open_Callback_Action_OCR_Image_Style_Info))),  # Font style
+
+        ('AddTextWithOffsets', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            ctypes.POINTER(None),  # Text
+            ctypes.POINTER(None),  # Offsets
+            ctypes.POINTER(IGR_QuadPoint),  # Rectangle
+            IGR_ULONG,  # Flags
+            ctypes.POINTER(IGR_Open_Callback_Action_OCR_Image_Style_Info))),  # Font style
+
+        ('Reorient', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            IGR_FLOAT))  # Degrees
+    ]
+    
 
 IGR_OPEN_CALLBACK = ctypes.CFUNCTYPE(UNCHECKED(IGR_LONG), IGR_OPEN_CALLBACK_ACTION, ctypes.POINTER(None), ctypes.POINTER(None))
 
