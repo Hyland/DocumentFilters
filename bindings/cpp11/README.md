@@ -59,10 +59,10 @@ You can customize this behavior using the following options:
 ##### Example 1. Download and Install Specific Version of Binaries
 
 If you want to download and install a specific version of the release binaries,
-for example, version `25.2.0`:
+for example, version `25.3.0`:
 
 ```cmake
-set(DOCFILTERS_VERSION "25.2.0" CACHE STRING "")
+set(DOCFILTERS_VERSION "25.3.0" CACHE STRING "")
 FetchContent_Declare( ... )
 ```
 

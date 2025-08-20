@@ -24,29 +24,30 @@ section in the documentation.
 
 ## Projects and Files
 
-| Name                                                               | Description                                            |
-| ------------------------------------------------------------------ | ------------------------------------------------------ |
-| [CombineDocuments](./CombineDocuments)                             | Combines multiple documents into a single document.    |
-| [CompareDocuments](./CompareDocuments)                             | Compares two documents and highlights the differences. |
-| [ConvertDocumentToClassicHTML](./ConvertDocumentToClassicHTML)     | Converts documents to classic HTML format.             |
-| [ConvertDocumentToHDHTML](./ConvertDocumentToHDHTML)               | Converts documents to high-definition HTML format.     |
-| [ConvertDocumentToJSON](./ConvertDocumentToJSON)                   | Converts documents to JSON format.                     |
-| [ConvertDocumentToMarkdown](./ConvertDocumentToMarkdown)           | Converts documents to Markdown format.                 |
-| [ConvertDocumentToPDF](./ConvertDocumentToPDF)                     | Converts documents to PDF format.                      |
-| [ConvertDocumentToPNG](./ConvertDocumentToPNG)                     | Converts documents to PNG image format.                |
-| [ConvertDocumentToPostscript](./ConvertDocumentToPostscript)       | Converts documents to Postscript format.               |
-| [ConvertDocumentToStructuredXML](./ConvertDocumentToStructuredXML) | Converts documents to structured XML format.           |
-| [ConvertDocumentToSVG](./ConvertDocumentToSVG)                     | Converts documents to SVG image format.                |
-| [ConvertDocumentToThumbnail](./ConvertDocumentToThumbnail)         | Converts documents to thumbnail images.                |
-| [ConvertDocumentToTIFF](./ConvertDocumentToTIFF)                   | Converts documents to TIFF image format.               |
-| [ConvertDocumentToTIFFStream](./ConvertDocumentToTIFFStream)       | Converts documents to a stream of TIFF images.         |
-| [ConvertDocumentToUTF8](./ConvertDocumentToUTF8)                   | Converts documents to UTF-8 encoded text.              |
-| [CreateBarcode](./CreateBarcode)                                   | Creates a barcode and saves to PNG.                    |
-| [DocumentFiltersSamples](./DocumentFiltersSamples)                 | Shared common library for Document Filters samples.    |
-| [ExtractSubfiles](./ExtractSubfiles)                               | Extracts subfiles from a document.                     |
-| [GetDocumentType](./GetDocumentType)                               | Identifies the type of a document.                     |
-| [GetDocumentWords](./GetDocumentWords)                             | Extracts words from a document.                        |
-| [WatermarkDocument](./WatermarkDocument)                           | Adds watermarks to documents.                          |
+| Name                                                               | Description                                                  |
+| ------------------------------------------------------------------ | ------------------------------------------------------------ |
+| [CombineDocuments](./CombineDocuments)                             | Combines multiple documents into a single document.          |
+| [CompareDocuments](./CompareDocuments)                             | Compares two documents and highlights the differences.       |
+| [ConvertDocumentToClassicHTML](./ConvertDocumentToClassicHTML)     | Converts documents to classic HTML format.                   |
+| [ConvertDocumentToHDHTML](./ConvertDocumentToHDHTML)               | Converts documents to high-definition HTML format.           |
+| [ConvertDocumentToJSON](./ConvertDocumentToJSON)                   | Converts documents to JSON format.                           |
+| [ConvertDocumentToMarkdown](./ConvertDocumentToMarkdown)           | Converts documents to Markdown format.                       |
+| [ConvertDocumentToPDF](./ConvertDocumentToPDF)                     | Converts documents to PDF format.                            |
+| [ConvertDocumentToPNG](./ConvertDocumentToPNG)                     | Converts documents to PNG image format.                      |
+| [ConvertDocumentToPostscript](./ConvertDocumentToPostscript)       | Converts documents to Postscript format.                     |
+| [ConvertDocumentToStructuredXML](./ConvertDocumentToStructuredXML) | Converts documents to structured XML format.                 |
+| [ConvertDocumentToSVG](./ConvertDocumentToSVG)                     | Converts documents to SVG image format.                      |
+| [ConvertDocumentToThumbnail](./ConvertDocumentToThumbnail)         | Converts documents to thumbnail images.                      |
+| [ConvertDocumentToTIFF](./ConvertDocumentToTIFF)                   | Converts documents to TIFF image format.                     |
+| [ConvertDocumentToTIFFStream](./ConvertDocumentToTIFFStream)       | Converts documents to a stream of TIFF images.               |
+| [ConvertDocumentToUTF8](./ConvertDocumentToUTF8)                   | Converts documents to UTF-8 encoded text.                    |
+| [ConvertDocumentToUTF8WithOCR](./ConvertDocumentToUTF8WithOCR)     | Converts documents (including images) to UTF-8 encoded text. |
+| [CreateBarcode](./CreateBarcode)                                   | Creates a barcode and saves to PNG.                          |
+| [DocumentFiltersSamples](./DocumentFiltersSamples)                 | Shared common library for Document Filters samples.          |
+| [ExtractSubfiles](./ExtractSubfiles)                               | Extracts subfiles from a document.                           |
+| [GetDocumentType](./GetDocumentType)                               | Identifies the type of a document.                           |
+| [GetDocumentWords](./GetDocumentWords)                             | Extracts words from a document.                              |
+| [WatermarkDocument](./WatermarkDocument)                           | Adds watermarks to documents.                                |
 
 
 ## Getting Started
