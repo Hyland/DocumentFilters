@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(DocumentFilters
-    VERSION 25.3.0
+    VERSION 25.4.0
     DESCRIPTION "Document Filters Library - C"
     LANGUAGES CXX
 )
