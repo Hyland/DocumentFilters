@@ -2153,7 +2153,7 @@ class DocumentFilters(DocumentFiltersBase):
 
         def GetFirstFormValue(self):
             self._formValueIndex = 0
-            return self.GetNextFormValue(self._formValueIndex)
+            return self.GetNextFormValue()
 
         def GetNextFormValue(self):
             result = self.GetFormValue(self._formValueIndex)
@@ -2559,11 +2559,12 @@ class DocumentFilters(DocumentFiltersBase):
             last = None
             for detail in self._details:
                 if last is not None:
-                    if detail.Bounds.top > last.top:
+                    if detail.Bounds.top > last.Bounds.top:
                         result += "\n"
-                    elif detail.Bounds.left - 2 > last.right:
+                    elif detail.Bounds.left - 2 > last.Bounds.right:
                         result += " "
                 result += detail.Text
+                last = detail
             return result
 
     class CompareResultDifferenceDetail(DocumentFiltersBase):
@@ -3593,6 +3594,5 @@ Option = DocumentFilters.Option
 Page = DocumentFilters.Page
 PageElement = DocumentFilters.PageElement
 PagePixels = DocumentFilters.PagePixels
-RenderPageProperties = DocumentFilters.RenderPageProperties
 SubFile = DocumentFilters.SubFile
 Word = DocumentFilters.Word
