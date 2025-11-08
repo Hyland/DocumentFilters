@@ -115,6 +115,8 @@ namespace Hyland.DocumentFilters
         private GCHandle _callbackHandle;
         private IEnumerator<SubFile> _subfileEnumerator;
         
+        private readonly object _disposeSyncRoot = new object();
+        
         private IDictionary<string, string> _localized = new Dictionary<string, string>();
 
         /// <summary>
@@ -317,7 +319,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public virtual void Dispose()
         {
-            lock (this)
+            lock (_disposeSyncRoot)
             {
                 Close();
                 if (_bytes != null && _bytes.IsAllocated)
@@ -393,26 +395,29 @@ namespace Hyland.DocumentFilters
         /// <param name="closeStream">Indicate if the stream should also be disposed.</param>
         virtual public void Close(bool closeStream = true)
         {
-            if (_subfileEnumerator != null)
+            lock (_disposeSyncRoot)
             {
-                _subfileEnumerator.Dispose();
-                _subfileEnumerator = null;
+                if (_subfileEnumerator != null)
+                {
+                    _subfileEnumerator.Dispose();
+                    _subfileEnumerator = null;
+                }
+                if (_handle > 0)
+                {
+                    Check(ISYS11df.IGR_Close_File(_handle, ref ecb));
+                    _handle = 0;
+                }
+                if (closeStream && _streamHandle != IntPtr.Zero)
+                {
+                    IGRStream.DestroyStreamPtr(_streamHandle);
+                    _streamHandle = IntPtr.Zero;
+                }
+                if (_callbackHandle.IsAllocated)
+                {
+                    _callbackHandle.Free();
+                }
+                _userCallback = null;
             }
-            if (_handle > 0)
-            {
-                Check(ISYS11df.IGR_Close_File(_handle, ref ecb));
-                _handle = 0;
-            }
-            if (closeStream && _streamHandle != IntPtr.Zero)
-            {
-                IGRStream.DestroyStreamPtr(_streamHandle);
-                _streamHandle = IntPtr.Zero;
-            }
-            if (_callbackHandle.IsAllocated)
-            {
-                _callbackHandle.Free();
-            }
-            _userCallback = null;
         }
 
         /// <summary>
@@ -785,7 +790,7 @@ namespace Hyland.DocumentFilters
             {
                 return new SubFile(this, handle, id.ToString(), name.ToString(), size, date, extractor);
             }
-            return (SubFile)null;
+            return null;
         }
 
         /// <summary>

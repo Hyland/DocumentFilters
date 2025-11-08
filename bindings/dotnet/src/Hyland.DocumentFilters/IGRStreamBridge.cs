@@ -58,7 +58,7 @@ namespace Hyland.DocumentFilters
         public override uint Write(byte[] bytes, uint size)
         {
             _stream.Write(bytes, 0, (int)size);
-            return (uint) size;
+            return size;
         }
         public override void Close()
         {
@@ -121,7 +121,7 @@ namespace Hyland.DocumentFilters
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return (long)_methods.Seek(_stream, offset, (uint)origin);
+            return _methods.Seek(_stream, offset, (uint)origin);
         }
 
         public override void SetLength(long value)
