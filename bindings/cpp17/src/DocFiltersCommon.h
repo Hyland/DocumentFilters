@@ -13,8 +13,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DocumentFiltersObjects.h"
+
 #include <stack>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Hyland
