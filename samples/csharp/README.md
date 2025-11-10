@@ -79,7 +79,7 @@ dotnet build
 ```
 
 Each sample is compiled into its own directory, with binaries generated in
-`${PROJECT}/bin/${CONFIGURATION}/net6.0`.
+`${PROJECT}/bin/${CONFIGURATION}/net8.0`.
 
 To build all the samples and copy them to a single directory, run:
 

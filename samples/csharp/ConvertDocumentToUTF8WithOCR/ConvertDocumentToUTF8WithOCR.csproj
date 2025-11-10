@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
   </PropertyGroup>
@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Reference Include="Hyland.DocumentFilters">
-      <HintPath>bin\Debug\net6.0\Hyland.DocumentFilters.dll</HintPath>
+      <HintPath>bin\Debug\net8.0\Hyland.DocumentFilters.dll</HintPath>
     </Reference>
   </ItemGroup>
 
