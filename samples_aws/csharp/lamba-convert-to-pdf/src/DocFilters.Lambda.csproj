@@ -15,9 +15,9 @@
     <PackageReference Include="Amazon.Lambda.S3Events" Version="3.1.0" />
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.1" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.310.8" />
-    <PackageReference Include="Hyland.DocumentFilters" Version="25.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="25.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="25.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="25.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters" Version="25.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="25.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="25.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="25.4.0" />
   </ItemGroup>
 </Project>

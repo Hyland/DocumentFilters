@@ -727,6 +727,9 @@ typedef IGR_LONG IGR_RETURN_CODE;
 /// @brief Text document with markup (e.g. HTML, XML).
 #define IGR_FILETYPE_TEXT_MARKUP          101
 
+/// @brief Text representation of data (e.g. JSON, CSV)
+#define IGR_FILETYPE_TEXT_DATA            102
+
 /// @brief Word processor document.
 #define IGR_FILETYPE_WORD_PROCESSOR       200
 

@@ -50,6 +50,7 @@ namespace Hyland.DocumentFilters
     public class DocumentFilters : DocumentFiltersBase, System.IDisposable
     {
         private short _handle = 0;
+        private readonly object _disposeSyncRoot = new object();
 
         /// <summary>
         /// Destructor
@@ -64,10 +65,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public virtual void Dispose()
         {
-            lock (this)
-            {
-                Close();
-            }
+            Close();
         }
 
         /// <summary>
@@ -115,12 +113,15 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public void Close()
         {
-            if (_handle > 0)
+            lock (_disposeSyncRoot)
             {
-                Error_Control_Block ecb = new Error_Control_Block();
-                ISYS11df.Close_Instance(ref ecb);
-                IGRException.Check(ecb);
-                _handle = 0;
+                if (_handle > 0)
+                {
+                    Error_Control_Block ecb = new Error_Control_Block();
+                    ISYS11df.Close_Instance(ref ecb);
+                    IGRException.Check(ecb);
+                    _handle = 0;
+                }
             }
         }
 

@@ -23,10 +23,14 @@ namespace Hyland
 		{
 		public:
 			IGR_HCANVAS m_canvas = 0;
+			IGR_Writable_Stream* m_stream = nullptr;
+			bool m_own_stream = false;
 			bool m_has_page = false;
 
-			explicit impl_t(IGR_HCANVAS handle)
+			explicit impl_t(IGR_HCANVAS handle, IGR_Writable_Stream* stream = nullptr, bool own_stream = false)
 				: m_canvas(handle)
+				, m_stream(stream)
+				, m_own_stream(own_stream)
 			{
 			}
 			impl_t(const impl_t&) = delete; 
@@ -68,6 +72,11 @@ namespace Hyland
 					IGR_Close_Canvas(m_canvas, &ecb);
 					m_canvas = 0;
 				}
+				if (m_own_stream && m_stream != nullptr)
+				{
+					m_stream->base.Close(reinterpret_cast<IGR_Stream*>(m_stream));
+					m_stream = nullptr;
+				}
 			}
 		};
 
@@ -76,8 +85,8 @@ namespace Hyland
 		{
 		}
 
-		Canvas::Canvas(IGR_HCANVAS handle)
-			: m_impl(new impl_t(handle))
+		Canvas::Canvas(IGR_HCANVAS handle, IGR_Writable_Stream* stream, bool own_stream)
+			: m_impl(new impl_t(handle, stream, own_stream))
 		{
 		}
 

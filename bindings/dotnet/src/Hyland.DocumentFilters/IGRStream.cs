@@ -70,12 +70,12 @@ namespace Hyland.DocumentFilters
         private class StreamHolder
         {
             private static readonly StreamHolder _instance = new StreamHolder();
-            private Dictionary<long, IGRStream> _streams = new Dictionary<long, IGRStream>();
+            private readonly Dictionary<long, IGRStream> _streams = new Dictionary<long, IGRStream>();
             private long _lastid = 0;
 
             public long Register(IGRStream stream)
             {
-                lock(this)
+                lock(_streams)
                 {
                     long retval = ++_lastid;
                     _streams.Add(retval, stream);
@@ -84,14 +84,14 @@ namespace Hyland.DocumentFilters
             }
             public void Release(long cookie)
             {
-                lock(this)
+                lock(_streams)
                 {
                     _streams.Remove(cookie);
                 }
             }
             public IGRStream Get(long cookie)
             {
-                lock(this)
+                lock(_streams)
                 {
                     IGRStream retval;
                     if (_streams.TryGetValue(cookie, out retval))
@@ -180,7 +180,7 @@ namespace Hyland.DocumentFilters
             }
             private static UInt32 _open(IntPtr stream)
             {
-                Payload payload = MarshalPayload(stream);
+                MarshalPayload(stream);
 
                 return 0;
             }

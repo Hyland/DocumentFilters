@@ -28,6 +28,8 @@ namespace Hyland.DocumentFilters
         private List<Annotation> _annotations;
         private int _wordIndex = 0;
         private string _pageText = "";
+        
+        private readonly object _disposeSyncRoot = new object();
 
         /// <summary>
         /// Gets the number of words on the page.
@@ -111,10 +113,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public virtual void Dispose()
         {
-            lock (this)
-            {
-                Close();
-            }
+            Close();
         }
 
         /// <summary>
@@ -130,16 +129,19 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public void Close()
         {
-            if (_pageHandle > 0)
+            lock (_disposeSyncRoot)
             {
-                Error_Control_Block ecb = new Error_Control_Block();
-                Check(ISYS11df.IGR_Close_Page(_pageHandle, ref ecb), ecb);
-                _pageHandle = 0;
+                if (_pageHandle > 0)
+                {
+                    Error_Control_Block ecb = new Error_Control_Block();
+                    Check(ISYS11df.IGR_Close_Page(_pageHandle, ref ecb), ecb);
+                    _pageHandle = 0;
+                }
             }
         }
 
         /// <summary>
-        /// The WordCount property returns the number of “Word”s that are on a page. The words can be enumerated using the GetFirstWord and GetNextWord methods. 
+        /// The WordCount property returns the number of 'Word's that are on a page. The words can be enumerated using the GetFirstWord and GetNextWord methods. 
         /// </summary>
         /// <returns></returns>
         public int GetWordCount()

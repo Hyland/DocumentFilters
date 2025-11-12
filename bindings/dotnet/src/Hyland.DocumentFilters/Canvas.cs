@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
@@ -24,6 +25,7 @@ namespace Hyland.DocumentFilters
         private string _filename = null;
         private IGRStream _stream = null;
         private IntPtr _streamHandle = IntPtr.Zero;
+        private readonly object _disposeSyncRoot = new object();
 
         /// <summary>
         /// Internal constructor for creating a canvas object.
@@ -70,10 +72,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public virtual void Dispose()
         {
-            lock (this)
-            {
-                Close();
-            }
+            Close();
         }
 
         /// <summary>
@@ -117,15 +116,18 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public void Close()
         {
-            if (_handle > 0)
+            lock (_disposeSyncRoot)
             {
-                Check(ISYS11df.IGR_Close_Canvas(_handle, ref ecb));
-                _handle = 0;
-            }
-            if (_streamHandle != IntPtr.Zero)
-            {
-                IGRStream.DestroyStreamPtr(_streamHandle);
-                _streamHandle = IntPtr.Zero;
+                if (_handle > 0)
+                {
+                    Check(ISYS11df.IGR_Close_Canvas(_handle, ref ecb));
+                    _handle = 0;
+                }
+                if (_streamHandle != IntPtr.Zero)
+                {
+                    IGRStream.DestroyStreamPtr(_streamHandle);
+                    _streamHandle = IntPtr.Zero;
+                }
             }
         }
 
@@ -208,8 +210,8 @@ namespace Hyland.DocumentFilters
                 redaction_flags = renderPageProperties == null ? 0 : (uint)renderPageProperties.RedactionFlags,
                 redaction_count = renderPageProperties == null ? 0 : (uint)renderPageProperties.Redactions.Count,
                 redactions = new IntPtr(0),
-                source_rect = new IGR_Rect(renderPageProperties.SourceRect),
-                dest_rect = new IGR_Rect(renderPageProperties.DestRect)
+                source_rect = new IGR_Rect(renderPageProperties?.SourceRect ?? Rectangle.Empty),
+                dest_rect = new IGR_Rect(renderPageProperties?.DestRect ?? Rectangle.Empty)
             };
 
             int formElementSize = Marshal.SizeOf(typeof(IGR_Render_Page_Form_Values));
@@ -479,7 +481,7 @@ namespace Hyland.DocumentFilters
         /// <summary>
         /// SetFont specifies the font to be used when drawing text to the canvas. All subsequent calls to TextOut and MeasureText will use this font.
         /// </summary>
-        /// <param name="name">Font Family name to use; this is the font display name such as ‘Arial’ or ‘Courier New.’</param>
+        /// <param name="name">Font Family name to use; this is the font display name such as Arial or 'Courier New.'</param>
         /// <param name="size">The size to render the font.</param>
         /// <param name="style">A bitmask of style information.</param>
         public void SetFont(string name, int size, int style)

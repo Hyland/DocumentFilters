@@ -2,21 +2,21 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hyland.DocumentFilters" Version="25.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="25.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-x64" Version="25.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-x64'" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux-arm64" Version="25.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-arm64'" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-arm64" Version="25.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-arm64'" />
-    <PackageReference Include="Hyland.DocumentFilters.Linux-ppc64le" Version="25.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-ppc64le'" />   
-    <PackageReference Include="Hyland.DocumentFilters.MacOS" Version="25.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="25.3.0" />
-    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="25.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters" Version="25.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="25.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-x64" Version="25.4.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-x64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-arm64" Version="25.4.0" Condition="'$(RuntimeIdentifier)' == 'linux-arm64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-arm64" Version="25.4.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-arm64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-ppc64le" Version="25.4.0" Condition="'$(RuntimeIdentifier)' == 'linux-ppc64le'" />   
+    <PackageReference Include="Hyland.DocumentFilters.MacOS" Version="25.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="25.4.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="25.4.0" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.0" />
   </ItemGroup>
 

@@ -22,6 +22,8 @@ namespace Hyland.DocumentFilters
         private int _flags;
         private IGR_Extract_Stream _extractor;
 
+        private readonly object _disposeSyncRoot = new object();
+
         internal SubFile(DocumentFiltersBase parent, int docHandle, string id, string name, long size, long date, IGR_Extract_Stream extractor)
             : base(parent)
         {
@@ -67,10 +69,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public override void Dispose()
         {
-            lock (this)
-            {
-                Close();
-            }
+            Close();
         }
 
         /// <summary>
@@ -90,7 +89,10 @@ namespace Hyland.DocumentFilters
         /// </summary>
         override public void Close(bool closeStream=true)
         {
-            base.Close(closeStream);
+            lock (_disposeSyncRoot)
+            {
+                base.Close(closeStream);
+            }
         }
 
         /// <summary>
@@ -126,7 +128,7 @@ namespace Hyland.DocumentFilters
         public System.DateTime getFileTime()
         {
             System.DateTime epoch = new System.DateTime(1601, 1, 1);
-            return epoch.AddSeconds(_date / 10000000);
+            return epoch.AddSeconds(_date / 10000000.0);
         }
 
         /// <summary>

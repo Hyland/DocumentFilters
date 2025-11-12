@@ -303,6 +303,12 @@ namespace Hyland.DocumentFilters
         [Obsolete("Enumerate parent bookmark's children. GetNextSibling will result in undefined behavior when creating bookmarks.")]
         public Bookmark GetNextSibling()
         {
+            return GetNextSiblingInternal();
+        }
+
+        // it's ok to use it internally, as long as we don't use it in situations that are unsafe - see obsolete note above
+        protected internal Bookmark GetNextSiblingInternal()
+        {
             if (_doc.HasValue)
             {
                 IGR_Bookmark res = new IGR_Bookmark();
@@ -381,9 +387,7 @@ namespace Hyland.DocumentFilters
                     if (_first)
                         Current = _parent.GetFirstChild();
                     else if (Current != null)
-#pragma warning disable CS0618 // Type or member is obsolete
-                        Current = Current.GetNextSibling();
-#pragma warning restore CS0618 // Type or member is obsolete
+                        Current = Current.GetNextSiblingInternal();
 
                     _first = false;
                     return Current != null;

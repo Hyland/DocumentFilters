@@ -476,16 +476,19 @@ namespace Hyland.DocumentFilters.Annotations
         public Serializer WriteString(string value)
         {
             _stream.Write("\"");
-            for (var i = 0; i < value.Length; ++i)
+            if (value != null)
             {
-                switch(value[i])
+                for (var i = 0; i < value.Length; ++i)
                 {
-                    case '\r': _stream.Write("\\r"); break;
-                    case '\n': _stream.Write("\\n"); break;
-                    case '\t': _stream.Write("\\t"); break;
-                    case '\\': _stream.Write("\\\\"); break;
-                    case '\"': _stream.Write("\\\""); break;
-                    default:   _stream.Write(value[i]); break;
+                    switch(value[i])
+                    {
+                        case '\r': _stream.Write("\\r"); break;
+                        case '\n': _stream.Write("\\n"); break;
+                        case '\t': _stream.Write("\\t"); break;
+                        case '\\': _stream.Write("\\\\"); break;
+                        case '\"': _stream.Write("\\\""); break;
+                        default:   _stream.Write(value[i]); break;
+                    }
                 }
             }
             _stream.Write("\"");
@@ -583,7 +586,6 @@ namespace Hyland.DocumentFilters.Annotations
                 foreach (var p in type.GetProperties())
                 {
                     var val = p.GetValue(value, new object[] { });
-                    var valType = val?.GetType();
                     if (val == null)
                         continue;
 
@@ -1011,7 +1013,7 @@ namespace Hyland.DocumentFilters.Annotations
                 try
                 {
                     object value = Enum.Parse(targetType, str);
-                    if (Enum.IsDefined(targetType, value) | value.ToString().Contains(","))
+                    if (Enum.IsDefined(targetType, value) || value.ToString().Contains(","))
                     {
                         target = value;
                     }

@@ -167,13 +167,25 @@ namespace Hyland
 				{
 					return stream->seek(offset, static_cast<std::ios_base::seekdir>(origin));
 				}
-				static void destroy(Hyland::DocFilters::Stream* Stream)
+				static void destroy(Hyland::DocFilters::Stream* stream)
 				{
-					delete Stream;
+					delete stream;
 				}
 			};
 
-			return bridge_stream_t<Hyland::DocFilters::Stream, traits>(stream, own_stream, igr_stream);
+			if (stream == nullptr || igr_stream == nullptr)
+				throw std::invalid_argument("stream and igr_stream cannot be null");
+
+			// Check if we can steal existing IGR_Stream
+			IGR_Stream* existing;
+			if (own_stream && (existing = stream->relinquish_igr_stream()) != nullptr)
+			{
+				*igr_stream = existing;
+				delete stream;
+				return existing;
+			}
+			else
+				return bridge_stream_t<Hyland::DocFilters::Stream, traits>(stream, own_stream, igr_stream);
 		}
 
 		// --------------------------------------------------------------------------------
@@ -330,19 +342,40 @@ namespace Hyland
 			Stream::bridge_istream(strm.release(), true, reinterpret_cast<IGR_Stream**>(&m_inner));
 		}
 
+		FileStream::~FileStream() 
+		{
+			close();
+		}
+
+		void FileStream::close()
+		{
+			if (m_inner)
+			{
+				m_inner->base.Close(&m_inner->base);
+				m_inner = nullptr;
+			}
+		}
+
 		std::streamoff FileStream::seek(std::streampos offset, std::ios_base::seekdir way)
 		{
-			return m_inner->base.Seek(&m_inner->base, offset, way);
+			return m_inner ? m_inner->base.Seek(&m_inner->base, offset, way) : 0;
 		}
 
 		size_t FileStream::read(void* buffer, size_t size)
 		{
-			return m_inner->base.Read(&m_inner->base, buffer, static_cast<IGR_ULONG>(size));
+			return m_inner ? m_inner->base.Read(&m_inner->base, buffer, static_cast<IGR_ULONG>(size)) : 0;
 		}
 
 		size_t FileStream::write(const void* buffer, size_t size)
 		{
-			return m_inner->Write(m_inner, const_cast<void*>(buffer), static_cast<IGR_ULONG>(size));
+			return m_inner ? m_inner->Write(m_inner, const_cast<void*>(buffer), static_cast<IGR_ULONG>(size)) : 0;
+		}
+
+		IGR_Stream* FileStream::relinquish_igr_stream() 
+		{
+			IGR_Stream* res = &m_inner->base;
+			m_inner = nullptr;
+			return res;
 		}
 
 	} // namespace DocFilters

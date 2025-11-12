@@ -93,8 +93,8 @@ namespace Hyland
 			std::shared_ptr<subfile_enumerable_t> m_subfiles;
 			std::shared_ptr<subfile_enumerable_t> m_images;
 
-			explicit impl_t(IGR_Stream* Stream)
-				: m_stream(Stream)
+			explicit impl_t(IGR_Stream* stream)
+				: m_stream(stream)
 				, m_handle(0, &IGR_Close_File)
 			{
 			}
@@ -167,8 +167,8 @@ namespace Hyland
 		{
 		}
 
-		Extractor::Extractor(IGR_Stream* Stream)
-			: m_impl(new impl_t(Stream))
+		Extractor::Extractor(IGR_Stream* stream)
+			: m_impl(new impl_t(stream))
 		{
 		}
 

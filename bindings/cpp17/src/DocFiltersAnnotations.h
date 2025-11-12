@@ -13,6 +13,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DocumentFiltersObjects.h"
+#include <algorithm>
 #include <sstream>
 
 namespace Hyland

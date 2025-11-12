@@ -1115,6 +1115,14 @@ namespace Hyland
 		protected:
 			class impl_t;
 			std::shared_ptr<impl_t> m_impl;
+
+			/// @brief Creates an output canvas for the specified writable stream.
+			/// @param stream Pointer to the writable stream object.
+			/// @param type The type of the canvas.
+			/// @param options Optional additional options as a wide string. Defaults to an empty string.
+			/// @param own_stream Boolean indicating ownership of the stream.
+			/// @return A canvas object for the specified writable stream.
+			Canvas DoMakeOutputCanvas(IGR_Writable_Stream* stream, CanvasType type, const std::wstring& options, bool own_stream);
 		};
 
 		using Api = DocumentFilters;
@@ -1156,6 +1164,10 @@ namespace Hyland
 			/// @param pos The position to set.
 			/// @return The new position in the stream.
 			std::streamoff set_position(std::streamoff pos);
+
+			/// @brief Relinquishes ownership of the underlying IGR_Stream.
+			/// @return A pointer to the relinquished IGR_Stream.
+			virtual IGR_Stream* relinquish_igr_stream() { return nullptr; };
 
 			/// @brief Bridges a standard iostream to an IGR_Stream.
 			///
@@ -1288,6 +1300,7 @@ namespace Hyland
 			FileStream(FILE* stream, bool own_stream);
 			FileStream(const std::string& filename);
 			FileStream(const std::wstring& filename);
+			~FileStream() override;
 
 			/// @brief Seeks to a specific position in the stream.
 			/// @param offset The position to seek to.
@@ -1306,6 +1319,13 @@ namespace Hyland
 			/// @param size The number of bytes to write.
 			/// @return The number of bytes actually written (default is 0).
 			size_t write(const void* buffer, size_t size) override;
+
+			/// @brief Relinquishes ownership of the underlying IGR_Stream.
+			/// @return A pointer to the relinquished IGR_Stream.
+			IGR_Stream* relinquish_igr_stream() override;
+
+			/// @brief Closes the stream.
+			void close();
 		protected:
 			IGR_Writable_Stream* m_inner = nullptr;
 		};
@@ -1949,7 +1969,7 @@ namespace Hyland
 
 
 			Extractor();
-			Extractor(IGR_Stream* Stream);
+			Extractor(IGR_Stream* stream);
 			virtual ~Extractor() {};
 
 			IGR_HDOC getHandle() const;
@@ -2632,7 +2652,9 @@ namespace Hyland
 		protected:
 			/// @brief Constructs a Canvas with a given handle.
 			/// @param handle The handle to the canvas.
-			Canvas(IGR_HCANVAS handle);
+			/// @param stream The writable stream associated with the canvas.
+			/// @param own_stream Indicates whether the canvas owns the stream.
+			Canvas(IGR_HCANVAS handle, IGR_Writable_Stream* stream, bool own_stream);
 
 		public:
 			/// @brief Default constructor for Canvas.
