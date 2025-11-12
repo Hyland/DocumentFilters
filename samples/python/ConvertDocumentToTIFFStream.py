@@ -68,7 +68,8 @@ def ProcessFile(filename, outFilename, console, options = ""):
 					pageIndex += 1
 
 		memBuffer.seek(0)
-		shutil.copyfileobj(memBuffer, outFilename)
+		with open(outFilename, 'wb') as outFile:
+            shutil.copyfileobj(memBuffer, outFile)
 
 		
 try:
