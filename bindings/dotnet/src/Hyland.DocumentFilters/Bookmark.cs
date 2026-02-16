@@ -306,7 +306,18 @@ namespace Hyland.DocumentFilters
             return GetNextSiblingInternal();
         }
 
-        // it's ok to use it internally, as long as we don't use it in situations that are unsafe - see obsolete note above
+
+        /// <summary>
+        /// Gets the next sibling bookmark of the current bookmark.
+        /// </summary>
+        /// <remarks>
+        /// This method is intended for internal use and may result in undefined behavior
+        /// when creating bookmarks. Use with caution.
+        /// </remarks>
+        /// <returns>The next sibling bookmark, or null if there are no more siblings.</returns>
+        //
+        // [NOTE: It's ok to use this function internally, as long as we don't use it in situations that are unsafe.
+        //  The public facing GetNextSibling() above has been marked Obsolete - see the Obsolete attribute for details.]
         protected internal Bookmark GetNextSiblingInternal()
         {
             if (_doc.HasValue)

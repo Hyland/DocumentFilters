@@ -369,6 +369,10 @@ class DocumentFiltersBase(object):
             def __init__(self, parent):
                 self._parent = parent
                 self._index = 0
+
+            def __iter__(self):
+                return self
+
             def __next__(self):
                 if (self._index < self._parent.Count):
                     result = self._parent.Item(self._index)
@@ -376,9 +380,9 @@ class DocumentFiltersBase(object):
                     return result
                 else:
                     raise StopIteration
+
             def next(self):
                 return self.__next__()
-
 
 class StreamBridge:
     @staticmethod
@@ -2773,6 +2777,9 @@ class DocumentFilters(DocumentFiltersBase):
 
                 def __del__(self):
                     self.close()
+
+                def __iter__(self):
+                    return self
 
                 def __next__(self):
                     result = DocumentFilters.Extractor._NextSubFile(self._handle, self._docHandle, self.API.IGR_Subfiles_Next_Ex, self._getter)
