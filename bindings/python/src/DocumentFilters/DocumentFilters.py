@@ -335,6 +335,10 @@ class DocumentFiltersBase(object):
                 self._next = parent._next
                 self._started = False
                 self._current = None
+
+            def __iter__(self):
+                return self
+
             def __next__(self):
                 if not self._started:
                     self._current = self._first()
