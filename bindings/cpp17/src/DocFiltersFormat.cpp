@@ -12,15 +12,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
 		Format::Format(uint32_t id)
-			: m_id(id)
+		    : m_id(id)
 		{
 			if (Fetch(id, What::LongName, m_display_name))
 			{

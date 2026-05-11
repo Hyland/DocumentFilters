@@ -12,17 +12,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
 		CompareSettings::CompareSettings()
-			: m_impl(new IGR_Text_Compare_Settings{ sizeof(IGR_Text_Compare_Settings) })
-		{
-		}
+		    : m_impl(new IGR_Text_Compare_Settings { sizeof(IGR_Text_Compare_Settings) })
+		{ }
 
 		CompareType CompareSettings::getType() const
 		{
@@ -39,7 +38,7 @@ namespace Hyland
 		{
 			return static_cast<CompareFlags>(m_impl->flags);
 		}
-		
+
 		CompareSettings& CompareSettings::setFlags(CompareFlags value)
 		{
 			m_impl->flags = static_cast<IGR_COMPARE_DOCUMENTS_FLAGS_TYPE>(value);

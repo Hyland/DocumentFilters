@@ -12,8 +12,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
@@ -28,28 +28,26 @@ namespace Hyland
 			bool m_has_page = false;
 
 			explicit impl_t(IGR_HCANVAS handle, IGR_Writable_Stream* stream = nullptr, bool own_stream = false)
-				: m_canvas(handle)
-				, m_stream(stream)
-				, m_own_stream(own_stream)
-			{
-			}
-			impl_t(const impl_t&) = delete; 
+			    : m_canvas(handle)
+			    , m_stream(stream)
+			    , m_own_stream(own_stream)
+			{ }
+			impl_t(const impl_t&) = delete;
 			impl_t& operator=(const impl_t&) = delete;
-			impl_t(impl_t&&) = delete; 
+			impl_t(impl_t&&) = delete;
 			impl_t& operator=(impl_t&&) = delete;
 
 			~impl_t()
 			{
-				try {
+				try
+				{
 					Close();
 				}
-				catch (...) {}
+				catch (...)
+				{ }
 			}
 
-			[[nodiscard]] IGR_HCANVAS getHandle() const
-			{
-				return m_canvas;
-			}
+			[[nodiscard]] IGR_HCANVAS getHandle() const { return m_canvas; }
 
 			[[nodiscard]] IGR_HCANVAS needHandle() const
 			{
@@ -57,7 +55,7 @@ namespace Hyland
 					throw DocumentFilters::Error("Canvas is not open.");
 				return m_canvas;
 			}
-			
+
 			[[nodiscard]] IGR_HCANVAS drawable_handle() const
 			{
 				if (!m_has_page)
@@ -81,14 +79,12 @@ namespace Hyland
 		};
 
 		Canvas::Canvas()
-			: m_impl(new impl_t(0))
-		{
-		}
+		    : m_impl(new impl_t(0))
+		{ }
 
 		Canvas::Canvas(IGR_HCANVAS handle, IGR_Writable_Stream* stream, bool own_stream)
-			: m_impl(new impl_t(handle, stream, own_stream))
-		{
-		}
+		    : m_impl(new impl_t(handle, stream, own_stream))
+		{ }
 
 		IGR_HCANVAS Canvas::getHandle() const
 		{
@@ -108,11 +104,9 @@ namespace Hyland
 		void Canvas::RenderPage(const Page& Page, const std::wstring& options, const RenderPageProperties& properties)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Render_Page_Ex(Page.getHandle()
-				, m_impl->needHandle()
-				, reinterpret_cast<const IGR_UCS2*>(w_to_u16(options).c_str())
-				, properties.data()
-				, &ecb), ecb, "IGR_Render_Page_Ex");
+			throw_on_error(IGR_Render_Page_Ex(Page.getHandle(), m_impl->needHandle(),
+			                                  reinterpret_cast<const IGR_UCS2*>(w_to_u16(options).c_str()), properties.data(), &ecb),
+			               ecb, "IGR_Render_Page_Ex");
 			m_impl->m_has_page = true;
 		}
 
@@ -132,7 +126,9 @@ namespace Hyland
 		void Canvas::BlankPage(int width, int height, const std::wstring& options)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_Blank_Page(m_impl->needHandle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(options).c_str()), width, height, nullptr, &ecb), ecb, "IGR_Canvas_Blank_Page");
+			throw_on_error(IGR_Canvas_Blank_Page(m_impl->needHandle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(options).c_str()), width,
+			                                     height, nullptr, &ecb),
+			               ecb, "IGR_Canvas_Blank_Page");
 
 			m_impl->m_has_page = true;
 		}
@@ -146,7 +142,9 @@ namespace Hyland
 		void Canvas::AngleArc(int x, int y, int radius, double start_angle, double sweep_angle)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_AngleArc(m_impl->drawable_handle(), x, y, radius, static_cast<IGR_LONG>(start_angle), static_cast<IGR_LONG>(sweep_angle), &ecb), ecb, "IGR_Canvas_Angle_Arc");
+			throw_on_error(IGR_Canvas_AngleArc(m_impl->drawable_handle(), x, y, radius, static_cast<IGR_LONG>(start_angle),
+			                                   static_cast<IGR_LONG>(sweep_angle), &ecb),
+			               ecb, "IGR_Canvas_Angle_Arc");
 		}
 
 		void Canvas::Chord(int x, int y, int x2, int y2, int x3, int y3, int x4, int y4)
@@ -205,13 +203,17 @@ namespace Hyland
 		void Canvas::TextOut(int x, int y, const std::wstring& text)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_TextOut(m_impl->drawable_handle(), x, y, reinterpret_cast<const IGR_UCS2*>(w_to_u16(text).c_str()), &ecb), ecb, "IGR_Canvas_TextOut");
+			throw_on_error(IGR_Canvas_TextOut(m_impl->drawable_handle(), x, y, reinterpret_cast<const IGR_UCS2*>(w_to_u16(text).c_str()),
+			                                  &ecb),
+			               ecb, "IGR_Canvas_TextOut");
 		}
 
 		void Canvas::TextRect(int x, int y, int x2, int y2, const std::wstring& text, int flags)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_TextRect(m_impl->drawable_handle(), x, y, x2, y2, reinterpret_cast<const IGR_UCS2*>(w_to_u16(text).c_str()), flags, &ecb), ecb, "IGR_Canvas_TextRect");
+			throw_on_error(IGR_Canvas_TextRect(m_impl->drawable_handle(), x, y, x2, y2,
+			                                   reinterpret_cast<const IGR_UCS2*>(w_to_u16(text).c_str()), flags, &ecb),
+			               ecb, "IGR_Canvas_TextRect");
 		}
 
 		uint32_t Canvas::TextWidth(const std::wstring& text)
@@ -229,26 +231,32 @@ namespace Hyland
 			Error_Control_Block ecb = { 0 };
 			IGR_LONG width = 0;
 			IGR_LONG height = 0;
-			throw_on_error(IGR_Canvas_MeasureText(m_impl->drawable_handle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(text).c_str()), &width, &height, &ecb), ecb, "IGR_Canvas_MeasureText");
-			return IGR_Size{ static_cast<IGR_ULONG>(width), static_cast<IGR_ULONG>(height) };
+			throw_on_error(IGR_Canvas_MeasureText(m_impl->drawable_handle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(text).c_str()),
+			                                      &width, &height, &ecb),
+			               ecb, "IGR_Canvas_MeasureText");
+			return IGR_Size { static_cast<IGR_ULONG>(width), static_cast<IGR_ULONG>(height) };
 		}
 
 		void Canvas::SetPen(const Color& textColor, int width, PenStyle style)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_SetPen(m_impl->drawable_handle(), textColor.to_igr_color(), width, static_cast<int>(style), &ecb), ecb, "IGR_Canvas_SetPen");
+			throw_on_error(IGR_Canvas_SetPen(m_impl->drawable_handle(), textColor.to_igr_color(), width, static_cast<int>(style), &ecb),
+			               ecb, "IGR_Canvas_SetPen");
 		}
 
 		void Canvas::SetBrush(const Color& textColor, BrushStyle style)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_SetBrush(m_impl->drawable_handle(), textColor.to_igr_color(), static_cast<int>(style), &ecb), ecb, "IGR_Canvas_SetBrush");
+			throw_on_error(IGR_Canvas_SetBrush(m_impl->drawable_handle(), textColor.to_igr_color(), static_cast<int>(style), &ecb), ecb,
+			               "IGR_Canvas_SetBrush");
 		}
 
 		void Canvas::SetFont(const std::wstring& name, int size, FontStyle style)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_SetFont(m_impl->drawable_handle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(name).c_str()), size, static_cast<int>(style), &ecb), ecb, "IGR_Canvas_SetFont");
+			throw_on_error(IGR_Canvas_SetFont(m_impl->drawable_handle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(name).c_str()), size,
+			                                  static_cast<int>(style), &ecb),
+			               ecb, "IGR_Canvas_SetFont");
 		}
 
 		void Canvas::SetOpacity(int value)
@@ -260,20 +268,19 @@ namespace Hyland
 		void Canvas::DrawImage(int x, int y, const void* buffer, size_t buffer_size, const std::wstring& mime_type)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_DrawImage(m_impl->drawable_handle(), x, y, const_cast<void*>(buffer), buffer_size, reinterpret_cast<const IGR_UCS2*>(w_to_u16(mime_type).c_str()), &ecb), ecb, "IGR_Canvas_DrawImage"); // NOLINT
+			throw_on_error(IGR_Canvas_DrawImage(m_impl->drawable_handle(), x, y, const_cast<void*>(buffer), buffer_size,
+			                                    reinterpret_cast<const IGR_UCS2*>(w_to_u16(mime_type).c_str()), &ecb),
+			               ecb, "IGR_Canvas_DrawImage"); // NOLINT
 		}
 
-		void Canvas::DrawScaleImage(int x, int y, int width, int height, const void* buffer, size_t buffer_size, const std::wstring& mime_type)
+		void Canvas::DrawScaleImage(int x, int y, int width, int height, const void* buffer, size_t buffer_size,
+		                            const std::wstring& mime_type)
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Canvas_DrawScaleImage(m_impl->drawable_handle()
-				, x
-				, y
-				, width
-				, height
-				, const_cast<void*>(buffer) // NOLINT
-				, buffer_size
-				, reinterpret_cast<const IGR_UCS2*>(w_to_u16(mime_type).c_str()), &ecb), ecb, "IGR_Canvas_DrawScaleImage");
+			throw_on_error(IGR_Canvas_DrawScaleImage(m_impl->drawable_handle(), x, y, width, height, const_cast<void*>(buffer) // NOLINT
+			                                         ,
+			                                         buffer_size, reinterpret_cast<const IGR_UCS2*>(w_to_u16(mime_type).c_str()), &ecb),
+			               ecb, "IGR_Canvas_DrawScaleImage");
 		}
 
 		void Canvas::DrawScaleImage(const RectI32& rc, const void* buffer, size_t buffer_size, const std::wstring& mime_type)
@@ -297,7 +304,8 @@ namespace Hyland
 		{
 			Error_Control_Block ecb = { 0 };
 			std::u16string payload = u8_to_u16(json);
-			throw_on_error(IGR_Canvas_Annotate_JSON(m_impl->needHandle(), reinterpret_cast<const IGR_UCS2*>(payload.c_str()), &ecb), ecb, "IGR_Canvas_Annotate");
+			throw_on_error(IGR_Canvas_Annotate_JSON(m_impl->needHandle(), reinterpret_cast<const IGR_UCS2*>(payload.c_str()), &ecb), ecb,
+			               "IGR_Canvas_Annotate");
 		}
 
 		void Canvas::Annotate(const AnnotationSerializable& Annotation)

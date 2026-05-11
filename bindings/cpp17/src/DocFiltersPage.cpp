@@ -12,8 +12,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
@@ -38,7 +38,8 @@ namespace Hyland
 			Page::annotations_t m_annotations_loader;
 
 			impl_t(IGR_HPAGE page_handle, size_t page_index)
-				: m_handle(page_handle, &IGR_Close_Page), m_page_index(page_index)
+			    : m_handle(page_handle, &IGR_Close_Page)
+			    , m_page_index(page_index)
 			{
 				if (page_handle != 0)
 				{
@@ -108,14 +109,16 @@ namespace Hyland
 					Error_Control_Block ecb = { 0 };
 
 					IGR_LONG count = 0;
-					throw_on_error(IGR_Get_Page_Form_Element_Count(m_handle.getHandle(), &count, &ecb), ecb, "IGR_Get_Page_Form_Element_Count");
+					throw_on_error(IGR_Get_Page_Form_Element_Count(m_handle.getHandle(), &count, &ecb), ecb,
+					               "IGR_Get_Page_Form_Element_Count");
 					m_form_elements->reserve(count);
 
 					for (IGR_LONG i = 0; i < count; ++i)
 					{
 						IGR_Page_Form_Element fe = { nullptr };
 						IGR_LONG req = 1;
-						throw_on_error(IGR_Get_Page_Form_Elements(m_handle.getHandle(), i, &req, &fe, &ecb), ecb, "IGR_Get_Page_Form_Element");
+						throw_on_error(IGR_Get_Page_Form_Elements(m_handle.getHandle(), i, &req, &fe, &ecb), ecb,
+						               "IGR_Get_Page_Form_Element");
 						if (req == 1)
 							m_form_elements->emplace_back(FormElement(fe));
 					}
@@ -131,14 +134,16 @@ namespace Hyland
 					Error_Control_Block ecb = { 0 };
 
 					IGR_LONG count = 0;
-					throw_on_error(IGR_Get_Page_Hyperlink_Count(m_handle.getHandle(), &count, &ecb), ecb, "IGR_Get_Page_Form_Element_Count");
+					throw_on_error(IGR_Get_Page_Hyperlink_Count(m_handle.getHandle(), &count, &ecb), ecb,
+					               "IGR_Get_Page_Form_Element_Count");
 					m_hyperlinks->reserve(count);
 
 					for (IGR_LONG i = 0; i < count; ++i)
 					{
 						IGR_Hyperlink link = { nullptr };
 						IGR_LONG req = 1;
-						throw_on_error(IGR_Get_Page_Hyperlinks(m_handle.getHandle(), i, &req, &link, &ecb), ecb, "IGR_Get_Page_Form_Element");
+						throw_on_error(IGR_Get_Page_Hyperlinks(m_handle.getHandle(), i, &req, &link, &ecb), ecb,
+						               "IGR_Get_Page_Form_Element");
 						if (req == 1)
 							m_hyperlinks->emplace_back(Hyperlink(link));
 					}
@@ -164,7 +169,8 @@ namespace Hyland
 						IGR_Annotation anno = { nullptr };
 						IGR_LONG req = 1;
 
-						throw_on_error(IGR_Get_Page_Annotations(m_handle.getHandle(), i, &req, &anno, &ecb), ecb, "IGR_Get_Page_Form_Element");
+						throw_on_error(IGR_Get_Page_Annotations(m_handle.getHandle(), i, &req, &anno, &ecb), ecb,
+						               "IGR_Get_Page_Form_Element");
 						if (req != 1)
 							continue;
 
@@ -175,20 +181,19 @@ namespace Hyland
 						m_annotations->push_back(std::shared_ptr<Annotation>(a.release()));
 					}
 
-					m_annotations_loader = annotations_t(dest.size(), [&dest](size_t index) -> std::shared_ptr<Annotation> { return dest[index]; });
+					m_annotations_loader
+					    = annotations_t(dest.size(), [&dest](size_t index) -> std::shared_ptr<Annotation> { return dest[index]; });
 				}
 			}
 		};
 
 		Page::Page(IGR_HPAGE page_handle, size_t index)
-			: m_impl(new impl_t(page_handle, index))
-		{
-		}
+		    : m_impl(new impl_t(page_handle, index))
+		{ }
 
 		Page::Page()
-			: m_impl(new impl_t(0, 0))
-		{
-		}
+		    : m_impl(new impl_t(0, 0))
+		{ }
 
 		size_t Page::getIndex() const
 		{
@@ -252,9 +257,8 @@ namespace Hyland
 		{
 			if (!m_impl->m_images)
 			{
-				m_impl->m_images = std::make_shared<subfile_enumerable_t>(getHandle()
-					, &IGR_Get_Page_Images_Enumerator
-					, &IGR_Extract_Page_Image_Stream);
+				m_impl->m_images
+				    = std::make_shared<subfile_enumerable_t>(getHandle(), &IGR_Get_Page_Images_Enumerator, &IGR_Extract_Page_Image_Stream);
 			}
 			return *m_impl->m_images;
 		}
@@ -263,7 +267,9 @@ namespace Hyland
 		{
 			Error_Control_Block ecb = { 0 };
 			IGR_Stream* Stream = nullptr;
-			throw_on_error(IGR_Extract_Page_Image_Stream(getHandle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(id).c_str()), &Stream, &ecb), ecb, "IGR_Extract_Page_Image_Stream");
+			throw_on_error(IGR_Extract_Page_Image_Stream(getHandle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(id).c_str()), &Stream,
+			                                             &ecb),
+			               ecb, "IGR_Extract_Page_Image_Stream");
 			return Subfile(0, id, Stream);
 		}
 
@@ -304,9 +310,9 @@ namespace Hyland
 			std::vector<IGR_UCS2> buffer(buffer_size + 1);
 			Error_Control_Block ecb = { 0 };
 
-			throw_on_error(IGR_Get_Page_Attribute(getHandle()
-				, reinterpret_cast<const IGR_UCS2*>(w_to_u16(name).c_str())
-				, &buffer[0], &buffer_size, &ecb), ecb, "IGR_Get_Page_Attribute");
+			throw_on_error(IGR_Get_Page_Attribute(getHandle(), reinterpret_cast<const IGR_UCS2*>(w_to_u16(name).c_str()), &buffer[0],
+			                                      &buffer_size, &ecb),
+			               ecb, "IGR_Get_Page_Attribute");
 			return u16_to_w(&buffer[0], buffer_size);
 		}
 
@@ -317,12 +323,12 @@ namespace Hyland
 
 		PagePixels Page::getPixels(PixelType type) const
 		{
-			return getPixels(type, IGR_Rect{ 0, 0, getWidth(), getHeight() }, IGR_Size{ getWidth(), getHeight() });
+			return getPixels(type, IGR_Rect { 0, 0, getWidth(), getHeight() }, IGR_Size { getWidth(), getHeight() });
 		}
 
 		PagePixels Page::getPixels(PixelType type, const IGR_Rect& src_rect, const std::wstring& options) const
 		{
-			return getPixels(type, src_rect, IGR_Size{ src_rect.right - src_rect.left, src_rect.bottom - src_rect.top }, options);
+			return getPixels(type, src_rect, IGR_Size { src_rect.right - src_rect.left, src_rect.bottom - src_rect.top }, options);
 		}
 
 		PagePixels Page::getPixels(PixelType type, const IGR_Rect& src_rect, const IGR_Size& dest_size, const std::wstring& options) const
@@ -330,45 +336,41 @@ namespace Hyland
 			Error_Control_Block ecb = { 0 };
 			IGR_Page_Pixels pixels = { 0 };
 
-			throw_on_error(IGR_Get_Page_Pixels(getHandle()
-				, &src_rect
-				, &dest_size
-				, 0
-				, reinterpret_cast<const IGR_UCS2*>(w_to_u16(options).c_str())
-				, static_cast<IGR_LONG>(type)
-				, &pixels
-				, &ecb), ecb, "IGR_Get_Page_Pixels");
+			throw_on_error(IGR_Get_Page_Pixels(getHandle(), &src_rect, &dest_size, 0,
+			                                   reinterpret_cast<const IGR_UCS2*>(w_to_u16(options).c_str()), static_cast<IGR_LONG>(type),
+			                                   &pixels, &ecb),
+			               ecb, "IGR_Get_Page_Pixels");
 
 			return PagePixels(getHandle(), pixels);
 		}
 
-		CompareResults Page::Compare(const Page& other, const CompareSettings& settings) const 
+		CompareResults Page::Compare(const Page& other, const CompareSettings& settings) const
 		{
 			RectF margins = { 0, 0, 0, 0 };
 			return Compare(other, margins, margins, settings);
 		}
-		
-		CompareResults Page::Compare(const Page& other, const RectF& margins, const CompareSettings& settings) const 
+
+		CompareResults Page::Compare(const Page& other, const RectF& margins, const CompareSettings& settings) const
 		{
 			return Compare(other, margins, margins, settings);
 		}
 
-		CompareResults Page::Compare(const Page& other, const RectF& leftMargins, const RectF& rightMargins, const CompareSettings& settings) const 
+		CompareResults Page::Compare(const Page& other, const RectF& leftMargins, const RectF& rightMargins,
+		                             const CompareSettings& settings) const
 		{
 			auto&& compare_settings = settings.data();
 			Error_Control_Block ecb = { 0 };
 			IGR_HTEXTCOMPARE res = nullptr;
 
-			const IGR_FRect* l = leftMargins.left != 0 || leftMargins.right != 0 || leftMargins.top != 0 || leftMargins.bottom != 0 ? &leftMargins : nullptr;
-			const IGR_FRect* r = rightMargins.left != 0 || rightMargins.right != 0 || rightMargins.top != 0 || rightMargins.bottom != 0 ? &rightMargins : nullptr;
+			const IGR_FRect* l = leftMargins.left != 0 || leftMargins.right != 0 || leftMargins.top != 0 || leftMargins.bottom != 0
+			    ? &leftMargins
+			    : nullptr;
+			const IGR_FRect* r = rightMargins.left != 0 || rightMargins.right != 0 || rightMargins.top != 0 || rightMargins.bottom != 0
+			    ? &rightMargins
+			    : nullptr;
 
-			throw_on_error(IGR_Text_Compare_Pages(m_impl->need_handle()
-				, l
-				, other.getHandle()
-				, r
-				, &compare_settings
-				, &res
-				, &ecb), ecb, "IGR_Text_Compare_Pages", "Failed to compare pages");
+			throw_on_error(IGR_Text_Compare_Pages(m_impl->need_handle(), l, other.getHandle(), r, &compare_settings, &res, &ecb), ecb,
+			               "IGR_Text_Compare_Pages", "Failed to compare pages");
 
 			return CompareResults(res);
 		}

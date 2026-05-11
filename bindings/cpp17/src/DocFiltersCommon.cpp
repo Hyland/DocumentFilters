@@ -12,15 +12,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+
+#include "DocumentFiltersObjects.h"
+
 #include <sstream>
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
-		IGR_RETURN_CODE throw_on_error(IGR_RETURN_CODE code, const Error_Control_Block& ecb, const std::string& function_name, const std::string& error_message)
+		IGR_RETURN_CODE throw_on_error(IGR_RETURN_CODE code, const Error_Control_Block& ecb, const std::string& function_name,
+		                               const std::string& error_message)
 		{
 			if (code == IGR_OK || code == IGR_NO_MORE)
 				return code;
@@ -44,15 +47,18 @@ namespace Hyland
 		{
 			if (s.empty())
 				return default_value;
-			try {
+			try
+			{
 				size_t e = std::wstring::npos;
 				uint32_t res = std::stoul(s, &e, 10); // NOLINT
 				return e == s.size() ? res : default_value;
 			}
-			catch (std::invalid_argument&) {
+			catch (std::invalid_argument&)
+			{
 				return default_value;
 			}
-			catch (std::out_of_range&) {
+			catch (std::out_of_range&)
+			{
 				return default_value;
 			}
 		}
@@ -61,15 +67,18 @@ namespace Hyland
 		{
 			if (s.empty())
 				return default_value;
-			try {
+			try
+			{
 				size_t e = std::wstring::npos;
 				double res = std::stod(s, &e);
 				return e == s.size() ? res : default_value;
 			}
-			catch (std::invalid_argument&) {
+			catch (std::invalid_argument&)
+			{
 				return default_value;
 			}
-			catch (std::out_of_range&) {
+			catch (std::out_of_range&)
+			{
 				return default_value;
 			}
 		}
@@ -96,26 +105,26 @@ namespace Hyland
 
 		std::string base64_encode(const void* data, std::size_t length)
 		{
-			static const std::string base64_chars =
-				"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-				"abcdefghijklmnopqrstuvwxyz"
-				"0123456789+/";
+			static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			                                        "abcdefghijklmnopqrstuvwxyz"
+			                                        "0123456789+/";
 
 			std::string encoded;
 			int val = 0;
 			int valb = -6; // NOLINT
 
-			for (std::size_t i = 0; i < length; ++i) {
+			for (std::size_t i = 0; i < length; ++i)
+			{
 				val = (val << 8) + reinterpret_cast<const uint8_t*>(data)[i]; // NOLINT
-				valb += 8; // NOLINT
+				valb += 8;                                                    // NOLINT
 				while (valb >= 0)
 				{
 					encoded.push_back(base64_chars[(val >> valb) & 0x3F]); // NOLINT
-					valb -= 6; // NOLINT
+					valb -= 6;                                             // NOLINT
 				}
 			}
 
-			if (valb > -6) // NOLINT
+			if (valb > -6)                                                          // NOLINT
 				encoded.push_back(base64_chars[((val << 8) >> (valb + 8)) & 0x3F]); // NOLINT
 
 			while (encoded.size() % 4) // NOLINT
@@ -137,13 +146,14 @@ namespace Hyland
 			std::u16string m_comment;
 
 		public:
-			explicit subfile_enumerator_t(IGR_LONG owning_doc, HSUBFILES handle, const subfile_enumerable_t::stream_opener_t& opener) // NOLINT
-				: m_owning_doc(owning_doc)
-				, m_handle(handle, &IGR_Subfiles_Close)
-				, m_opener(opener)
-				, m_name(1024, ' ') // NOLINT
-				, m_id(2048, ' ') // NOLINT
-				, m_comment(1024, ' ') // NOLINT
+			explicit subfile_enumerator_t(IGR_LONG owning_doc, HSUBFILES handle,
+			                              const subfile_enumerable_t::stream_opener_t& opener) // NOLINT
+			    : m_owning_doc(owning_doc)
+			    , m_handle(handle, &IGR_Subfiles_Close)
+			    , m_opener(opener)
+			    , m_name(1024, ' ')    // NOLINT
+			    , m_id(2048, ' ')      // NOLINT
+			    , m_comment(1024, ' ') // NOLINT
 			{
 				m_current.struct_size = sizeof(m_current);
 				m_current.name = reinterpret_cast<IGR_UCS2*>(&m_name[0]);
@@ -164,19 +174,19 @@ namespace Hyland
 				Error_Control_Block ecb = { 0 };
 				return IGR_Subfiles_Next_Ex(m_handle.getHandle(), &m_current, &ecb) == IGR_OK;
 			}
-			[[nodiscard]] 
+			[[nodiscard]]
 			Subfile current() const override
 			{
 				return Subfile(m_owning_doc, m_current, m_opener);
 			}
 		};
 
-		subfile_enumerable_t::subfile_enumerable_t(IGR_LONG doc, const enumerator_creator_t& creator, const stream_opener_t& opener) // NOLINT
-			: m_creator(creator)
-			, m_opener(opener)
-			, m_doc(doc)
-		{
-		}
+		subfile_enumerable_t::subfile_enumerable_t(IGR_LONG doc, const enumerator_creator_t& creator,
+		                                           const stream_opener_t& opener) // NOLINT
+		    : m_creator(creator)
+		    , m_opener(opener)
+		    , m_doc(doc)
+		{ }
 
 		std::shared_ptr<enumerable_t<Subfile>::enumerator_t> subfile_enumerable_t::get_enumerator() const
 		{

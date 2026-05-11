@@ -12,8 +12,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
@@ -23,15 +23,14 @@ namespace Hyland
 		{
 		public:
 			IGR_Page_Form_Element m_element;
-			std::optional<std::vector<FormElement::Option> > m_options;
+			std::optional<std::vector<FormElement::Option>> m_options;
 
 			explicit impl_t(const IGR_Page_Form_Element& element = IGR_Page_Form_Element())
-				: m_element(element)
-			{
-			}
-			impl_t(const impl_t&) = delete; 
+			    : m_element(element)
+			{ }
+			impl_t(const impl_t&) = delete;
 			impl_t& operator=(const impl_t&) = delete;
-			impl_t(impl_t&&) = delete; 
+			impl_t(impl_t&&) = delete;
 			impl_t& operator=(impl_t&&) = delete;
 			~impl_t() = default;
 
@@ -41,7 +40,8 @@ namespace Hyland
 				Error_Control_Block ecb = { 0 };
 				std::vector<IGR_UCS2> buffer(4096); // NOLINT
 				auto buffer_size = static_cast<IGR_ULONG>(buffer.size());
-				throw_on_error(IGR_Get_Page_Form_Element_Option_Str(&m_element, type, static_cast<int>(opt), buffer_size, &buffer[0], &ecb), ecb, "IGR_Get_Page_Form_Element_Option_Str");
+				throw_on_error(IGR_Get_Page_Form_Element_Option_Str(&m_element, type, static_cast<int>(opt), buffer_size, &buffer[0], &ecb),
+				               ecb, "IGR_Get_Page_Form_Element_Option_Str");
 				return u16_to_w(&buffer[0], buffer_size);
 			}
 
@@ -54,34 +54,29 @@ namespace Hyland
 					{
 						for (size_t i = 0; i < m_element.option_count; ++i)
 						{
-							m_options->emplace_back(get_opt_str(i, IGR_PAGE_FORM_ELEMENT_GET_NAME)
-								, get_opt_str(i, IGR_PAGE_FORM_ELEMENT_GET_VALUE)
-								, get_opt_str(i, IGR_PAGE_FORM_ELEMENT_GET_SELECTED) == L"1");
+							m_options->emplace_back(get_opt_str(i, IGR_PAGE_FORM_ELEMENT_GET_NAME),
+							                        get_opt_str(i, IGR_PAGE_FORM_ELEMENT_GET_VALUE),
+							                        get_opt_str(i, IGR_PAGE_FORM_ELEMENT_GET_SELECTED) == L"1");
 						}
 					}
 				}
 				return *m_options;
 			}
-
 		};
 
 		FormElement::Option::Option(const std::wstring& name, const std::wstring& value, bool selected)
-			: m_name(name)
-			, m_value(value)
-			, m_selected(selected)
-		{
-		}
+		    : m_name(name)
+		    , m_value(value)
+		    , m_selected(selected)
+		{ }
 
 		FormElement::FormElement()
-			: m_impl(new impl_t())
-		{
-
-		}
+		    : m_impl(new impl_t())
+		{ }
 
 		FormElement::FormElement(const IGR_Page_Form_Element& element)
-			: m_impl(new impl_t(element))
-		{
-		}
+		    : m_impl(new impl_t(element))
+		{ }
 
 		FormElementType FormElement::get_type() const
 		{
@@ -168,7 +163,8 @@ namespace Hyland
 			Error_Control_Block ecb = { 0 };
 			std::vector<IGR_UCS2> buffer(4096); // NOLINT
 			auto buffer_size = static_cast<IGR_ULONG>(buffer.size());
-			throw_on_error(IGR_Get_Page_Form_Element_Str(&m_impl->m_element, type, buffer_size, &buffer[0], &ecb), ecb, "IGR_Page_Form_Element_Get_String");
+			throw_on_error(IGR_Get_Page_Form_Element_Str(&m_impl->m_element, type, buffer_size, &buffer[0], &ecb), ecb,
+			               "IGR_Page_Form_Element_Get_String");
 			return u16_to_w(&buffer[0], buffer_size);
 		}
 	} // namespace DocFilters

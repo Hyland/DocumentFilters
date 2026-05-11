@@ -12,8 +12,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
@@ -26,12 +26,11 @@ namespace Hyland
 			std::shared_ptr<CompareResultDifference::details_t> m_details_enum;
 
 			explicit impl_t(const IGR_Compare_Documents_Difference& difference)
-				: m_difference(difference)
-			{
-			}
-			impl_t(const impl_t&) = delete; 
+			    : m_difference(difference)
+			{ }
+			impl_t(const impl_t&) = delete;
 			impl_t& operator=(const impl_t&) = delete;
-			impl_t(impl_t&&) = delete; 
+			impl_t(impl_t&&) = delete;
 			impl_t& operator=(impl_t&&) = delete;
 
 			~impl_t()
@@ -43,14 +42,12 @@ namespace Hyland
 		};
 
 		CompareResultDifference::CompareResultDifference()
-			: m_impl(new impl_t(IGR_Compare_Documents_Difference{}))
-		{
-		}
+		    : m_impl(new impl_t(IGR_Compare_Documents_Difference {}))
+		{ }
 
 		CompareResultDifference::CompareResultDifference(const IGR_Compare_Documents_Difference& ref)
-			: m_impl(new impl_t(ref))
-		{
-		}
+		    : m_impl(new impl_t(ref))
+		{ }
 
 		bool CompareResultDifference::ok() const
 		{
@@ -119,16 +116,17 @@ namespace Hyland
 		{
 			if (!m_impl->m_details_enum)
 			{
-				m_impl->m_details_enum = std::make_shared<CompareResultDifference::details_t>(size(), [this](size_t index) { return at(index); });
+				m_impl->m_details_enum
+				    = std::make_shared<CompareResultDifference::details_t>(size(), [this](size_t index) { return at(index); });
 			}
 			return *m_impl->m_details_enum;
 		}
 
 		CompareResultDifference::const_iterator CompareResultDifference::begin() const
-		{ 
+		{
 			return details().begin();
 		}
-		
+
 		CompareResultDifference::const_iterator CompareResultDifference::end() const
 		{
 			return details().end();

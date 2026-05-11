@@ -12,267 +12,269 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
-        namespace
-        {
-            template <typename S>
-            size_t find_len(const S* text, size_t max_length)
-            {
-                size_t len = 0;
-                while (len < max_length && text[len])
-                    ++len;
-                return len;
-            }
+		namespace
+		{
+			template <typename S>
+			size_t find_len(const S* text, size_t max_length)
+			{
+				size_t len = 0;
+				while (len < max_length && text[len])
+					++len;
+				return len;
+			}
 
-            template <typename T>
-            T u8_to_uX(const char* str, size_t str_len)
-            {
-                if (str == nullptr || str_len == 0)
-                    return T();
-                if (str_len == std::wstring::npos)
-                    str_len = std::char_traits<char>::length(str);
-
-
-                T result;
-                for (size_t i = 0; i < str_len; ++i)
-                {
-                    unsigned char ch = str[i];
-                    if (ch == 0)
-                        break;
-                    if (ch <= 0x7F) // NOLINT
-                        result.push_back(static_cast<typename T::value_type>(ch));
-                    else if (ch <= 0xDF && i + 1 < str_len)  // NOLINT
-                    {
-                        result.push_back(static_cast<typename T::value_type>(((ch & 0x1F) << 6) | (str[i + 1] & 0x3F)));  // NOLINT
-                        ++i;
-                    }
-                    else if (ch <= 0xEF && i + 2 < str_len)  // NOLINT
-                    {
-                        result.push_back(static_cast<typename T::value_type>(((ch & 0x0F) << 12) | ((str[i + 1] & 0x3F) << 6) | (str[i + 2] & 0x3F)));  // NOLINT
-                        i += 2;
-                    }
-                    else if (ch <= 0xF7 && i + 3 < str_len)  // NOLINT
-                    {
-                        uint32_t codepoint = ((ch & 0x07) << 18) | ((str[i + 1] & 0x3F) << 12) | ((str[i + 2] & 0x3F) << 6) | (str[i + 3] & 0x3F);  // NOLINT
-                        if (sizeof(typename T::value_type) == 4 || codepoint <= 0xFFFF)  // NOLINT
-                            result.push_back(static_cast<typename T::value_type>(codepoint));
-                        else
-                        {
-                            result.push_back(static_cast<typename T::value_type>(0xD800 + ((codepoint - 0x10000) >> 10))); // NOLINT
-                            result.push_back(static_cast<typename T::value_type>(0xDC00 + ((codepoint - 0x10000) & 0x3FF)));  // NOLINT
-                        }
-                        i += 3;
-                    }
-                }
-                return result;
-            }
-
-        } // namespace
+			template <typename T>
+			T u8_to_uX(const char* str, size_t str_len)
+			{
+				if (str == nullptr || str_len == 0)
+					return T();
+				if (str_len == std::wstring::npos)
+					str_len = std::char_traits<char>::length(str);
 
 
-        std::wstring u16_to_w(const char16_t* str, size_t str_len)
-        {
-            if (str == nullptr || str_len == 0)
-                return std::wstring();
+				T result;
+				for (size_t i = 0; i < str_len; ++i)
+				{
+					unsigned char ch = str[i];
+					if (ch == 0)
+						break;
+					if (ch <= 0x7F) // NOLINT
+						result.push_back(static_cast<typename T::value_type>(ch));
+					else if (ch <= 0xDF && i + 1 < str_len) // NOLINT
+					{
+						result.push_back(static_cast<typename T::value_type>(((ch & 0x1F) << 6) | (str[i + 1] & 0x3F))); // NOLINT
+						++i;
+					}
+					else if (ch <= 0xEF && i + 2 < str_len) // NOLINT
+					{
+						result.push_back(static_cast<typename T::value_type>(((ch & 0x0F) << 12) | ((str[i + 1] & 0x3F) << 6)
+						                                                     | (str[i + 2] & 0x3F))); // NOLINT
+						i += 2;
+					}
+					else if (ch <= 0xF7 && i + 3 < str_len) // NOLINT
+					{
+						uint32_t codepoint = ((ch & 0x07) << 18) | ((str[i + 1] & 0x3F) << 12) | ((str[i + 2] & 0x3F) << 6)
+						    | (str[i + 3] & 0x3F);                                      // NOLINT
+						if (sizeof(typename T::value_type) == 4 || codepoint <= 0xFFFF) // NOLINT
+							result.push_back(static_cast<typename T::value_type>(codepoint));
+						else
+						{
+							result.push_back(static_cast<typename T::value_type>(0xD800 + ((codepoint - 0x10000) >> 10)));   // NOLINT
+							result.push_back(static_cast<typename T::value_type>(0xDC00 + ((codepoint - 0x10000) & 0x3FF))); // NOLINT
+						}
+						i += 3;
+					}
+				}
+				return result;
+			}
 
-            if (str_len == std::wstring::npos)
-                str_len = std::char_traits<char16_t>::length(str);
+		} // namespace
 
-            if (sizeof(wchar_t) == 2)
-                return std::wstring(reinterpret_cast<const wchar_t*>(str), find_len(str, str_len));
 
-            std::wstring result;
-            for (size_t i = 0; i < str_len; ++i)
-            {
-                char16_t ch = str[i];
-                if (ch == 0)
-                    break;
-                if (ch >= 0xD800 && ch <= 0xDBFF && i + 1 < str_len) // NOLINT
-                {
-                    char16_t lowSurrogate = str[i + 1];
-                    if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) // NOLINT
-                    {
-                        uint32_t codepoint = ((ch - 0xD800) << 10) + (lowSurrogate - 0xDC00) + 0x10000; // NOLINT
-                        result.push_back(static_cast<wchar_t>(codepoint));
-                        ++i;
-                        continue;
-                    }
-                }
-                result.push_back(static_cast<wchar_t>(ch));
-            }
-            return result;
-        }
+		std::wstring u16_to_w(const char16_t* str, size_t str_len)
+		{
+			if (str == nullptr || str_len == 0)
+				return std::wstring();
 
-        std::string u16_to_u8(const char16_t* str, size_t str_len)
-        {
-            if (str == nullptr || str_len == 0)
-                return std::string();
-            if (str_len == std::wstring::npos)
-                str_len = std::char_traits<char16_t>::length(str);
-            std::string result;
-            for (size_t i = 0; i < str_len; ++i)
-            {
-                char16_t ch = str[i];
-                if (ch == 0)
-                    break;
-                if (ch >= 0xD800 && ch <= 0xDBFF && i + 1 < str_len) // NOLINT
-                {
-                    char16_t lowSurrogate = str[i + 1];
-                    if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) // NOLINT
-                    {
-                        uint32_t codepoint = ((ch - 0xD800) << 10) + (lowSurrogate - 0xDC00) + 0x10000; // NOLINT
-                        if (codepoint <= 0x7F) // NOLINT
-                            result.push_back(static_cast<char>(codepoint));
-                        else if (codepoint <= 0x7FF) // NOLINT
-                        {
-                            result.push_back(static_cast<char>(0xC0 | (codepoint >> 6))); // NOLINT
-                            result.push_back(static_cast<char>(0x80 | (codepoint & 0x3F))); // NOLINT
-                        }
-                        else if (codepoint <= 0xFFFF) // NOLINT
-                        {
-                            result.push_back(static_cast<char>(0xE0 | (codepoint >> 12))); // NOLINT
-                            result.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F))); // NOLINT
-                            result.push_back(static_cast<char>(0x80 | (codepoint & 0x3F))); // NOLINT
-                        }
-                        else
-                        {
-                            result.push_back(static_cast<char>(0xF0 | (codepoint >> 18))); // NOLINT
-                            result.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F))); // NOLINT
-                            result.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F))); // NOLINT
-                            result.push_back(static_cast<char>(0x80 | (codepoint & 0x3F))); // NOLINT
-                        }
-                        i++;
-                        continue;
-                    }
-                }
-                if (ch <= 0x7F) // NOLINT
-                    result.push_back(static_cast<char>(ch));
-                else if (ch <= 0x7FF) // NOLINT
-                {
-                    result.push_back(static_cast<char>(0xC0 | (ch >> 6))); // NOLINT
-                    result.push_back(static_cast<char>(0x80 | (ch & 0x3F))); // NOLINT
-                }
-                else
-                {
-                    result.push_back(static_cast<char>(0xE0 | (ch >> 12))); // NOLINT
-                    result.push_back(static_cast<char>(0x80 | ((ch >> 6) & 0x3F))); // NOLINT
-                    result.push_back(static_cast<char>(0x80 | (ch & 0x3F))); // NOLINT
-                }
-            }
-            return result;
-        }
+			if (str_len == std::wstring::npos)
+				str_len = std::char_traits<char16_t>::length(str);
 
-        std::u32string u8_to_u32(const char* str, size_t str_len)
-        {
-            return u8_to_uX<std::u32string>(str, str_len);
-        }
+			if (sizeof(wchar_t) == 2)
+				return std::wstring(reinterpret_cast<const wchar_t*>(str), find_len(str, str_len));
 
-        std::u16string u8_to_u16(const char* str, size_t str_len)
-        {
-            return u8_to_uX<std::u16string>(str, str_len);
-        }
+			std::wstring result;
+			for (size_t i = 0; i < str_len; ++i)
+			{
+				char16_t ch = str[i];
+				if (ch == 0)
+					break;
+				if (ch >= 0xD800 && ch <= 0xDBFF && i + 1 < str_len) // NOLINT
+				{
+					char16_t lowSurrogate = str[i + 1];
+					if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) // NOLINT
+					{
+						uint32_t codepoint = ((ch - 0xD800) << 10) + (lowSurrogate - 0xDC00) + 0x10000; // NOLINT
+						result.push_back(static_cast<wchar_t>(codepoint));
+						++i;
+						continue;
+					}
+				}
+				result.push_back(static_cast<wchar_t>(ch));
+			}
+			return result;
+		}
 
-        std::wstring u8_to_w(const char* str, size_t str_len)
-        {
-            return u8_to_uX<std::wstring>(str, str_len);
-        }
+		std::string u16_to_u8(const char16_t* str, size_t str_len)
+		{
+			if (str == nullptr || str_len == 0)
+				return std::string();
+			if (str_len == std::wstring::npos)
+				str_len = std::char_traits<char16_t>::length(str);
+			std::string result;
+			for (size_t i = 0; i < str_len; ++i)
+			{
+				char16_t ch = str[i];
+				if (ch == 0)
+					break;
+				if (ch >= 0xD800 && ch <= 0xDBFF && i + 1 < str_len) // NOLINT
+				{
+					char16_t lowSurrogate = str[i + 1];
+					if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) // NOLINT
+					{
+						uint32_t codepoint = ((ch - 0xD800) << 10) + (lowSurrogate - 0xDC00) + 0x10000; // NOLINT
+						if (codepoint <= 0x7F)                                                          // NOLINT
+							result.push_back(static_cast<char>(codepoint));
+						else if (codepoint <= 0x7FF) // NOLINT
+						{
+							result.push_back(static_cast<char>(0xC0 | (codepoint >> 6)));   // NOLINT
+							result.push_back(static_cast<char>(0x80 | (codepoint & 0x3F))); // NOLINT
+						}
+						else if (codepoint <= 0xFFFF) // NOLINT
+						{
+							result.push_back(static_cast<char>(0xE0 | (codepoint >> 12)));         // NOLINT
+							result.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F))); // NOLINT
+							result.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));        // NOLINT
+						}
+						else
+						{
+							result.push_back(static_cast<char>(0xF0 | (codepoint >> 18)));          // NOLINT
+							result.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F))); // NOLINT
+							result.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));  // NOLINT
+							result.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));         // NOLINT
+						}
+						i++;
+						continue;
+					}
+				}
+				if (ch <= 0x7F) // NOLINT
+					result.push_back(static_cast<char>(ch));
+				else if (ch <= 0x7FF) // NOLINT
+				{
+					result.push_back(static_cast<char>(0xC0 | (ch >> 6)));   // NOLINT
+					result.push_back(static_cast<char>(0x80 | (ch & 0x3F))); // NOLINT
+				}
+				else
+				{
+					result.push_back(static_cast<char>(0xE0 | (ch >> 12)));         // NOLINT
+					result.push_back(static_cast<char>(0x80 | ((ch >> 6) & 0x3F))); // NOLINT
+					result.push_back(static_cast<char>(0x80 | (ch & 0x3F)));        // NOLINT
+				}
+			}
+			return result;
+		}
 
-        std::u16string w_to_u16(const wchar_t* str, size_t str_len)
-        {
-            if (str == nullptr || str_len == 0)
-                return std::u16string();
+		std::u32string u8_to_u32(const char* str, size_t str_len)
+		{
+			return u8_to_uX<std::u32string>(str, str_len);
+		}
 
-            if (str_len == std::wstring::npos)
-                str_len = std::char_traits<wchar_t>::length(str);
+		std::u16string u8_to_u16(const char* str, size_t str_len)
+		{
+			return u8_to_uX<std::u16string>(str, str_len);
+		}
 
-            if (sizeof(wchar_t) == 2)
-                return std::u16string(reinterpret_cast<const char16_t*>(str), str_len);
+		std::wstring u8_to_w(const char* str, size_t str_len)
+		{
+			return u8_to_uX<std::wstring>(str, str_len);
+		}
 
-            std::u16string result;
+		std::u16string w_to_u16(const wchar_t* str, size_t str_len)
+		{
+			if (str == nullptr || str_len == 0)
+				return std::u16string();
 
-            for (size_t i = 0; i < str_len; ++i)
-            {
-                wchar_t ch = str[i];
-                if (ch == 0)
-                    break;
-                if (ch <= 0xFFFF) // NOLINT
-                    result.push_back(static_cast<char16_t>(ch));
-                else
-                {
-                    uint32_t codepoint = ch - 0x10000; // NOLINT
-                    char16_t highSurrogate = static_cast<char16_t>((codepoint >> 10) + 0xD800); // NOLINT
-                    char16_t lowSurrogate = static_cast<char16_t>((codepoint & 0x3FF) + 0xDC00); // NOLINT
-                    result.push_back(highSurrogate);
-                    result.push_back(lowSurrogate);
-                }
-            }
+			if (str_len == std::wstring::npos)
+				str_len = std::char_traits<wchar_t>::length(str);
 
-            return result;
-        }
-        std::string w_to_u8(const wchar_t* str, size_t str_len)
-        {
-            if (str == nullptr || str_len == 0)
-                return std::string();
-            if (str_len == std::wstring::npos)
-                str_len = std::char_traits<wchar_t>::length(str);
-            std::string result;
-            for (size_t i = 0; i < str_len; ++i)
-            {
-                wchar_t ch = str[i];
-                if (ch == 0)
-                    break;
-                if (ch <= 0x7F) // NOLINT
-                    result.push_back(static_cast<char>(ch));
-                else if (ch <= 0x7FF) // NOLINT
-                {
-                    result.push_back(static_cast<char>(0xC0 | (ch >> 6))); // NOLINT
-                    result.push_back(static_cast<char>(0x80 | (ch & 0x3F))); // NOLINT
-                }
-                else if (ch <= 0xFFFF) // NOLINT
-                {
-                    result.push_back(static_cast<char>(0xE0 | (ch >> 12))); // NOLINT
-                    result.push_back(static_cast<char>(0x80 | ((ch >> 6) & 0x3F))); // NOLINT
-                    result.push_back(static_cast<char>(0x80 | (ch & 0x3F))); // NOLINT
-                }
-                else
-                {
-                    uint32_t codepoint = ch - 0x10000; // NOLINT
-                    char16_t highSurrogate = static_cast<char16_t>((codepoint >> 10) + 0xD800); // NOLINT
-                    char16_t lowSurrogate = static_cast<char16_t>((codepoint & 0x3FF) + 0xDC00); // NOLINT
-                    result.push_back(static_cast<char>(highSurrogate)); 
-                    result.push_back(static_cast<char>(lowSurrogate));
-                }
-            }
-            return result;
-        }
+			if (sizeof(wchar_t) == 2)
+				return std::u16string(reinterpret_cast<const char16_t*>(str), str_len);
 
-        std::u32string w_to_u32(const std::wstring& wstr)
-        {
-            std::u32string result;
-            if (sizeof(wchar_t) == sizeof(char32_t))
-                return std::u32string(reinterpret_cast<const char32_t*>(wstr.c_str()), wstr.size());
+			std::u16string result;
 
-            for (const auto& ch : wstr)
-            {
-                if (ch <= 0xFFFF) // NOLINT
-                    result.push_back(static_cast<char32_t>(ch));
-                else
-                {
-                    uint32_t codepoint = ch - 0x10000; // NOLINT
-                    char32_t highSurrogate = static_cast<char32_t>((codepoint >> 10) + 0xD800); // NOLINT
-                    char32_t lowSurrogate = static_cast<char32_t>((codepoint & 0x3FF) + 0xDC00); // NOLINT
-                    result.push_back(highSurrogate);
-                    result.push_back(lowSurrogate);
-                }
-            }
-            return result;
-        }
+			for (size_t i = 0; i < str_len; ++i)
+			{
+				wchar_t ch = str[i];
+				if (ch == 0)
+					break;
+				if (ch <= 0xFFFF) // NOLINT
+					result.push_back(static_cast<char16_t>(ch));
+				else
+				{
+					uint32_t codepoint = ch - 0x10000;                                           // NOLINT
+					char16_t highSurrogate = static_cast<char16_t>((codepoint >> 10) + 0xD800);  // NOLINT
+					char16_t lowSurrogate = static_cast<char16_t>((codepoint & 0x3FF) + 0xDC00); // NOLINT
+					result.push_back(highSurrogate);
+					result.push_back(lowSurrogate);
+				}
+			}
+
+			return result;
+		}
+		std::string w_to_u8(const wchar_t* str, size_t str_len)
+		{
+			if (str == nullptr || str_len == 0)
+				return std::string();
+			if (str_len == std::wstring::npos)
+				str_len = std::char_traits<wchar_t>::length(str);
+			std::string result;
+			for (size_t i = 0; i < str_len; ++i)
+			{
+				wchar_t ch = str[i];
+				if (ch == 0)
+					break;
+				if (ch <= 0x7F) // NOLINT
+					result.push_back(static_cast<char>(ch));
+				else if (ch <= 0x7FF) // NOLINT
+				{
+					result.push_back(static_cast<char>(0xC0 | (ch >> 6)));   // NOLINT
+					result.push_back(static_cast<char>(0x80 | (ch & 0x3F))); // NOLINT
+				}
+				else if (ch <= 0xFFFF) // NOLINT
+				{
+					result.push_back(static_cast<char>(0xE0 | (ch >> 12)));         // NOLINT
+					result.push_back(static_cast<char>(0x80 | ((ch >> 6) & 0x3F))); // NOLINT
+					result.push_back(static_cast<char>(0x80 | (ch & 0x3F)));        // NOLINT
+				}
+				else
+				{
+					uint32_t codepoint = ch - 0x10000;                                           // NOLINT
+					char16_t highSurrogate = static_cast<char16_t>((codepoint >> 10) + 0xD800);  // NOLINT
+					char16_t lowSurrogate = static_cast<char16_t>((codepoint & 0x3FF) + 0xDC00); // NOLINT
+					result.push_back(static_cast<char>(highSurrogate));
+					result.push_back(static_cast<char>(lowSurrogate));
+				}
+			}
+			return result;
+		}
+
+		std::u32string w_to_u32(const std::wstring& wstr)
+		{
+			std::u32string result;
+			if (sizeof(wchar_t) == sizeof(char32_t))
+				return std::u32string(reinterpret_cast<const char32_t*>(wstr.c_str()), wstr.size());
+
+			for (const auto& ch : wstr)
+			{
+				if (ch <= 0xFFFF) // NOLINT
+					result.push_back(static_cast<char32_t>(ch));
+				else
+				{
+					uint32_t codepoint = ch - 0x10000;                                           // NOLINT
+					char32_t highSurrogate = static_cast<char32_t>((codepoint >> 10) + 0xD800);  // NOLINT
+					char32_t lowSurrogate = static_cast<char32_t>((codepoint & 0x3FF) + 0xDC00); // NOLINT
+					result.push_back(highSurrogate);
+					result.push_back(lowSurrogate);
+				}
+			}
+			return result;
+		}
 
 	} // namespace DocFilters
 } // namespace Hyland

@@ -12,25 +12,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
 		Subfile::Subfile()
-			: Extractor(nullptr)
-		{
-		}
+		    : Extractor(nullptr)
+		{ }
 
 		Subfile::Subfile(IGR_LONG doc_handle, const std::wstring& id, IGR_Stream* Stream)
-			: Extractor(Stream), m_owning_doc(doc_handle), m_id(id)
-		{
-		}
+		    : Extractor(Stream)
+		    , m_owning_doc(doc_handle)
+		    , m_id(id)
+		{ }
 
 		Subfile::Subfile(IGR_LONG doc_handle, const IGR_Subfile_Info& info, const stream_opener_t& stream_opener)
-			: Extractor(nullptr), m_owning_doc(doc_handle), m_stream_opener(stream_opener)
+		    : Extractor(nullptr)
+		    , m_owning_doc(doc_handle)
+		    , m_stream_opener(stream_opener)
 		{
 			m_id = u16_to_w(info.id, info.id_size);
 			m_name = u16_to_w(info.name, info.name_size);
@@ -44,7 +46,8 @@ namespace Hyland
 		{
 			Error_Control_Block ecb = { 0 };
 			IGR_Stream* res = nullptr;
-			throw_on_error(m_stream_opener(m_owning_doc, reinterpret_cast<const IGR_UCS2*>(w_to_u16(m_id).c_str()), &res, &ecb), ecb, "IGR_Extract_Subfile_Stream");
+			throw_on_error(m_stream_opener(m_owning_doc, reinterpret_cast<const IGR_UCS2*>(w_to_u16(m_id).c_str()), &res, &ecb), ecb,
+			               "IGR_Extract_Subfile_Stream");
 			return res;
 		}
 		std::wstring Subfile::getId() const

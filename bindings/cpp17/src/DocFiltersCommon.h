@@ -32,7 +32,7 @@ namespace Hyland
 		 * @throws std::runtime_error if the source string is too long to fit in the destination array.
 		 */
 		template <size_t size>
-		inline void copy_string(const std::string& str, char(&dest)[size])
+		inline void copy_string(const std::string& str, char (&dest)[size])
 		{
 			if (str.size() >= size)
 				throw std::runtime_error("String too long");
@@ -50,7 +50,7 @@ namespace Hyland
 		 * @throws std::runtime_error if the source string is too long to fit in the destination array.
 		 */
 		template <size_t size>
-		inline void copy_string(const std::u16string& str, IGR_UCS2(&dest)[size])
+		inline void copy_string(const std::u16string& str, IGR_UCS2 (&dest)[size])
 		{
 			if (str.size() >= size)
 				throw std::runtime_error("String too long");
@@ -67,7 +67,7 @@ namespace Hyland
 		 * @param dest The destination IGR_UCS2 array.
 		 */
 		template <size_t size>
-		inline void copy_string(const std::wstring& str, IGR_UCS2(&dest)[size])
+		inline void copy_string(const std::wstring& str, IGR_UCS2 (&dest)[size])
 		{
 			copy_string(w_to_u16(str), dest);
 		}
@@ -113,7 +113,8 @@ namespace Hyland
 		 * @return The original return code if no error is indicated.
 		 * @throws std::runtime_error if the return code indicates an error.
 		 */
-		IGR_RETURN_CODE throw_on_error(IGR_RETURN_CODE code, const Error_Control_Block& ecb, const std::string& function_name, const std::string& error_message = std::string());
+		IGR_RETURN_CODE throw_on_error(IGR_RETURN_CODE code, const Error_Control_Block& ecb, const std::string& function_name,
+		                               const std::string& error_message = std::string());
 
 		/**
 		 * @brief Encodes the given data into a base64 string.
@@ -151,9 +152,9 @@ namespace Hyland
 			 * @param destroyer The function to call to release the handle.
 			 */
 			handle_holder_t(HandleType handle, const DestroyerType& destroyer)
-				: m_handle(handle), m_destroyer(destroyer)
-			{
-			}
+			    : m_handle(handle)
+			    , m_destroyer(destroyer)
+			{ }
 
 			// Delete copy constructor
 			handle_holder_t(const handle_holder_t&) = delete;
@@ -169,9 +170,8 @@ namespace Hyland
 			 * @param other The other handle_holder_t to move from.
 			 */
 			handle_holder_t(handle_holder_t&& other)
-				: m_handle(other.stealHandle())
-			{
-			}
+			    : m_handle(other.stealHandle())
+			{ }
 
 			/**
 			 * @brief Destructor.
@@ -202,7 +202,7 @@ namespace Hyland
 			 *
 			 * @return The managed handle.
 			 */
-			HandleType stealHandle() { return std::exchange(m_handle, HandleType{}); }
+			HandleType stealHandle() { return std::exchange(m_handle, HandleType {}); }
 
 			/**
 			 * @brief Resets the managed handle, releasing the current handle if necessary.
@@ -254,6 +254,7 @@ namespace Hyland
 				std::weak_ptr<Impl> m_impl;
 				T m_current;
 				bool m_eof = false;
+
 			public:
 				/**
 				 * @brief Constructs an enumerator with the given implementation.
@@ -261,11 +262,10 @@ namespace Hyland
 				 * @param impl The implementation providing the elements.
 				 */
 				enumerator(const std::weak_ptr<Impl>& impl)
-					: m_impl(impl)
-					, m_current()
-					, m_eof(false)
-				{
-				}
+				    : m_impl(impl)
+				    , m_current()
+				    , m_eof(false)
+				{ }
 
 				/**
 				 * @brief Moves to the next element in the enumeration.
@@ -279,9 +279,7 @@ namespace Hyland
 					else if (!m_current)
 					{
 						// First item
-						m_current = !m_impl.expired()
-							? m_impl.lock()->getFirstChild()
-							: T();
+						m_current = !m_impl.expired() ? m_impl.lock()->getFirstChild() : T();
 						m_eof = !m_current.ok();
 						return !m_eof;
 					}
@@ -299,11 +297,9 @@ namespace Hyland
 				 *
 				 * @return The current element.
 				 */
-				T current() const override
-				{
-					return m_current;
-				}
+				T current() const override { return m_current; }
 			};
+
 		public:
 			using enumerator_t = typename enumerable_t<T>::enumerator_t;
 
@@ -313,19 +309,15 @@ namespace Hyland
 			 * @param impl The implementation providing the elements.
 			 */
 			x_enumerable(const std::weak_ptr<Impl>& impl)
-				: m_impl(impl)
-			{
-			}
+			    : m_impl(impl)
+			{ }
 
 			/**
 			 * @brief Gets an enumerator for iterating over the elements.
 			 *
 			 * @return A shared pointer to the enumerator.
 			 */
-			std::shared_ptr< enumerator_t > get_enumerator() const override
-			{
-				return std::make_shared<enumerator>(m_impl);
-			}
+			std::shared_ptr<enumerator_t> get_enumerator() const override { return std::make_shared<enumerator>(m_impl); }
 		};
 
 
@@ -353,6 +345,7 @@ namespace Hyland
 				typename Container::const_iterator m_current;
 				bool m_bof = true;
 				bool m_eof = false;
+
 			public:
 				/**
 				 * @brief Constructs an enumerator with the given container.
@@ -360,10 +353,9 @@ namespace Hyland
 				 * @param container The container providing the elements.
 				 */
 				enumerator(const Container& container)
-					: m_container(container)
-					, m_current(container.end())
-				{
-				}
+				    : m_container(container)
+				    , m_current(container.end())
+				{ }
 
 				/**
 				 * @brief Moves to the next element in the enumeration.
@@ -392,11 +384,9 @@ namespace Hyland
 				 *
 				 * @return The current element.
 				 */
-				T current() const override
-				{
-					return *m_current;
-				}
+				T current() const override { return *m_current; }
 			};
+
 		public:
 			using enumerator_t = typename enumerable_t<T>::enumerator_t;
 
@@ -406,19 +396,15 @@ namespace Hyland
 			 * @param container The container providing the elements.
 			 */
 			x_std_enumerable(const Container& container)
-				: m_container(container)
-			{
-			}
+			    : m_container(container)
+			{ }
 
 			/**
 			 * @brief Gets an enumerator for iterating over the elements.
 			 *
 			 * @return A shared pointer to the enumerator.
 			 */
-			std::shared_ptr< enumerator_t > get_enumerator() const override
-			{
-				return std::make_shared<enumerator>(m_container);
-			}
+			std::shared_ptr<enumerator_t> get_enumerator() const override { return std::make_shared<enumerator>(m_container); }
 		};
 
 
@@ -445,6 +431,7 @@ namespace Hyland
 				typedef std::tuple<T, typename enumerable_t<T>::const_iterator, typename enumerable_t<T>::const_iterator> range_t;
 				std::stack<range_t> m_stack;
 				T m_current;
+
 			public:
 				/**
 				 * @brief Constructs an enumerator with the given implementation.
@@ -499,11 +486,9 @@ namespace Hyland
 				 *
 				 * @return The current element.
 				 */
-				T current() const override
-				{
-					return m_current;
-				}
+				T current() const override { return m_current; }
 			};
+
 		public:
 			using enumerator_t = typename enumerable_t<T>::enumerator_t;
 
@@ -513,30 +498,29 @@ namespace Hyland
 			 * @param impl The implementation providing the elements.
 			 */
 			x_deep_enumerable(std::weak_ptr<Impl> impl)
-				: m_impl(impl)
-			{
-			}
+			    : m_impl(impl)
+			{ }
 
 			/**
 			 * @brief Gets an enumerator for iterating over the elements, including nested elements.
 			 *
 			 * @return A shared pointer to the enumerator.
 			 */
-			std::shared_ptr< enumerator_t > get_enumerator() const override
-			{
-				return std::make_shared<enumerator>(m_impl.lock());
-			}
+			std::shared_ptr<enumerator_t> get_enumerator() const override { return std::make_shared<enumerator>(m_impl.lock()); }
 		};
 
 		class subfile_enumerable_t : public enumerable_t<Subfile>
 		{
 			friend class subfile_enumerator_t;
+
 		private:
 			typedef std::function<IGR_RETURN_CODE(IGR_LONG doc, HSUBFILES* handle, Error_Control_Block* ecb)> enumerator_creator_t;
-			typedef std::function<IGR_RETURN_CODE(IGR_LONG doc, const IGR_UCS2* id, struct IGR_Stream** Stream, Error_Control_Block* Error)> stream_opener_t;
+			typedef std::function<IGR_RETURN_CODE(IGR_LONG doc, const IGR_UCS2* id, struct IGR_Stream** Stream, Error_Control_Block* Error)>
+			    stream_opener_t;
 			enumerator_creator_t m_creator;
 			stream_opener_t m_opener;
 			IGR_LONG m_doc = 0;
+
 		public:
 			subfile_enumerable_t(IGR_LONG doc, const enumerator_creator_t& creator, const stream_opener_t& opener);
 

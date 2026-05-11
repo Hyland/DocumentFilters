@@ -16,17 +16,18 @@
 #define INC_HYLAND_DOCUMENTFILTERSOBJECTS_H
 
 #include "DocumentFilters.h"
+
 #include <chrono>
 #include <fstream>
 #include <functional>
+#include <iostream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <optional>
-#include <iostream>
 #include <string>
-#include <vector>
-#include <map>
 #include <type_traits>
+#include <vector>
 
 namespace Hyland
 {
@@ -94,7 +95,7 @@ namespace Hyland
 		struct Color;
 		struct AnnoBind;
 		class JsonWriter;
-		
+
 
 		/// @brief Converts a UTF-16 encoded string to a wide string.
 		/// @param str The UTF-16 encoded string.
@@ -105,23 +106,37 @@ namespace Hyland
 		/// @brief Converts a UTF-16 encoded string to a wide string.
 		/// @param str The UTF-16 encoded string.
 		/// @return A wide string representation of the input UTF-16 string.
-		inline std::wstring u16_to_w(const std::u16string& str) { return u16_to_w(str.c_str(), str.size()); }
+		inline std::wstring u16_to_w(const std::u16string& str)
+		{
+			return u16_to_w(str.c_str(), str.size());
+		}
 
 		/// @brief Converts a UTF-16 encoded string to a wide string.
 		/// @param str The UTF-16 encoded string.
 		/// @param str_len The length of the string. Defaults to std::wstring::npos.
 		/// @return A wide string representation of the input UTF-16 string.
-		inline std::wstring u16_to_w(const IGR_UCS2* str, size_t str_len = std::wstring::npos) { return u16_to_w(reinterpret_cast<const char16_t*>(str), str_len); }
+		inline std::wstring u16_to_w(const IGR_UCS2* str, size_t str_len = std::wstring::npos)
+		{
+			return u16_to_w(reinterpret_cast<const char16_t*>(str), str_len);
+		}
 
 		/// @brief Converts a UTF-16 encoded string to a wide string.
 		/// @param str The UTF-16 encoded string.
 		/// @return A wide string representation of the input UTF-16 string.
-		template <size_t N> inline std::wstring u16_to_w(const char16_t(&str)[N]) { return u16_to_w(str, N - 1); }
+		template <size_t N>
+		inline std::wstring u16_to_w(const char16_t (&str)[N])
+		{
+			return u16_to_w(str, N - 1);
+		}
 
 		/// @brief Converts a UTF-16 encoded string to a wide string.
 		/// @param str The UTF-16 encoded string.
 		/// @return A wide string representation of the input UTF-16 string.
-		template <size_t N> inline std::wstring u16_to_w(const IGR_UCS2(&str)[N]) { return u16_to_w(str, N - 1); }
+		template <size_t N>
+		inline std::wstring u16_to_w(const IGR_UCS2 (&str)[N])
+		{
+			return u16_to_w(str, N - 1);
+		}
 
 		/// @brief Converts a UTF-16 encoded string to a UTF-8 encoded string.
 		/// @param str The UTF-16 encoded string.
@@ -132,23 +147,37 @@ namespace Hyland
 		/// @brief Converts a UTF-16 encoded string to a UTF-8 encoded string.
 		/// @param str The UTF-16 encoded string.
 		/// @return A UTF-8 encoded string representation of the input UTF-16 string.
-		inline std::string u16_to_u8(const std::u16string& str) { return u16_to_u8(str.c_str(), str.size()); }
+		inline std::string u16_to_u8(const std::u16string& str)
+		{
+			return u16_to_u8(str.c_str(), str.size());
+		}
 
 		/// @brief Converts a UTF-16 encoded string to a UTF-8 encoded string.
 		/// @param str The UTF-16 encoded string.
 		/// @param str_len The length of the string. Defaults to std::wstring::npos.
 		/// @return A UTF-8 encoded string representation of the input UTF-16 string.
-		inline std::string u16_to_u8(const IGR_UCS2* str, size_t str_len = std::wstring::npos) { return u16_to_u8(reinterpret_cast<const char16_t*>(str), str_len); }
+		inline std::string u16_to_u8(const IGR_UCS2* str, size_t str_len = std::wstring::npos)
+		{
+			return u16_to_u8(reinterpret_cast<const char16_t*>(str), str_len);
+		}
 
 		/// @brief Converts a UTF-16 encoded string to a UTF-8 encoded string.
 		/// @param str The UTF-16 encoded string.
 		/// @return A UTF-8 encoded string representation of the input UTF-16 string.
-		template <size_t N> inline std::string u16_to_u8(const char16_t(&str)[N]) { return u16_to_u8(str, N - 1); }
+		template <size_t N>
+		inline std::string u16_to_u8(const char16_t (&str)[N])
+		{
+			return u16_to_u8(str, N - 1);
+		}
 
 		/// @brief Converts a UTF-16 encoded string to a UTF-8 encoded string.
 		/// @param str The UTF-16 encoded string.
 		/// @return A UTF-8 encoded string representation of the input UTF-16 string.
-		template <size_t N> inline std::string u16_to_u8(const IGR_UCS2(&str)[N]) { return u16_to_u8(str, N - 1); }
+		template <size_t N>
+		inline std::string u16_to_u8(const IGR_UCS2 (&str)[N])
+		{
+			return u16_to_u8(str, N - 1);
+		}
 
 		/// @brief Converts a UTF-8 encoded string to a wide string.
 		/// @param str The UTF-8 encoded string.
@@ -159,12 +188,19 @@ namespace Hyland
 		/// @brief Converts a UTF-8 encoded string to a wide string.
 		/// @param str The UTF-8 encoded string.
 		/// @return A wide string representation of the input UTF-8 string.
-		inline std::wstring u8_to_w(const std::string& str) { return u8_to_w(str.c_str(), str.size()); }
+		inline std::wstring u8_to_w(const std::string& str)
+		{
+			return u8_to_w(str.c_str(), str.size());
+		}
 
 		/// @brief Converts a UTF-8 encoded string to a wide string.
 		/// @param str The UTF-8 encoded string.
 		/// @return A wide string representation of the input UTF-8 string.
-		template <size_t N> inline std::wstring u8_to_w(const char(&str)[N]) { return u8_to_w(str, N - 1); }
+		template <size_t N>
+		inline std::wstring u8_to_w(const char (&str)[N])
+		{
+			return u8_to_w(str, N - 1);
+		}
 
 		/// @brief Converts a UTF-8 encoded string to a UTF-16 encoded string.
 		/// @param str The UTF-8 encoded string.
@@ -175,12 +211,19 @@ namespace Hyland
 		/// @brief Converts a UTF-8 encoded string to a UTF-16 encoded string.
 		/// @param str The UTF-8 encoded string.
 		/// @return A UTF-16 encoded string representation of the input UTF-8 string.
-		inline std::u16string u8_to_u16(const std::string& str) { return u8_to_u16(str.c_str(), str.size()); }
+		inline std::u16string u8_to_u16(const std::string& str)
+		{
+			return u8_to_u16(str.c_str(), str.size());
+		}
 
 		/// @brief Converts a UTF-8 encoded string to a UTF-16 encoded string.
 		/// @param str The UTF-8 encoded string.
 		/// @return A UTF-16 encoded string representation of the input UTF-8 string.
-		template <size_t N> inline std::u16string u8_to_u16(const char(&str)[N]) { return u8_to_u16(str, N - 1); }
+		template <size_t N>
+		inline std::u16string u8_to_u16(const char (&str)[N])
+		{
+			return u8_to_u16(str, N - 1);
+		}
 
 		/// @brief Converts a wide string to a UTF-16 encoded string.
 		/// @param str The wide string.
@@ -191,12 +234,19 @@ namespace Hyland
 		/// @brief Converts a wide string to a UTF-16 encoded string.
 		/// @param str The wide string.
 		/// @return A UTF-16 encoded string representation of the input wide string.
-		inline std::u16string w_to_u16(const std::wstring& str) { return w_to_u16(str.c_str(), str.size()); }
+		inline std::u16string w_to_u16(const std::wstring& str)
+		{
+			return w_to_u16(str.c_str(), str.size());
+		}
 
 		/// @brief Converts a wide string to a UTF-16 encoded string.
 		/// @param str The wide string.
 		/// @return A UTF-16 encoded string representation of the input wide string.
-		template <size_t N> inline std::u16string w_to_u16(const wchar_t(&str)[N]) { return w_to_u16(str, N - 1); }
+		template <size_t N>
+		inline std::u16string w_to_u16(const wchar_t (&str)[N])
+		{
+			return w_to_u16(str, N - 1);
+		}
 
 		/// @brief Converts a wide string to a UTF-8 encoded string.
 		/// @param str The wide string.
@@ -207,12 +257,19 @@ namespace Hyland
 		/// @brief Converts a wide string to a UTF-8 encoded string.
 		/// @param str The wide string.
 		/// @return A UTF-8 encoded string representation of the input wide string.
-		inline std::string w_to_u8(const std::wstring& str) { return w_to_u8(str.c_str(), str.size()); }
+		inline std::string w_to_u8(const std::wstring& str)
+		{
+			return w_to_u8(str.c_str(), str.size());
+		}
 
 		/// @brief Converts a wide string to a UTF-8 encoded string.
 		/// @param str The wide string.
 		/// @return A UTF-8 encoded string representation of the input wide string.
-		template <size_t N> inline std::string w_to_u8(const wchar_t(&str)[N]) { return w_to_u8(str, N - 1); }
+		template <size_t N>
+		inline std::string w_to_u8(const wchar_t (&str)[N])
+		{
+			return w_to_u8(str, N - 1);
+		}
 
 		/// @brief Converts a wide string to a UTF-32 encoded string.
 		/// @param wstr The wide string to be converted.
@@ -227,8 +284,9 @@ namespace Hyland
 
 		/// @brief Trait to enable bitmask operators for an enum.
 		/// @tparam Enum The enum type.
-		template<typename Enum>
-		struct EnableBitMaskOperators {
+		template <typename Enum>
+		struct EnableBitMaskOperators
+		{
 			static const bool enable = false; ///< Indicates whether bitmask operators are enabled for the enum.
 		};
 
@@ -237,9 +295,9 @@ namespace Hyland
 		/// @param lhs The left-hand side enum value.
 		/// @param rhs The right-hand side enum value.
 		/// @return The result of the bitwise OR operation.
-		template<typename Enum>
-		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-			operator|(Enum lhs, Enum rhs) {
+		template <typename Enum>
+		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type operator|(Enum lhs, Enum rhs)
+		{
 			using underlying = typename std::underlying_type<Enum>::type;
 			return static_cast<Enum>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 		}
@@ -249,9 +307,9 @@ namespace Hyland
 		/// @param lhs The left-hand side enum value.
 		/// @param rhs The right-hand side enum value.
 		/// @return The result of the bitwise OR assignment operation.
-		template<typename Enum>
-		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum&>::type
-			operator|=(Enum& lhs, Enum rhs) {
+		template <typename Enum>
+		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum&>::type operator|=(Enum& lhs, Enum rhs)
+		{
 			lhs = lhs | rhs;
 			return lhs;
 		}
@@ -261,9 +319,9 @@ namespace Hyland
 		/// @param lhs The left-hand side enum value.
 		/// @param rhs The right-hand side enum value.
 		/// @return The result of the bitwise AND operation.
-		template<typename Enum>
-		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-			operator&(Enum lhs, Enum rhs) {
+		template <typename Enum>
+		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type operator&(Enum lhs, Enum rhs)
+		{
 			using underlying = typename std::underlying_type<Enum>::type;
 			return static_cast<Enum>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
 		}
@@ -273,9 +331,9 @@ namespace Hyland
 		/// @param lhs The left-hand side enum value.
 		/// @param rhs The right-hand side enum value.
 		/// @return The result of the bitwise AND assignment operation.
-		template<typename Enum>
-		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum&>::type
-			operator&=(Enum& lhs, Enum rhs) {
+		template <typename Enum>
+		typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum&>::type operator&=(Enum& lhs, Enum rhs)
+		{
 			lhs = lhs & rhs;
 			return lhs;
 		}
@@ -300,9 +358,9 @@ namespace Hyland
 				/// @param loader A pointer to the lazy_loader_indexed instance.
 				/// @param index The starting index for the iterator.
 				const_iterator(const lazy_loader_indexed<T>* loader, size_t index)
-					: m_loader(loader), m_index(index)
-				{
-				}
+				    : m_loader(loader)
+				    , m_index(index)
+				{ }
 
 				/// @brief Pre-increment operator.
 				/// @return A reference to the incremented iterator.
@@ -324,38 +382,29 @@ namespace Hyland
 				/// @brief Equality comparison operator.
 				/// @param other The iterator to compare with.
 				/// @return True if the iterators are equal, false otherwise.
-				bool operator==(const const_iterator& other) const
-				{
-					return m_index == other.m_index && m_loader == other.m_loader;
-				}
+				bool operator==(const const_iterator& other) const { return m_index == other.m_index && m_loader == other.m_loader; }
 
 				/// @brief Inequality comparison operator.
 				/// @param other The iterator to compare with.
 				/// @return True if the iterators are not equal, false otherwise.
-				bool operator!=(const const_iterator& other) const
-				{
-					return !(*this == other);
-				}
+				bool operator!=(const const_iterator& other) const { return !(*this == other); }
 
 				/// @brief Dereference operator.
 				/// @return The element at the current iterator position.
-				T operator*() const
-				{
-					return m_loader->get(m_index);
-				}
+				T operator*() const { return m_loader->get(m_index); }
 
 			private:
 				const lazy_loader_indexed<T>* m_loader; ///< Pointer to the lazy_loader_indexed instance.
-				size_t m_index; ///< Current index of the iterator.
+				size_t m_index;                         ///< Current index of the iterator.
 			};
 
 			/// @brief Constructs a lazy_loader_indexed instance.
 			/// @param size The number of elements.
 			/// @param loader A function to load elements by index.
 			lazy_loader_indexed(size_t size = 0, std::function<T(size_t)> loader = nullptr)
-				: m_size(size), m_loader(loader)
-			{
-			}
+			    : m_size(size)
+			    , m_loader(loader)
+			{ }
 
 			/// @brief Gets the element at the specified index.
 			/// @param index The index of the element to retrieve.
@@ -371,34 +420,22 @@ namespace Hyland
 			/// @brief Indexing operator.
 			/// @param index The index of the element to retrieve.
 			/// @return The element at the specified index.
-			T operator[](size_t index) const
-			{
-				return get(index);
-			}
+			T operator[](size_t index) const { return get(index); }
 
 			/// @brief Gets the number of elements.
 			/// @return The number of elements.
-			size_t size() const
-			{
-				return m_size;
-			}
+			size_t size() const { return m_size; }
 
 			/// @brief Gets an iterator to the beginning of the elements.
 			/// @return An iterator to the beginning of the elements.
-			const_iterator begin() const
-			{
-				return const_iterator(this, 0);
-			}
+			const_iterator begin() const { return const_iterator(this, 0); }
 
 			/// @brief Gets an iterator to the end of the elements.
 			/// @return An iterator to the end of the elements.
-			const_iterator end() const
-			{
-				return const_iterator(this, m_size);
-			}
+			const_iterator end() const { return const_iterator(this, m_size); }
 
 		private:
-			size_t m_size; ///< The number of elements.
+			size_t m_size;                     ///< The number of elements.
 			std::function<T(size_t)> m_loader; ///< Function to load elements by index.
 		};
 
@@ -437,8 +474,8 @@ namespace Hyland
 				/// @param loader Pointer to the enumerable collection.
 				/// @param enumerator Shared pointer to the enumerator.
 				const_iterator(const enumerable_t* loader, std::shared_ptr<enumerator_t> enumerator)
-					: m_loader(loader)
-					, m_enumerator(enumerator)
+				    : m_loader(loader)
+				    , m_enumerator(enumerator)
 				{
 					if (m_enumerator && m_enumerator->move_next())
 						m_current = m_enumerator->current();
@@ -474,31 +511,21 @@ namespace Hyland
 				/// @return True if the iterators are equal; otherwise, false.
 				bool operator==(const const_iterator& other) const
 				{
-					return m_end == other.m_end
-						|| (m_loader == other.m_loader && m_current == other.m_current);
+					return m_end == other.m_end || (m_loader == other.m_loader && m_current == other.m_current);
 				}
 
 				/// @brief Checks if two iterators are not equal.
 				/// @param other The other iterator to compare with.
 				/// @return True if the iterators are not equal; otherwise, false.
-				bool operator!=(const const_iterator& other) const
-				{
-					return !(*this == other);
-				}
+				bool operator!=(const const_iterator& other) const { return !(*this == other); }
 
 				/// @brief Dereferences the iterator to get the current element.
 				/// @return The current element.
-				T operator*() const
-				{
-					return m_current;
-				}
+				T operator*() const { return m_current; }
 
 				/// @brief Dereferences the iterator to get a pointer to the current element.
 				/// @return Pointer to the current element.
-				const T* operator->() const
-				{
-					return &m_current;
-				}
+				const T* operator->() const { return &m_current; }
 
 			private:
 				const enumerable_t* m_loader;
@@ -515,25 +542,19 @@ namespace Hyland
 
 			/// @brief Gets an iterator to the beginning of the collection.
 			/// @return Iterator to the beginning of the collection.
-			const_iterator begin() const
-			{
-				return const_iterator(this, get_enumerator());
-			}
+			const_iterator begin() const { return const_iterator(this, get_enumerator()); }
 
 			/// @brief Gets an iterator to the end of the collection.
 			/// @return Iterator to the end of the collection.
-			const_iterator end() const
-			{
-				return const_iterator(this, nullptr);
-			}
+			const_iterator end() const { return const_iterator(this, nullptr); }
 		};
 
 		/// @brief Enum representing the mode in which a document is opened.
 		enum class OpenMode
 		{
-			Text,         ///< Open the document in text mode.
-			Paginated,    ///< Open the document in paginated mode.
-			ClassicHtml,  ///< Open the document in classic HTML mode.
+			Text,        ///< Open the document in text mode.
+			Paginated,   ///< Open the document in paginated mode.
+			ClassicHtml, ///< Open the document in classic HTML mode.
 		};
 
 		/// @brief Enum representing the type of canvas used for rendering.
@@ -568,16 +589,16 @@ namespace Hyland
 		/// @brief Enum representing the type of pixel format used in bitmaps.
 		enum class PixelType
 		{
-			PixelDefault = IGR_OPEN_BITMAP_PIXEL_AUTO,         ///< Default pixel format.
-			Pixel1BPP = IGR_OPEN_BITMAP_PIXEL_1BPP_INDEXED,    ///< 1-bit per pixel indexed format.
-			Pixel4BPP = IGR_OPEN_BITMAP_PIXEL_4BPP_INDEXED,    ///< 4-bit per pixel indexed format.
-			Pixel8BPP = IGR_OPEN_BITMAP_PIXEL_8BPP_INDEXED,    ///< 8-bit per pixel indexed format.
-			Pixel16BPP_565_RGB = IGR_OPEN_BITMAP_PIXEL_16BPP_565_RGB, ///< 16-bit per pixel 565 RGB format.
-			Pixel16BPP_565_BGR = IGR_OPEN_BITMAP_PIXEL_16BPP_565_BGR, ///< 16-bit per pixel 565 BGR format.
+			PixelDefault = IGR_OPEN_BITMAP_PIXEL_AUTO,                    ///< Default pixel format.
+			Pixel1BPP = IGR_OPEN_BITMAP_PIXEL_1BPP_INDEXED,               ///< 1-bit per pixel indexed format.
+			Pixel4BPP = IGR_OPEN_BITMAP_PIXEL_4BPP_INDEXED,               ///< 4-bit per pixel indexed format.
+			Pixel8BPP = IGR_OPEN_BITMAP_PIXEL_8BPP_INDEXED,               ///< 8-bit per pixel indexed format.
+			Pixel16BPP_565_RGB = IGR_OPEN_BITMAP_PIXEL_16BPP_565_RGB,     ///< 16-bit per pixel 565 RGB format.
+			Pixel16BPP_565_BGR = IGR_OPEN_BITMAP_PIXEL_16BPP_565_BGR,     ///< 16-bit per pixel 565 BGR format.
 			Pixel16BPP_4444_ARGB = IGR_OPEN_BITMAP_PIXEL_16BPP_4444_ARGB, ///< 16-bit per pixel 4444 ARGB format.
 			Pixel16BPP_4444_BGRA = IGR_OPEN_BITMAP_PIXEL_16BPP_4444_BGRA, ///< 16-bit per pixel 4444 BGRA format.
-			Pixel24BPP_888_RGB = IGR_OPEN_BITMAP_PIXEL_24BPP_888_RGB, ///< 24-bit per pixel 888 RGB format.
-			Pixel24BPP_888_BGR = IGR_OPEN_BITMAP_PIXEL_24BPP_888_BGR, ///< 24-bit per pixel 888 BGR format.
+			Pixel24BPP_888_RGB = IGR_OPEN_BITMAP_PIXEL_24BPP_888_RGB,     ///< 24-bit per pixel 888 RGB format.
+			Pixel24BPP_888_BGR = IGR_OPEN_BITMAP_PIXEL_24BPP_888_BGR,     ///< 24-bit per pixel 888 BGR format.
 			Pixel32BPP_8888_ARGB = IGR_OPEN_BITMAP_PIXEL_32BPP_8888_ARGB, ///< 32-bit per pixel 8888 ARGB format.
 			Pixel32BPP_8888_BGRA = IGR_OPEN_BITMAP_PIXEL_32BPP_8888_BGRA, ///< 32-bit per pixel 8888 BGRA format.
 			Pixel32BPP_8888_RGBA = IGR_OPEN_BITMAP_PIXEL_32BPP_8888_RGBA, ///< 32-bit per pixel 8888 RGBA format.
@@ -600,10 +621,9 @@ namespace Hyland
 		public:
 			/// @brief Constructs a rectangle from a given RectType object.
 			/// @param rect The RectType object. Defaults to an empty RectType object.
-			rect_t(const RectType rect = RectType{})
-				: RectType(rect)
-			{
-			}
+			rect_t(const RectType rect = RectType {})
+			    : RectType(rect)
+			{ }
 
 			/// @brief Constructs a rectangle from given coordinates.
 			/// @param left The left coordinate.
@@ -611,9 +631,8 @@ namespace Hyland
 			/// @param right The right coordinate.
 			/// @param bottom The bottom coordinate.
 			rect_t(T left, T top, T right, T bottom)
-				: RectType{ left, top, right, bottom }
-			{
-			}
+			    : RectType { left, top, right, bottom }
+			{ }
 
 			/// @brief Gets the x-coordinate (left) of the rectangle.
 			/// @return The x-coordinate.
@@ -636,22 +655,21 @@ namespace Hyland
 			/// @return True if the rectangles are equal, false otherwise.
 			bool operator==(const rect_t& other) const
 			{
-				return RectType::left == other.left && RectType::top == other.top && RectType::right == other.right && RectType::bottom == other.bottom;
+				return RectType::left == other.left && RectType::top == other.top && RectType::right == other.right
+				    && RectType::bottom == other.bottom;
 			}
 
 			/// @brief Inequality operator.
 			/// @param other The other rectangle to compare with.
 			/// @return True if the rectangles are not equal, false otherwise.
-			bool operator!=(const rect_t& other) const
-			{
-				return !(*this == other);
-			}
+			bool operator!=(const rect_t& other) const { return !(*this == other); }
 
 			/// @brief Move the rectangle by the specified offset.
 			/// @param x amount to move in the x direction.
 			/// @param y amount to move in the y direction.
 			/// @return Reference to the rectangle.
-			rect_t& offset(int x, int y) {
+			rect_t& offset(int x, int y)
+			{
 				this->left += x;
 				this->top += y;
 				this->right += x;
@@ -663,7 +681,7 @@ namespace Hyland
 			/// @return An IGR_QuadPoint object representing the rectangle as a quadrilateral with four corner points: upper-left, upper-right, lower-right, and lower-left.
 			IGR_QuadPoint to_quadpoint() const
 			{
-				IGR_QuadPoint quad{};
+				IGR_QuadPoint quad {};
 				quad.upperLeft.x = static_cast<IGR_FLOAT>(RectType::left);
 				quad.upperLeft.y = static_cast<IGR_FLOAT>(RectType::top);
 				quad.upperRight.x = static_cast<IGR_FLOAT>(RectType::right);
@@ -711,9 +729,10 @@ namespace Hyland
 
 		public:
 			/// @brief Enum to specify the getType of date.
-			enum class date_type_t {
-				utc,   ///< Coordinated Universal Time.
-				local  ///< Local time.
+			enum class date_type_t
+			{
+				utc,  ///< Coordinated Universal Time.
+				local ///< Local time.
 			};
 
 			/// @brief Constructs a DateTime object from a file time value.
@@ -732,7 +751,8 @@ namespace Hyland
 			/// @param minute The minute. Defaults to 0.
 			/// @param second The second. Defaults to 0.
 			/// @param millisecond The millisecond. Defaults to 0.
-			DateTime(uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0, uint16_t second = 0, uint16_t millisecond = 0);
+			DateTime(uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0, uint16_t second = 0,
+			         uint16_t millisecond = 0);
 
 			/// @brief Constructs a DateTime object from individual date and time components with a specified date getType.
 			/// @param getType The date getType (UTC or local).
@@ -743,7 +763,8 @@ namespace Hyland
 			/// @param minute The minute. Defaults to 0.
 			/// @param second The second. Defaults to 0.
 			/// @param millisecond The millisecond. Defaults to 0.
-			DateTime(date_type_t type, uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0, uint16_t second = 0, uint16_t millisecond = 0);
+			DateTime(date_type_t type, uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0,
+			         uint16_t second = 0, uint16_t millisecond = 0);
 
 			/// @brief Constructs a DateTime object from an ISO 8601 string.
 			/// @param value The ISO 8601 string.
@@ -789,7 +810,8 @@ namespace Hyland
 			/// @param second The second. Defaults to 0.
 			/// @param millisecond The millisecond. Defaults to 0.
 			/// @return The UTC DateTime object.
-			static DateTime utc(uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0, uint16_t second = 0, uint16_t millisecond = 0);
+			static DateTime utc(uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0, uint16_t second = 0,
+			                    uint16_t millisecond = 0);
 
 			/// @brief Creates a local DateTime object from individual date and time components.
 			/// @param year The year.
@@ -800,7 +822,8 @@ namespace Hyland
 			/// @param second The second. Defaults to 0.
 			/// @param millisecond The millisecond. Defaults to 0.
 			/// @return The local DateTime object.
-			static DateTime local(uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0, uint16_t second = 0, uint16_t millisecond = 0);
+			static DateTime local(uint16_t year, uint16_t month, uint16_t day, uint16_t hour = 0, uint16_t minute = 0, uint16_t second = 0,
+			                      uint16_t millisecond = 0);
 
 			/// @brief Converts a file time value to a time point.
 			/// @param value The file time value.
@@ -814,14 +837,14 @@ namespace Hyland
 		private:
 			int m_x = 0; ///< The x-coordinate of the point.
 			int m_y = 0; ///< The y-coordinate of the point.
+
 		public:
 			/// @brief Constructs a Point object with optional x and y coordinates.
 			/// @param x The x-coordinate. Defaults to 0.
 			/// @param y The y-coordinate. Defaults to 0.
 			Point(int x = 0, int y = 0)
-				: m_x(x), m_y(y)
-			{
-			};
+			    : m_x(x)
+			    , m_y(y) {};
 
 			/// @brief Gets the x-coordinate of the point.
 			/// @return The x-coordinate.
@@ -861,7 +884,9 @@ namespace Hyland
 
 				/// @brief Constructs an error with a default return code and a message.
 				/// @param message The error message.
-				Error(const std::string& message) : Error(IGR_E_OPEN_ERROR, message) {}
+				Error(const std::string& message)
+				    : Error(IGR_E_OPEN_ERROR, message)
+				{ }
 
 				/// @brief Retrieves the return code associated with the error.
 				/// @return The return code.
@@ -956,7 +981,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified file.
-			Extractor OpenExtractor(const std::string& filename, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(const std::string& filename, OpenMode mode, int open_flags = 0,
+			                        const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified file.
 			/// @param filename The name of the file as a wide string.
@@ -965,7 +991,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified file.
-			Extractor OpenExtractor(const std::wstring& filename, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(const std::wstring& filename, OpenMode mode, int open_flags = 0,
+			                        const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified data.
 			/// @param data Pointer to the data.
@@ -976,7 +1003,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified data.
-			Extractor OpenExtractor(const void* data, size_t size, memory_destruct_t deleter, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(const void* data, size_t size, memory_destruct_t deleter, OpenMode mode, int open_flags = 0,
+			                        const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified stream.
 			/// @param stream Pointer to the IGR_Stream object.
@@ -985,7 +1013,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified stream.
-			Extractor OpenExtractor(IGR_Stream* stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(IGR_Stream* stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(),
+			                        const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified input stream.
 			/// @param stream Reference to the input stream.
@@ -994,7 +1023,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified input stream.
-			Extractor OpenExtractor(std::istream& stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(std::istream& stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(),
+			                        const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified input stream.
 			/// @param stream Pointer to the input stream.
@@ -1004,7 +1034,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified input stream.
-			Extractor OpenExtractor(std::istream* stream, bool own_stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(std::istream* stream, bool own_stream, OpenMode mode, int open_flags = 0,
+			                        const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified file.
 			/// @param file Pointer to the file.
@@ -1014,7 +1045,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified file.
-			Extractor OpenExtractor(FILE* file, bool own_file, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(FILE* file, bool own_file, OpenMode mode, int open_flags = 0,
+			                        const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified stream.
 			/// @param stream Reference to the stream object.
@@ -1023,7 +1055,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified stream.
-			Extractor OpenExtractor(Stream& stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(Stream& stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(),
+			                        const open_callback_t& callback = nullptr);
 
 			/// @brief Opens an extractor for the specified stream.
 			/// @param stream Pointer to the stream object.
@@ -1033,7 +1066,8 @@ namespace Hyland
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @param callback Optional callback function. Defaults to nullptr.
 			/// @return An extractor object for the specified stream.
-			Extractor OpenExtractor(Stream* stream, bool own_stream, OpenMode mode, int open_flags = 0, const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
+			Extractor OpenExtractor(Stream* stream, bool own_stream, OpenMode mode, int open_flags = 0,
+			                        const std::wstring& options = std::wstring(), const open_callback_t& callback = nullptr);
 
 			/// @brief Creates an output canvas for the specified file.
 			/// @param filename The name of the file as a string.
@@ -1208,7 +1242,6 @@ namespace Hyland
 			/// @param igr_stream A pointer to the IGR_Stream to be bridged.
 			/// @return A pointer to the bridged IGR_Stream.
 			static IGR_Stream* bridge_stream(Hyland::DocFilters::Stream* stream, bool own_stream, IGR_Stream** igr_stream);
-
 		};
 
 		/// @brief A memory stream class derived from the stream class.
@@ -1254,6 +1287,7 @@ namespace Hyland
 			/// @brief Gets the memory buffer of the stream.
 			/// @return A constant pointer to the memory buffer.
 			const void* get_memory() const { return m_buffer; }
+
 		protected:
 			/// @brief Resizes the memory stream to a new size.
 			/// @param new_size The new size of the memory stream.
@@ -1266,9 +1300,9 @@ namespace Hyland
 			virtual void* resize_buffer(void* buffer, size_t new_size) { return nullptr; }
 
 			void* m_buffer = nullptr; ///< Pointer to the memory buffer.
-			size_t m_offset = 0; ///< Current offset in the memory stream.
-			size_t m_capacity = 0; ///< Capacity of the memory buffer.
-			size_t m_size = 0; ///< Size of the memory stream.
+			size_t m_offset = 0;      ///< Current offset in the memory stream.
+			size_t m_capacity = 0;    ///< Capacity of the memory buffer.
+			size_t m_size = 0;        ///< Size of the memory stream.
 		};
 
 		/// @brief A memory stream class that uses a vector as its underlying storage.
@@ -1281,12 +1315,14 @@ namespace Hyland
 			/// @brief Retrieves the data stored in the vector stream.
 			/// @return A constant reference to a vector of bytes representing the data.
 			const std::vector<uint8_t>& data() const { return m_data; }
+
 		protected:
 			/// @brief Resizes the buffer to a new size.
 			/// @param buffer Pointer to the buffer.
 			/// @param new_size The new size of the buffer.
 			/// @return A pointer to the resized buffer.
 			void* resize_buffer(void* buffer, size_t new_size) override;
+
 		private:
 			std::vector<uint8_t> m_data; ///< Vector storing the stream data.
 		};
@@ -1326,6 +1362,7 @@ namespace Hyland
 
 			/// @brief Closes the stream.
 			void close();
+
 		protected:
 			IGR_Writable_Stream* m_inner = nullptr;
 		};
@@ -1347,9 +1384,11 @@ namespace Hyland
 			/// @param b Blue component.
 			/// @param a Alpha component, default is 255 (opaque).
 			Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xff)
-				: r(r), g(g), b(b), a(a)
-			{
-			}
+			    : r(r)
+			    , g(g)
+			    , b(b)
+			    , a(a)
+			{ }
 
 			/// @brief Creates a color from an IGR color value.
 			/// @param value The IGR color value.
@@ -1366,62 +1405,53 @@ namespace Hyland
 
 			/// @brief Converts the color to an IGR color value.
 			/// @return The IGR color value.
-			uint32_t to_igr_color() const
-			{
-				return (a << 24) | (r << 16) | (g << 8) | b;
-			}
+			uint32_t to_igr_color() const { return (a << 24) | (r << 16) | (g << 8) | b; }
 
 			/// @brief Equality operator.
 			/// @param other The other color to compare with.
 			/// @return True if the colors are equal, false otherwise.
-			bool operator==(const Color& other) const
-			{
-				return r == other.r && g == other.g && b == other.b && a == other.a;
-			}
+			bool operator==(const Color& other) const { return r == other.r && g == other.g && b == other.b && a == other.a; }
 
 			/// @brief Inequality operator.
 			/// @param other The other color to compare with.
 			/// @return True if the colors are not equal, false otherwise.
-			bool operator!=(const Color& other) const
-			{
-				return !(*this == other);
-			}
+			bool operator!=(const Color& other) const { return !(*this == other); }
 
 			/// @brief Returns a black color.
 			/// @return A black color_t object.
-			static Color black() { return Color{ 0, 0, 0, 0xff }; }
+			static Color black() { return Color { 0, 0, 0, 0xff }; }
 
 			/// @brief Returns a white color.
 			/// @return A white color_t object.
-			static Color white() { return Color{ 0xff, 0xff, 0xff, 0xff }; }
+			static Color white() { return Color { 0xff, 0xff, 0xff, 0xff }; }
 
 			/// @brief Returns a red color.
 			/// @return A red color_t object.
-			static Color red() { return Color{ 0xff, 0, 0, 0xff }; }
+			static Color red() { return Color { 0xff, 0, 0, 0xff }; }
 
 			/// @brief Returns a green color.
 			/// @return A green color_t object.
-			static Color green() { return Color{ 0, 0xff, 0, 0xff }; }
+			static Color green() { return Color { 0, 0xff, 0, 0xff }; }
 
 			/// @brief Returns a blue color.
 			/// @return A blue color_t object.
-			static Color blue() { return Color{ 0, 0, 0xff, 0xff }; }
+			static Color blue() { return Color { 0, 0, 0xff, 0xff }; }
 
 			/// @brief Returns a yellow color.
 			/// @return A yellow color_t object.
-			static Color yellow() { return Color{ 0xff, 0xff, 0, 0xff }; }
+			static Color yellow() { return Color { 0xff, 0xff, 0, 0xff }; }
 
 			/// @brief Returns a purple color.
 			/// @return A purple color_t object.
-			static Color purple() { return Color{ 128, 0, 128 }; }
+			static Color purple() { return Color { 128, 0, 128 }; }
 
 			/// @brief Returns a light coral color.
 			/// @return A light coral color_t object.
-			static Color light_coral() { return Color{ 240, 128, 128 }; }
+			static Color light_coral() { return Color { 240, 128, 128 }; }
 
 			/// @brief Returns a transparent color.
 			/// @return A transparent color_t object.
-			static Color transparent() { return Color{ 0, 0, 0, 0 }; }
+			static Color transparent() { return Color { 0, 0, 0, 0 }; }
 
 			/// @brief Creates a color from ARGB values.
 			/// @param a Alpha component.
@@ -1429,7 +1459,7 @@ namespace Hyland
 			/// @param g Green component.
 			/// @param b Blue component.
 			/// @return The corresponding color_t object.
-			static Color from_argb(uint8_t a, uint8_t r, uint8_t g, uint8_t b) { return Color{ r, g, b, a }; }
+			static Color from_argb(uint8_t a, uint8_t r, uint8_t g, uint8_t b) { return Color { r, g, b, a }; }
 		};
 
 		/// @brief Represents an option with various properties.
@@ -1467,11 +1497,11 @@ namespace Hyland
 			/// @brief Enum class representing different properties of an option.
 			enum class What
 			{
-				DisplayName = 0, ///< Display name property.
-				Description = 1, ///< Description property.
-				DefaultValue = 2, ///< Default value property.
-				Flags = 3, ///< Flags property.
-				Type = 4, ///< Type property.
+				DisplayName = 0,   ///< Display name property.
+				Description = 1,   ///< Description property.
+				DefaultValue = 2,  ///< Default value property.
+				Flags = 3,         ///< Flags property.
+				Type = 4,          ///< Type property.
 				PossibleValues = 5 ///< Possible values property.
 			};
 
@@ -1490,11 +1520,11 @@ namespace Hyland
 			static bool Fetch(uint32_t id, What what, uint32_t& result);
 
 		private:
-			std::wstring m_display_name; ///< The display name of the option.
-			std::wstring m_description; ///< The description of the option.
-			std::wstring m_default_value; ///< The default value of the option.
-			std::wstring m_type; ///< The type of the option.
-			uint32_t m_flags = 0; ///< The flags associated with the option.
+			std::wstring m_display_name;                 ///< The display name of the option.
+			std::wstring m_description;                  ///< The description of the option.
+			std::wstring m_default_value;                ///< The default value of the option.
+			std::wstring m_type;                         ///< The type of the option.
+			uint32_t m_flags = 0;                        ///< The flags associated with the option.
 			std::vector<std::wstring> m_possible_values; ///< The possible values for the option.
 		};
 
@@ -1509,10 +1539,15 @@ namespace Hyland
 			/// @param config_name The configuration name of the format.
 			/// @param mime_type The MIME type of the format.
 			/// @param file_type_category The file type category of the format.
-			Format(uint32_t id, const std::wstring& display_name, const std::wstring& short_name, const std::wstring& config_name, const std::wstring& mime_type, uint32_t file_type_category)
-				: m_id(id), m_display_name(display_name), m_short_name(short_name), m_config_name(config_name), m_mime_type(mime_type), m_file_type_category(file_type_category)
-			{
-			}
+			Format(uint32_t id, const std::wstring& display_name, const std::wstring& short_name, const std::wstring& config_name,
+			       const std::wstring& mime_type, uint32_t file_type_category)
+			    : m_id(id)
+			    , m_display_name(display_name)
+			    , m_short_name(short_name)
+			    , m_config_name(config_name)
+			    , m_mime_type(mime_type)
+			    , m_file_type_category(file_type_category)
+			{ }
 
 			/// @brief Constructs a Format object with the given ID.
 			/// @param id The ID of the format.
@@ -1545,12 +1580,12 @@ namespace Hyland
 			/// @brief Enum class representing different properties of a format.
 			enum class What
 			{
-				LongName = 0, ///< Long name property.
-				ShortName = 1, ///< Short name property.
-				ConfigName = 2, ///< Configuration name property.
-				ClassCode = 3, ///< Class code property.
-				IsLegacy = 4, ///< Legacy status property.
-				MimeType = 5, ///< MIME type property.
+				LongName = 0,    ///< Long name property.
+				ShortName = 1,   ///< Short name property.
+				ConfigName = 2,  ///< Configuration name property.
+				ClassCode = 3,   ///< Class code property.
+				IsLegacy = 4,    ///< Legacy status property.
+				MimeType = 5,    ///< MIME type property.
 				FileCategory = 6 ///< File category property.
 			};
 
@@ -1569,11 +1604,11 @@ namespace Hyland
 			static bool Fetch(uint32_t id, What what, uint32_t& result);
 
 		private:
-			uint32_t m_id; ///< The ID of the format.
-			std::wstring m_display_name; ///< The display name of the format.
-			std::wstring m_short_name; ///< The short name of the format.
-			std::wstring m_config_name; ///< The configuration name of the format.
-			std::wstring m_mime_type; ///< The MIME type of the format.
+			uint32_t m_id;                     ///< The ID of the format.
+			std::wstring m_display_name;       ///< The display name of the format.
+			std::wstring m_short_name;         ///< The short name of the format.
+			std::wstring m_config_name;        ///< The configuration name of the format.
+			std::wstring m_mime_type;          ///< The MIME type of the format.
 			uint32_t m_file_type_category = 0; ///< The file type category of the format.
 		};
 
@@ -1630,7 +1665,11 @@ namespace Hyland
 			/// @brief Flag to ignore field differences.
 			NoFields = IGR_COMPARE_DOCUMENTS_FLAGS_NO_FIELDS,
 		};
-		template<> struct EnableBitMaskOperators<CompareFlags> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<CompareFlags>
+		{
+			static const bool enable = true;
+		};
 
 		/// @enum DifferenceType
 		/// @brief Represents the getType of difference found during document comparison.
@@ -1700,6 +1739,7 @@ namespace Hyland
 			/// @brief Gets the underlying data structure for Text comparison settings.
 			/// @return A reference to the IGR_Text_Compare_Settings structure.
 			IGR_Text_Compare_Settings& data() const;
+
 		private:
 			std::shared_ptr<IGR_Text_Compare_Settings> m_impl; ///< Implementation details for the comparison settings.
 		};
@@ -1753,24 +1793,24 @@ namespace Hyland
 
 		/// @class CompareDocumentSource
 		/// @brief Represents a source document for comparison.
-		/// 
+		///
 		/// This class is used to define a source document that will be compared against another document.
 		/// It inherits from CompareDocumentSettings to utilize common comparison settings.
 		class CompareDocumentSource : public CompareDocumentSettings
 		{
 		public:
 			/// @brief Default constructor for CompareDocumentSource.
-			/// 
+			///
 			/// Initializes a new instance of the CompareDocumentSource class.
 			CompareDocumentSource() = default;
 
 			/// @brief Constructor for CompareDocumentSource with a document handle.
-			/// 
+			///
 			/// @param handle The handle to an open document.
 			CompareDocumentSource(IGR_HDOC handle, const CompareDocumentSettings& settings = CompareDocumentSettings());
 
 			/// @brief Constructor for CompareDocumentSource with an Extractor.
-			/// 
+			///
 			/// @param Extractor The Extractor object used to initialize the CompareDocumentSource.
 			CompareDocumentSource(const Extractor& Extractor, const CompareDocumentSettings& settings = CompareDocumentSettings());
 
@@ -1794,12 +1834,12 @@ namespace Hyland
 		{
 		public:
 			/// @brief Default constructor for CompareResultDifferenceDetail.
-			/// 
+			///
 			/// Initializes a new instance of the CompareResultDifferenceDetail class.
 			CompareResultDifferenceDetail();
 
 			/// @brief Constructor for CompareResultDifferenceDetail with a reference item.
-			/// 
+			///
 			/// @param ref The reference item containing the difference details.
 			CompareResultDifferenceDetail(const IGR_Compare_Documents_Difference_Item& ref);
 
@@ -1807,19 +1847,20 @@ namespace Hyland
 			bool ok() const;
 
 			/// @brief Gets the page index where the difference was found.
-			/// 
+			///
 			/// @return The page index.
 			uint32_t getPageIndex() const;
 
 			/// @brief Gets the bounds of the difference.
-			/// 
+			///
 			/// @return The bounding rectangle of the difference.
 			RectF getBounds() const;
 
 			/// @brief Gets the Text associated with the difference.
-			/// 
+			///
 			/// @return The Text of the difference.
 			std::wstring getText() const;
+
 		private:
 			/// @brief Implementation details for CompareResultDifferenceDetail.
 			class impl_t;
@@ -1840,12 +1881,12 @@ namespace Hyland
 			typedef details_t::const_iterator const_iterator;
 
 			/// @brief Default constructor for CompareResultDifference.
-			/// 
+			///
 			/// Initializes a new instance of the CompareResultDifference class.
 			CompareResultDifference();
 
 			/// @brief Constructor for CompareResultDifference with a reference difference.
-			/// 
+			///
 			/// @param ref The reference difference containing the details.
 			CompareResultDifference(const IGR_Compare_Documents_Difference& ref);
 
@@ -1853,61 +1894,62 @@ namespace Hyland
 			bool ok() const;
 
 			/// @brief Gets the getType of the difference.
-			/// 
+			///
 			/// @return The getType of the difference.
 			DifferenceType getType() const;
 
 			/// @brief Gets the source of the difference.
-			/// 
+			///
 			/// @return The source of the difference.
 			DifferenceSource getSource() const;
 
 			/// @brief Gets the page index in the original document where the difference was found.
-			/// 
+			///
 			/// @return The page index in the original document.
 			uint32_t getOriginalPageIndex() const;
 
 			/// @brief Gets the page index in the revised document where the difference was found.
-			/// 
+			///
 			/// @return The page index in the revised document.
 			uint32_t getRevisedPageIndex() const;
 
 			/// @brief Gets the Text associated with the difference.
-			/// 
+			///
 			/// @return The Text of the difference.
 			std::wstring getText() const;
 
 			/// @brief Gets the details of the difference.
-			/// 
+			///
 			/// @return A reference to the details list.
 			details_t& details() const;
 
 			/// @brief Gets the number of details in the difference.
-			/// 
+			///
 			/// @return The number of details.
 			size_t size() const;
 
 			/// @brief Accesses a specific detail by index.
-			/// 
+			///
 			/// @param index The index of the detail.
 			/// @return The detail at the specified index.
 			CompareResultDifferenceDetail operator[](size_t index) const;
 
 			/// @brief Accesses a specific detail by index with bounds checking.
-			/// 
+			///
 			/// @param index The index of the detail.
 			/// @return The detail at the specified index.
 			CompareResultDifferenceDetail at(size_t index) const;
 
 			/// @brief Gets an iterator to the beginning of the details list.
-			/// 
+			///
 			/// @return An iterator to the beginning of the details list.
 			const_iterator begin() const;
 
 			/// @brief Gets an iterator to the end of the details list.
-			/// 
+			///
 			/// @return An iterator to the end of the details list.
 			const_iterator end() const;
+
 		private:
 			/// @brief Implementation details for CompareResultDifference.
 			class impl_t;
@@ -1922,7 +1964,7 @@ namespace Hyland
 		{
 		public:
 			/// @brief Constructor for CompareResults.
-			/// 
+			///
 			/// Initializes a new instance of the CompareResults class with an optional handle.
 			/// @param handle The handle to the Text comparison results. Defaults to 0.
 			CompareResults(IGR_HTEXTCOMPARE handle = 0);
@@ -1944,6 +1986,7 @@ namespace Hyland
 			/// @brief Gets the next difference in the comparison results.
 			/// @return The next CompareResultDifference.
 			CompareResultDifference getNext();
+
 		private:
 			/// @brief Implementation details for CompareResults.
 			class impl_t;
@@ -1983,14 +2026,16 @@ namespace Hyland
 			/// @param open_flags The open getFlags for the document. Default value is IGR_BODY_AND_META.
 			/// @param option The additional options for opening the document. Default value is an empty string.
 			/// @param callback The callback function to be called after the document is opened. Default value is an empty function.
-			void Open(OpenMode mode, uint32_t open_flags = IGR_BODY_AND_META, const std::wstring& option = std::wstring(), const DocumentFilters::open_callback_t& callback = nullptr);
+			void Open(OpenMode mode, uint32_t open_flags = IGR_BODY_AND_META, const std::wstring& option = std::wstring(),
+			          const DocumentFilters::open_callback_t& callback = nullptr);
 
 			/// Opens a document with the specified open getFlags, option, and callback.
 			///
 			/// @param open_flags The getFlags indicating which parts of the document to open. Default is IGR_BODY_AND_META.
 			/// @param option The option for opening the document. Default is an empty string.
 			/// @param callback The callback function to be called after the document is opened. Default is an empty callback.
-			void Open(uint32_t open_flags = IGR_BODY_AND_META, const std::wstring& option = std::wstring(), const DocumentFilters::open_callback_t& callback = nullptr);
+			void Open(uint32_t open_flags = IGR_BODY_AND_META, const std::wstring& option = std::wstring(),
+			          const DocumentFilters::open_callback_t& callback = nullptr);
 
 			/// @brief Retrieves the file getType.
 			///
@@ -2142,17 +2187,17 @@ namespace Hyland
 			void setLogMessageCallback(const log_message_callback_t& callback);
 
 			/// Sets the callback function for approving external resources.
-			/// 
+			///
 			/// @param callback The callback function to be called when an external resource is requested.
 			void setApproveExternalResourceCallback(const approve_external_resource_callback_t& callback);
 
 			/// Sets the callback function for getting a resource stream.
-			/// 
+			///
 			/// @param callback The callback function to be called when a resource stream is requested.
 			void setGetResourceStreamCallback(const get_resource_stream_callback_t& callback);
 
 			/// @brief Sets the callback function for OCR image processing.
-			/// 
+			///
 			/// @param callback The callback function to be set for OCR image processing.
 			void setOcrImageCallback(const ocr_image_callback_t& callback);
 
@@ -2180,21 +2225,25 @@ namespace Hyland
 			/// @param otherDocSettings The settings for the other document.
 			/// @param settings The settings to use for the comparison. Defaults to CompareSettings().
 			/// @return The results of the comparison.
-			CompareResults Compare(const CompareDocumentSettings& thisDocSettings, const Extractor& other, const CompareDocumentSettings& otherDocSettings, const CompareSettings& settings = CompareSettings()) const;
+			CompareResults Compare(const CompareDocumentSettings& thisDocSettings, const Extractor& other,
+			                       const CompareDocumentSettings& otherDocSettings,
+			                       const CompareSettings& settings = CompareSettings()) const;
 
 			/// @brief Compares the current document with another document source using the specified document settings and comparison settings.
 			/// @param thisDocSettings The settings for the current document.
 			/// @param other The other document source to compare with.
 			/// @param settings The settings to use for the comparison. Defaults to CompareSettings().
 			/// @return The results of the comparison.
-			CompareResults Compare(const CompareDocumentSettings& thisDocSettings, const CompareDocumentSource& other, const CompareSettings& settings = CompareSettings()) const;
+			CompareResults Compare(const CompareDocumentSettings& thisDocSettings, const CompareDocumentSource& other,
+			                       const CompareSettings& settings = CompareSettings()) const;
 
 			/// @brief Compares two document sources using the specified comparison settings.
 			/// @param thisDoc The first document source to compare.
 			/// @param otherDoc The second document source to compare.
 			/// @param settings The settings to use for the comparison. Defaults to CompareSettings().
 			/// @return The results of the comparison.
-			static CompareResults Compare(const CompareDocumentSource& thisDoc, const CompareDocumentSource& otherDoc, const CompareSettings& settings = CompareSettings());
+			static CompareResults Compare(const CompareDocumentSource& thisDoc, const CompareDocumentSource& otherDoc,
+			                              const CompareSettings& settings = CompareSettings());
 
 		protected:
 			virtual IGR_Stream* resolve_stream() const;
@@ -2213,7 +2262,8 @@ namespace Hyland
 
 		protected:
 			/// @brief Type definition for a function that opens a stream for a subfile.
-			typedef std::function<IGR_RETURN_CODE(IGR_LONG doc, const IGR_UCS2* id, struct IGR_Stream** Stream, Error_Control_Block* Error)> stream_opener_t;
+			typedef std::function<IGR_RETURN_CODE(IGR_LONG doc, const IGR_UCS2* id, struct IGR_Stream** Stream, Error_Control_Block* Error)>
+			    stream_opener_t;
 
 			/// @brief Resolves and returns the stream associated with the subfile.
 			/// @return A pointer to the resolved IGR_Stream.
@@ -2269,14 +2319,14 @@ namespace Hyland
 			bool operator==(const Subfile& other) const { return getId() == other.getId(); }
 
 		private:
-			IGR_LONG m_owning_doc = 0; ///< The handle to the owning document.
+			IGR_LONG m_owning_doc = 0;                 ///< The handle to the owning document.
 			stream_opener_t m_stream_opener = nullptr; ///< The function to open the stream for the subfile.
-			std::wstring m_id; ///< The ID of the subfile.
-			std::wstring m_name; ///< The name of the subfile.
-			uint64_t m_size = 0; ///< The size of the subfile in bytes.
-			uint32_t m_flags = 0; ///< The getFlags associated with the subfile.
-			std::wstring m_comment; ///< The comment associated with the subfile.
-			DateTime m_file_date; ///< The file date of the subfile.
+			std::wstring m_id;                         ///< The ID of the subfile.
+			std::wstring m_name;                       ///< The name of the subfile.
+			uint64_t m_size = 0;                       ///< The size of the subfile in bytes.
+			uint32_t m_flags = 0;                      ///< The getFlags associated with the subfile.
+			std::wstring m_comment;                    ///< The comment associated with the subfile.
+			DateTime m_file_date;                      ///< The file date of the subfile.
 		};
 
 
@@ -2316,7 +2366,7 @@ namespace Hyland
 
 			/// @brief Retrieves the size of the object.
 			/// @return An IGR_Size structure containing the width and height of the object.
-			IGR_Size getSize() const { return IGR_Size{ getWidth(), getHeight() }; }
+			IGR_Size getSize() const { return IGR_Size { getWidth(), getHeight() }; }
 
 			/// Retrieves the Text associated with the object.
 			///
@@ -2412,7 +2462,8 @@ namespace Hyland
 			/// @param dest_size The destination size for the extracted pixels.
 			/// @param options Optional parameters for pixel extraction.
 			/// @return The pixels of the page.
-			PagePixels getPixels(PixelType type, const IGR_Rect& src_rect, const IGR_Size& dest_size, const std::wstring& options = std::wstring()) const;
+			PagePixels getPixels(PixelType type, const IGR_Rect& src_rect, const IGR_Size& dest_size,
+			                     const std::wstring& options = std::wstring()) const;
 
 			/// @brief Compares the current page with another page using the specified settings.
 			/// @param other The other page to compare with.
@@ -2433,7 +2484,8 @@ namespace Hyland
 			/// @param rightMargins The right margins to use for the comparison.
 			/// @param settings The settings to use for the comparison. Defaults to CompareSettings().
 			/// @return The results of the comparison.
-			CompareResults Compare(const Page& other, const RectF& leftMargins, const RectF& rightMargins, const CompareSettings& settings = CompareSettings()) const;
+			CompareResults Compare(const Page& other, const RectF& leftMargins, const RectF& rightMargins,
+			                       const CompareSettings& settings = CompareSettings()) const;
 
 		private:
 			class impl_t;
@@ -2503,7 +2555,11 @@ namespace Hyland
 			NeverRaster = IGR_REDACT_FLAGS_NEVER_RASTER,
 			DoNotDrawRegion = IGR_REDACT_FLAGS_DO_NOT_DRAW_REGION
 		};
-		template<> struct EnableBitMaskOperators<RenderPagePropertiesFlags> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<RenderPagePropertiesFlags>
+		{
+			static const bool enable = true;
+		};
 
 		/// @brief Represents properties for rendering a page, including source and destination rectangles, getFlags, redactions, and form values.
 		class RenderPageProperties
@@ -2634,14 +2690,18 @@ namespace Hyland
 			Italic = IGR_TEXT_STYLE_ITALIC,
 			Underline = IGR_TEXT_STYLE_UNDERLINE,
 		};
-		template<> struct EnableBitMaskOperators<FontStyle> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<FontStyle>
+		{
+			static const bool enable = true;
+		};
 
 		class AnnotationSerializable
 		{
 		public:
 			virtual ~AnnotationSerializable() = default;
 			virtual std::string serialize() const = 0;
-			virtual void bind(const IGR_Annotation& annot) {}
+			virtual void bind(const IGR_Annotation& annot) { }
 			bool operator==(const AnnotationSerializable& other) const { return true; }
 		};
 
@@ -2649,6 +2709,7 @@ namespace Hyland
 		class Canvas
 		{
 			friend class DocumentFilters;
+
 		protected:
 			/// @brief Constructs a Canvas with a given handle.
 			/// @param handle The handle to the canvas.
@@ -2675,7 +2736,8 @@ namespace Hyland
 			/// @param page The page to render.
 			/// @param options Optional rendering options.
 			/// @param properties Optional rendering properties.
-			void RenderPage(const Page& Page, const std::wstring& options = std::wstring(), const RenderPageProperties& properties = RenderPageProperties());
+			void RenderPage(const Page& Page, const std::wstring& options = std::wstring(),
+			                const RenderPageProperties& properties = RenderPageProperties());
 
 			/// @brief Renders a page onto the canvas with specified properties.
 			/// @param page The page to render.
@@ -2807,7 +2869,10 @@ namespace Hyland
 			/// @param r The rectangle structure defining the bounds for the Text.
 			/// @param Text The Text to draw.
 			/// @param getFlags Optional getFlags for Text alignment and formatting.
-			void TextRect(const RectI32& r, const std::wstring& text, int flags = 0) { TextRect(r.left, r.top, r.right, r.bottom, text, flags); }
+			void TextRect(const RectI32& r, const std::wstring& text, int flags = 0)
+			{
+				TextRect(r.left, r.top, r.right, r.bottom, text, flags);
+			}
 
 			/// @brief Gets the width of the specified Text.
 			/// @param Text The Text to measure.
@@ -2861,7 +2926,8 @@ namespace Hyland
 			/// @param buffer The image buffer.
 			/// @param buffer_size The size of the image buffer.
 			/// @param getMimeType The MIME getType of the image. Defaults to an empty string.
-			void DrawScaleImage(int x, int y, int width, int height, const void* buffer, size_t buffer_size, const std::wstring& mime_type = std::wstring());
+			void DrawScaleImage(int x, int y, int width, int height, const void* buffer, size_t buffer_size,
+			                    const std::wstring& mime_type = std::wstring());
 
 			/// @brief Draws a scaled image within the specified rectangle.
 			/// @param rc The rectangle specifying the area to draw the image.
@@ -2910,9 +2976,11 @@ namespace Hyland
 		private:
 			class impl_t;
 			std::shared_ptr<impl_t> m_impl;
+
 		protected:
 			Bookmark(IGR_LONG doc_handle);
 			Bookmark(IGR_LONG doc_handle, const IGR_Bookmark& Bookmark);
+
 		public:
 			enum class ActionType
 			{
@@ -3078,7 +3146,11 @@ namespace Hyland
 			bool operator!=(const Bookmark& other) const;
 		};
 
-		template<> struct EnableBitMaskOperators<Bookmark::TextStyle> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<Bookmark::TextStyle>
+		{
+			static const bool enable = true;
+		};
 
 		enum class PageElementType
 		{
@@ -3147,9 +3219,11 @@ namespace Hyland
 		class PageElement
 		{
 			friend class Page;
+
 		private:
 			class impl_t;
 			std::shared_ptr<impl_t> m_impl;
+
 		public:
 			typedef enumerable_t<PageElement> page_elements_t;
 			typedef page_elements_t::const_iterator const_iterator;
@@ -3236,11 +3310,13 @@ namespace Hyland
 		class PagePixels
 		{
 			friend class Page;
+
 		protected:
 			/// @brief Constructs a PagePixels object.
 			/// @param page_handle The handle to the page.
 			/// @param pixels The pixel data of the page.
 			PagePixels(IGR_HPAGE page_handle, const IGR_Page_Pixels& pixels);
+
 		public:
 			/// @brief Gets the pixel data.
 			/// @return A pointer to the pixel data.
@@ -3313,12 +3389,17 @@ namespace Hyland
 			Comb = IGR_PAGE_FORM_ELEMENT_FLAG_COMB,
 			Checked = IGR_PAGE_FORM_ELEMENT_FLAG_CHECKED
 		};
-		template<> struct EnableBitMaskOperators<FormElementFlag> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<FormElementFlag>
+		{
+			static const bool enable = true;
+		};
 
 		/// @brief Represents a form element on a page.
 		class FormElement
 		{
 		protected:
+
 		public:
 			/// @brief Represents an option within a form element.
 			class Option
@@ -3343,9 +3424,9 @@ namespace Hyland
 				bool getSelected() const { return m_selected; }
 
 			private:
-				std::wstring m_name; ///< The name of the option.
+				std::wstring m_name;  ///< The name of the option.
 				std::wstring m_value; ///< The value of the option.
-				bool m_selected; ///< Whether the option is selected.
+				bool m_selected;      ///< Whether the option is selected.
 			};
 
 			typedef std::vector<Option> options_t;
@@ -3452,7 +3533,7 @@ namespace Hyland
 			/// @brief Enum class for hyperlink types.
 			enum class Type
 			{
-				Uri = IGR_HYPERLINK_ACTION_URI, ///< URI action getType.
+				Uri = IGR_HYPERLINK_ACTION_URI,   ///< URI action getType.
 				GoTo = IGR_HYPERLINK_ACTION_GOTO, ///< Go-to action getType.
 			};
 
@@ -3460,19 +3541,19 @@ namespace Hyland
 			enum class Flags : uint32_t
 			{
 				ChangesLeft = IGR_HYPERLINK_FLAGS_CHANGE_LEFT, ///< Flag indicating change in left position.
-				ChangesTop = IGR_HYPERLINK_FLAGS_CHANGE_TOP, ///< Flag indicating change in top position.
+				ChangesTop = IGR_HYPERLINK_FLAGS_CHANGE_TOP,   ///< Flag indicating change in top position.
 				ChangesZoom = IGR_HYPERLINK_FLAGS_CHANGE_ZOOM, ///< Flag indicating change in zoom level.
 			};
 
 			/// @brief Enum class for hyperlink fit types.
 			enum class Fit
 			{
-				Xyz = IGR_HYPERLINK_FIT_XYZ, ///< XYZ fit getType.
-				Fit = IGR_HYPERLINK_FIT_FIT, ///< Fit getType.
-				Fith = IGR_HYPERLINK_FIT_FITH, ///< Fit height getType.
-				Fitv = IGR_HYPERLINK_FIT_FITV, ///< Fit width getType.
-				Fitr = IGR_HYPERLINK_FIT_FITR, ///< Fit rectangle getType.
-				Fitb = IGR_HYPERLINK_FIT_FITB, ///< Fit bounding box getType.
+				Xyz = IGR_HYPERLINK_FIT_XYZ,     ///< XYZ fit getType.
+				Fit = IGR_HYPERLINK_FIT_FIT,     ///< Fit getType.
+				Fith = IGR_HYPERLINK_FIT_FITH,   ///< Fit height getType.
+				Fitv = IGR_HYPERLINK_FIT_FITV,   ///< Fit width getType.
+				Fitr = IGR_HYPERLINK_FIT_FITR,   ///< Fit rectangle getType.
+				Fitb = IGR_HYPERLINK_FIT_FITB,   ///< Fit bounding box getType.
 				Fitbh = IGR_HYPERLINK_FIT_FITBH, ///< Fit bounding box height getType.
 				Fitbv = IGR_HYPERLINK_FIT_FITBV, ///< Fit bounding box width getType.
 			};
@@ -3561,7 +3642,11 @@ namespace Hyland
 			std::shared_ptr<impl_t> m_impl;
 		};
 
-		template<> struct EnableBitMaskOperators<Hyperlink::Flags> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<Hyperlink::Flags>
+		{
+			static const bool enable = true;
+		};
 
 		/// @brief Represents style information for OCR (Optical Character Recognition) text, including font family, font size, and text style.
 		class OcrStyleInfo
@@ -3605,11 +3690,16 @@ namespace Hyland
 			/// @brief Retrieves a constant reference to the raw OCR image style information.
 			/// @return A constant reference to an object of type IGR_Open_Callback_Action_OCR_Image_Style_Info representing the raw OCR image style information.
 			const IGR_Open_Callback_Action_OCR_Image_Style_Info& raw() const;
+
 		private:
-			IGR_Open_Callback_Action_OCR_Image_Style_Info m_style{};
+			IGR_Open_Callback_Action_OCR_Image_Style_Info m_style {};
 		};
 
-		template<> struct EnableBitMaskOperators<OcrStyleInfo::TextStyle> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<OcrStyleInfo::TextStyle>
+		{
+			static const bool enable = true;
+		};
 
 		/// @brief Represents an OCR image object with methods for managing image data, blocks, text, and orientation.
 		class OcrImage
@@ -3666,11 +3756,13 @@ namespace Hyland
 			/// @param quad The quadrilateral region where the text will be placed.
 			/// @param flags Optional flags to modify the behavior of the text addition. Defaults to 0.
 			/// @param style Optional styling information for the text. Defaults to an instance of OcrStyleInfo with default values.
-			void AddText(const std::wstring& text, const IGR_QuadPoint& quad, uint32_t flags = 0, const OcrStyleInfo& style = OcrStyleInfo()) const;
+			void AddText(const std::wstring& text, const IGR_QuadPoint& quad, uint32_t flags = 0,
+			             const OcrStyleInfo& style = OcrStyleInfo()) const;
 
 			/// @brief Adjusts the orientation of an object by a specified angle.
-			/// @param angle The angle, in degrees, by which to reorient the object. 
+			/// @param angle The angle, in degrees, by which to reorient the object.
 			void Reorient(float angle) const;
+
 		private:
 			IGR_Open_Callback_Action_OCR_Image* m_dest;
 		};
@@ -3678,27 +3770,54 @@ namespace Hyland
 		// --------------------------------------------------------------------------------
 
 #define DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(TYPE) \
-		std::string serialize() const override; \
-		void bind(const IGR_Annotation& anno) override; \
-		bool operator==(const TYPE& other) const; \
-		bool operator!=(const TYPE& other) const { return !(*this == other); } 
-#define DOCFILTERS_ANNOTATION_CONSTRUCT(CLASSTYPE, ANNOTYPE)\
-	CLASSTYPE(): Annotation(ANNOTYPE) {} \
+	std::string serialize() const override; \
+	void bind(const IGR_Annotation& anno) override; \
+	bool operator==(const TYPE& other) const; \
+	bool operator!=(const TYPE& other) const \
+	{ \
+		return !(*this == other); \
+	}
+#define DOCFILTERS_ANNOTATION_CONSTRUCT(CLASSTYPE, ANNOTYPE) \
+	CLASSTYPE() \
+	    : Annotation(ANNOTYPE) \
+	{ } \
 	DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(CLASSTYPE)
 #define DOCFILTERS_OBJECT_SERIALIZE_METHODS(TYPE) \
-		std::string serialize() const override; \
-		bool operator==(const TYPE& other) const; \
-		bool operator!=(const TYPE& other) const { return !(*this == other); } 
+	std::string serialize() const override; \
+	bool operator==(const TYPE& other) const; \
+	bool operator!=(const TYPE& other) const \
+	{ \
+		return !(*this == other); \
+	}
 #define DOCFILTERS_ANNOTATION_PROPERTY(TYPE, NAME, DEFAULT_VALUE) \
-	private: TYPE m_##NAME = DEFAULT_VALUE; \
-	public: const TYPE& get##NAME() const { return m_##NAME; } \
-	public: TYPE& get##NAME() { return m_##NAME; } \
-	public: TYPE& set##NAME(const TYPE& value) { m_##NAME = value; return m_##NAME; } 
+\
+private: \
+	TYPE m_##NAME = DEFAULT_VALUE; \
+\
+public: \
+	const TYPE& get##NAME() const \
+	{ \
+		return m_##NAME; \
+	} \
+\
+public: \
+	TYPE& get##NAME() \
+	{ \
+		return m_##NAME; \
+	} \
+\
+public: \
+	TYPE& set##NAME(const TYPE& value) \
+	{ \
+		m_##NAME = value; \
+		return m_##NAME; \
+	}
 
 		class AnnotationBase : public AnnotationSerializable
 		{
 			friend AnnotationBase& json_bind(const AnnoBind& src, const std::wstring& name, AnnotationBase& dest);
 			friend JsonWriter& json_write_props(JsonWriter& writer, const AnnotationBase& src);
+
 		public:
 			enum class Flags : uint32_t
 			{
@@ -3824,15 +3943,9 @@ namespace Hyland
 				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, ContentType, std::wstring());
 				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Encoding, L"Base64");
 
-				void load_from_bytes(const void* buffer, size_t size)
-				{
-					setContent(base64_encode(buffer, size));
-				}
+				void load_from_bytes(const void* buffer, size_t size) { setContent(base64_encode(buffer, size)); }
 
-				bool empty() const
-				{
-					return getContent().empty();
-				}
+				bool empty() const { return getContent().empty(); }
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(AppearanceStream)
 			};
@@ -3844,17 +3957,14 @@ namespace Hyland
 				DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStream, Rollover, AppearanceStream());
 				DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStream, Down, AppearanceStream());
 
-				bool empty() const
-				{
-					return getNormal().empty() && getRollover().empty() && getDown().empty();
-				}
+				bool empty() const { return getNormal().empty() && getRollover().empty() && getDown().empty(); }
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(AppearanceStreams);
 			};
 
 			AnnotationBase(Type type = Type::Unknown)
-				: type(type) {
-			}
+			    : type(type)
+			{ }
 			virtual ~AnnotationBase() = default;
 
 			// Properties
@@ -3870,10 +3980,15 @@ namespace Hyland
 			Type& getType() { return type; }
 
 			DOCFILTERS_OBJECT_SERIALIZE_METHODS(AnnotationBase);
+
 		protected:
 			Type type = Type::Unknown;
 		};
-		template<> struct EnableBitMaskOperators<AnnotationBase::Flags> { static const bool enable = true; };
+		template <>
+		struct EnableBitMaskOperators<AnnotationBase::Flags>
+		{
+			static const bool enable = true;
+		};
 
 		template <typename AnnotationBase::Type Type>
 		class AnnotationTypeT
@@ -3884,12 +3999,12 @@ namespace Hyland
 
 		using AnnotationBorderStyle = AnnotationBase::BorderStyle;
 
-		class AnnotationNote
-			: public AnnotationBase
-			, public AnnotationTypeT<AnnotationBase::Type::Text>
+		class AnnotationNote : public AnnotationBase, public AnnotationTypeT<AnnotationBase::Type::Text>
 		{
 		public:
-			AnnotationNote() : AnnotationBase() {}
+			AnnotationNote()
+			    : AnnotationBase()
+			{ }
 			DOCFILTERS_OBJECT_SERIALIZE_METHODS(AnnotationNote);
 
 			// Properties
@@ -3897,9 +4012,8 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, StateModel, std::wstring());
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Author, std::wstring());
 
-			static AnnotationNote CreateReply(const std::wstring& text
-				, const std::wstring& author = std::wstring()
-				, Flags flags = Flags::Print)
+			static AnnotationNote CreateReply(const std::wstring& text, const std::wstring& author = std::wstring(),
+			                                  Flags flags = Flags::Print)
 			{
 				AnnotationNote note;
 				note.setText(text);
@@ -3909,11 +4023,12 @@ namespace Hyland
 			}
 		};
 
-		class Annotation
-			: public AnnotationBase
+		class Annotation : public AnnotationBase
 		{
 		public:
-			Annotation(Type type = Type::Unknown) : AnnotationBase(type) {}
+			Annotation(Type type = Type::Unknown)
+			    : AnnotationBase(type)
+			{ }
 			static std::unique_ptr<Annotation> make(const IGR_Annotation& anno);
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(Annotation);
@@ -3934,9 +4049,7 @@ namespace Hyland
 			bool is_equal(const Annotation& other) const;
 		};
 
-		class AnnotationPopup
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Popup>
+		class AnnotationPopup : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Popup>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationPopup, AnnotationBase::Type::Popup);
@@ -3945,8 +4058,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(bool, Open, false);
 		};
 
-		class AnnotationAction
-			: public AnnotationBase
+		class AnnotationAction : public AnnotationBase
 		{
 		public:
 			enum class ActionType
@@ -3970,24 +4082,20 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Filename, std::wstring());
 		};
 
-		class AnnotationStickyNote
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Text>
+		class AnnotationStickyNote : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Text>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationStickyNote, AnnotationBase::Type::Text);
 
 			// Properties
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, State, std::wstring())
-				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, StateModel, std::wstring())
-				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Author, std::wstring())
-				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, IconName, std::wstring())
-				DOCFILTERS_ANNOTATION_PROPERTY(bool, Open, false)
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, StateModel, std::wstring())
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Author, std::wstring())
+			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, IconName, std::wstring())
+			DOCFILTERS_ANNOTATION_PROPERTY(bool, Open, false)
 		};
 
-		class AnnotationLink
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Link>
+		class AnnotationLink : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Link>
 
 		{
 		public:
@@ -4017,9 +4125,7 @@ namespace Hyland
 			}
 		};
 
-		class AnnotationFreeText
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Freetext>
+		class AnnotationFreeText : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Freetext>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationFreeText, AnnotationBase::Type::Freetext);
@@ -4028,9 +4134,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(AlignmentType, Alignment, AlignmentType::Left);
 		};
 
-		class AnnotationLine
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Line>
+		class AnnotationLine : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Line>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationLine, AnnotationBase::Type::Line);
@@ -4040,9 +4144,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
 		};
 
-		class AnnotationRectangle
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Rectangle>
+		class AnnotationRectangle : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Rectangle>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationRectangle, AnnotationBase::Type::Rectangle);
@@ -4053,9 +4155,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, RectDifferences, RectI32());
 		};
 
-		class AnnotationEllipse
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Ellipse>
+		class AnnotationEllipse : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Ellipse>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationEllipse, AnnotationBase::Type::Ellipse);
@@ -4065,9 +4165,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, RectDifferences, RectI32());
 		};
 
-		class AnnotationPolygon
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Polygon>
+		class AnnotationPolygon : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Polygon>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationPolygon, AnnotationBase::Type::Polygon);
@@ -4076,9 +4174,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
 		};
 
-		class AnnotationPolyline
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Polyline>
+		class AnnotationPolyline : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Polyline>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationPolyline, AnnotationBase::Type::Polyline);
@@ -4090,85 +4186,82 @@ namespace Hyland
 		class AnnotationMarkup : public Annotation
 		{
 		public:
-			AnnotationMarkup(Type type = Type::Unknown) : Annotation(type) {}
+			AnnotationMarkup(Type type = Type::Unknown)
+			    : Annotation(type)
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationMarkup)
 		};
 
 
-		class AnnotationHighlight
-			: public AnnotationMarkup
-			, public AnnotationTypeT<AnnotationBase::Type::Highlight>
+		class AnnotationHighlight : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Highlight>
 		{
 		public:
-			AnnotationHighlight() : AnnotationMarkup(Type::Highlight) {}
+			AnnotationHighlight()
+			    : AnnotationMarkup(Type::Highlight)
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationHighlight)
 		};
 
-		class AnnotationSquiggly
-			: public AnnotationMarkup
-			, public AnnotationTypeT<AnnotationBase::Type::Squiggly>
+		class AnnotationSquiggly : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Squiggly>
 		{
 		public:
-			AnnotationSquiggly() : AnnotationMarkup(Type::Squiggly) {}
+			AnnotationSquiggly()
+			    : AnnotationMarkup(Type::Squiggly)
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationSquiggly)
 		};
 
-		class AnnotationStrikeOut
-			: public AnnotationMarkup
-			, public AnnotationTypeT<AnnotationBase::Type::Strikeout>
+		class AnnotationStrikeOut : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Strikeout>
 		{
 		public:
-			AnnotationStrikeOut() : AnnotationMarkup(Type::Strikeout) {}
+			AnnotationStrikeOut()
+			    : AnnotationMarkup(Type::Strikeout)
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationStrikeOut)
 		};
 
-		class AnnotationUnderline
-			: public AnnotationMarkup
-			, public AnnotationTypeT<AnnotationBase::Type::Underline>
+		class AnnotationUnderline : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Underline>
 		{
 		public:
-			AnnotationUnderline() : AnnotationMarkup(Type::Underline) {}
+			AnnotationUnderline()
+			    : AnnotationMarkup(Type::Underline)
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationUnderline)
 		};
 
-		class AnnotationStamp
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Stamp>
+		class AnnotationStamp : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Stamp>
 		{
 		public:
-			AnnotationStamp() : Annotation(Type::Stamp) {}
+			AnnotationStamp()
+			    : Annotation(Type::Stamp)
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationStamp)
 		};
 
-		class AnnotationInk
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Ink>
+		class AnnotationInk : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Ink>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationInk, AnnotationBase::Type::Ink)
 
-				// Properties
-				DOCFILTERS_ANNOTATION_PROPERTY(std::vector<std::vector<Point>>, InkList, std::vector<std::vector<Point>>());
+			// Properties
+			DOCFILTERS_ANNOTATION_PROPERTY(std::vector<std::vector<Point>>, InkList, std::vector<std::vector<Point>>());
 		};
 
-		class AnnotationBarcode
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::Barcode>
+		class AnnotationBarcode : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Barcode>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationBarcode, AnnotationBase::Type::Barcode);
 
 			AnnotationBarcode(const std::wstring& subType)
-				: Annotation(Type::Barcode)
-				, m_SubType(subType)
-			{
-			}
+			    : Annotation(Type::Barcode)
+			    , m_SubType(subType)
+			{ }
 
 			// Properties
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, SubType, std::wstring());
@@ -4179,74 +4272,82 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(int, Margin, 0);
 		};
 
-		class AnnotationQrCode
-			: public AnnotationBarcode
+		class AnnotationQrCode : public AnnotationBarcode
 		{
 		public:
-			AnnotationQrCode() : AnnotationBarcode(L"qr") {}
+			AnnotationQrCode()
+			    : AnnotationBarcode(L"qr")
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationQrCode)
 		};
 
-		class AnnotationAztec
-			: public AnnotationBarcode
+		class AnnotationAztec : public AnnotationBarcode
 		{
 		public:
-			AnnotationAztec() : AnnotationBarcode(L"aztec") {}
+			AnnotationAztec()
+			    : AnnotationBarcode(L"aztec")
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationAztec)
 		};
 
-		class AnnotationDatamatrix
-			: public AnnotationBarcode
+		class AnnotationDatamatrix : public AnnotationBarcode
 		{
 		public:
-			AnnotationDatamatrix() : AnnotationBarcode(L"datamatrix") {}
+			AnnotationDatamatrix()
+			    : AnnotationBarcode(L"datamatrix")
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationDatamatrix)
 		};
 
-		class AnnotationPDF417
-			: public AnnotationBarcode
+		class AnnotationPDF417 : public AnnotationBarcode
 		{
 		public:
-			AnnotationPDF417() : AnnotationBarcode(L"pdf417") {}
+			AnnotationPDF417()
+			    : AnnotationBarcode(L"pdf417")
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationPDF417)
 		};
 
-		class AnnotationCode39
-			: public AnnotationBarcode
+		class AnnotationCode39 : public AnnotationBarcode
 		{
 		public:
-			AnnotationCode39() : AnnotationBarcode(L"code39") {}
+			AnnotationCode39()
+			    : AnnotationBarcode(L"code39")
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationCode39)
 		};
 
-		class AnnotationCode93
-			: public AnnotationBarcode
+		class AnnotationCode93 : public AnnotationBarcode
 		{
 		public:
-			AnnotationCode93() : AnnotationBarcode(L"code93") {}
+			AnnotationCode93()
+			    : AnnotationBarcode(L"code93")
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationCode93)
 		};
 
-		class AnnotationCode128
-			: public AnnotationBarcode
+		class AnnotationCode128 : public AnnotationBarcode
 		{
 		public:
-			AnnotationCode128() : AnnotationBarcode(L"code128") {}
+			AnnotationCode128()
+			    : AnnotationBarcode(L"code128")
+			{ }
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationCode128)
 		};
 
-		class AnnotationGS1_128
-			: public AnnotationBarcode
+		class AnnotationGS1_128 : public AnnotationBarcode
 		{
 		public:
-			AnnotationGS1_128() : AnnotationBarcode(L"gs1-128") {}
+			AnnotationGS1_128()
+			    : AnnotationBarcode(L"gs1-128")
+			{ }
 
 			using PartMap = std::map<std::wstring, std::wstring>;
 
@@ -4259,9 +4360,7 @@ namespace Hyland
 			DOCFILTERS_ANNOTATION_PROPERTY(PartMap, Parts, PartMap());
 		};
 
-		class AnnotationNamedDestination
-			: public Annotation
-			, public AnnotationTypeT<AnnotationBase::Type::NamedDestination>
+		class AnnotationNamedDestination : public Annotation, public AnnotationTypeT<AnnotationBase::Type::NamedDestination>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationNamedDestination, Type::NamedDestination);
@@ -4274,10 +4373,8 @@ namespace Hyland
 		}
 		inline std::ostream& operator<<(std::ostream& os, const Color& val)
 		{
-			return os << "{ "
-				<< static_cast<uint32_t>(val.r) << ","
-				<< static_cast<uint32_t>(val.g) << ","
-				<< static_cast<uint32_t>(val.b) << "}";
+			return os << "{ " << static_cast<uint32_t>(val.r) << "," << static_cast<uint32_t>(val.g) << "," << static_cast<uint32_t>(val.b)
+			          << "}";
 		}
 		inline std::ostream& operator<<(std::ostream& os, const Point& val)
 		{
@@ -4291,7 +4388,9 @@ namespace Hyland
 		{
 			return os << val.serialize();
 		}
-		template <typename T> inline std::ostream& operator<<(std::ostream& os, const std::optional<T>& val) {
+		template <typename T>
+		inline std::ostream& operator<<(std::ostream& os, const std::optional<T>& val)
+		{
 			if (val.has_value())
 				os << *val;
 			else

@@ -12,9 +12,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
-#include "DocFiltersCommon.h"
 #include "DocFiltersAnnotations.h"
+
+#include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 #include <iomanip>
 #include <sstream>
@@ -27,7 +28,8 @@ namespace Hyland
 	{
 		namespace
 		{
-			template <typename Str> Str normalize_json_name(const Str& name)
+			template <typename Str>
+			Str normalize_json_name(const Str& name)
 			{
 				if (name.empty())
 					return name;
@@ -101,16 +103,11 @@ namespace Hyland
 					m_state.top().first = false;
 				}
 			}
-		public:
-			JsonWriter()
-			{
-				m_dest.imbue(std::locale::classic());
-			}
 
-			std::string str() const
-			{
-				return m_dest.str();
-			}
+		public:
+			JsonWriter() { m_dest.imbue(std::locale::classic()); }
+
+			std::string str() const { return m_dest.str(); }
 
 			static std::string js_escape(const std::string& value)
 			{
@@ -120,26 +117,28 @@ namespace Hyland
 				{
 					switch (i)
 					{
-					case '\n':
-						retval += "\\n"; break;
-					case '\r':
-						retval += "\\r"; break;
-					case '\t':
-						retval += "\\t"; break;
-					case '\\':
-						retval += "\\\\"; break;
-					case '\"':
-						retval += "\\\""; break;
-					default:
-						retval += i;
+						case '\n':
+							retval += "\\n";
+							break;
+						case '\r':
+							retval += "\\r";
+							break;
+						case '\t':
+							retval += "\\t";
+							break;
+						case '\\':
+							retval += "\\\\";
+							break;
+						case '\"':
+							retval += "\\\"";
+							break;
+						default:
+							retval += i;
 					}
 				}
 				return retval;
 			}
-			static std::string js_escape(const std::wstring& value)
-			{
-				return js_escape(w_to_u8(value));
-			}
+			static std::string js_escape(const std::wstring& value) { return js_escape(w_to_u8(value)); }
 			JsonWriter& object_begin()
 			{
 				start_value();
@@ -168,10 +167,7 @@ namespace Hyland
 				pop_if(location_t::property);
 				return *this;
 			}
-			JsonWriter& key(const std::wstring& k)
-			{
-				return key(w_to_u8(k));
-			}
+			JsonWriter& key(const std::wstring& k) { return key(w_to_u8(k)); }
 			JsonWriter& key(const std::string& k)
 			{
 				ensure_top(location_t::object);
@@ -230,10 +226,7 @@ namespace Hyland
 				pop_if(location_t::property);
 				return *this;
 			}
-			JsonWriter& value(const std::wstring& k, const std::wstring& v)
-			{
-				return key(k).value(v);
-			}
+			JsonWriter& value(const std::wstring& k, const std::wstring& v) { return key(k).value(v); }
 		};
 
 		std::optional<std::wstring> AnnoBind::get_string(const std::wstring& name, size_t max_length) const
@@ -256,11 +249,9 @@ namespace Hyland
 
 			auto len = static_cast<IGR_LONG>(max_length);
 			std::vector<IGR_UCS2> buffer(max_length + 1);
-			if (IGR_Get_Page_Annotation_Str(&anno
-				, reinterpret_cast<const IGR_UCS2*>(w_to_u16(full_name).c_str())
-				, &len
-				, &buffer[0]
-				, &ecb) == IGR_OK && len > 0)
+			if (IGR_Get_Page_Annotation_Str(&anno, reinterpret_cast<const IGR_UCS2*>(w_to_u16(full_name).c_str()), &len, &buffer[0], &ecb)
+			        == IGR_OK
+			    && len > 0)
 			{
 				return std::optional<std::wstring>(u16_to_w(&buffer[0], len));
 			}
@@ -279,10 +270,7 @@ namespace Hyland
 
 			Error_Control_Block ecb = { 0 };
 			IGR_LONG res = 0;
-			if (IGR_Get_Page_Annotation_Long(&anno
-				, reinterpret_cast<const IGR_UCS2*>(w_to_u16(full_name).c_str())
-				, &res
-				, &ecb) == IGR_OK)
+			if (IGR_Get_Page_Annotation_Long(&anno, reinterpret_cast<const IGR_UCS2*>(w_to_u16(full_name).c_str()), &res, &ecb) == IGR_OK)
 			{
 				return res;
 			}
@@ -315,8 +303,7 @@ namespace Hyland
 		 * @return The extracted integral value.
 		 */
 		template <typename T>
-		typename std::enable_if<std::is_integral<T>::value, T>::type&
-			json_bind(const AnnoBind& src, const std::wstring& name, T& dest)
+		typename std::enable_if<std::is_integral<T>::value, T>::type& json_bind(const AnnoBind& src, const std::wstring& name, T& dest)
 		{
 			// Extract the value as a long integer and cast it to the desired integral getType.
 			dest = static_cast<T>(src.get_long(name, dest));
@@ -335,8 +322,8 @@ namespace Hyland
 		 * @return A reference to the destination variable containing the extracted floating-point value.
 		 */
 		template <typename T>
-		typename std::enable_if<std::is_floating_point<T>::value, T>::type&
-			json_bind(const AnnoBind& src, const std::wstring& name, T& dest)
+		typename std::enable_if<std::is_floating_point<T>::value, T>::type& json_bind(const AnnoBind& src, const std::wstring& name,
+		                                                                              T& dest)
 		{
 			// Extract the value as a double and cast it to the desired floating-point getType.
 			auto v = src.get_string(name);
@@ -447,7 +434,7 @@ namespace Hyland
 				dest = Color();
 				if (s.size() == rgb_length)
 				{
-					dest.a = 0xff; // NOLINT
+					dest.a = 0xff;                                                                    // NOLINT
 					dest.r = static_cast<uint8_t>(std::strtoul(s.substr(1, 2).c_str(), nullptr, 16)); // NOLINT
 					dest.g = static_cast<uint8_t>(std::strtoul(s.substr(3, 2).c_str(), nullptr, 16)); // NOLINT
 					dest.b = static_cast<uint8_t>(std::strtoul(s.substr(5, 2).c_str(), nullptr, 16)); // NOLINT
@@ -535,47 +522,57 @@ namespace Hyland
 		}
 
 		template <typename T, typename = void>
-		struct has_empty_method : std::false_type {};
+		struct has_empty_method : std::false_type
+		{
+		};
 
 		template <typename T>
-		struct has_empty_method<T, std::void_t<decltype(std::declval<T>().empty())>> : std::true_type {};
+		struct has_empty_method<T, std::void_t<decltype(std::declval<T>().empty())>> : std::true_type
+		{
+		};
 
 		template <typename T>
-		bool is_empty(const T& value) {
-			if constexpr (has_empty_method<T>::value) {
+		bool is_empty(const T& value)
+		{
+			if constexpr (has_empty_method<T>::value)
+			{
 				return value.empty();
 			}
-			else {
+			else
+			{
 				return false;
 			}
 		}
 
 		template <typename T>
-		bool is_empty(const std::shared_ptr<T>& value) {
+		bool is_empty(const std::shared_ptr<T>& value)
+		{
 			return !value || is_empty(*value);
 		}
 
 		template <typename T>
-		bool is_empty(const std::optional<T>& value) {
+		bool is_empty(const std::optional<T>& value)
+		{
 			return !value.has_value() || is_empty(*value);
 		}
 
 		template <typename Enum, size_t Size>
-		inline Enum string_to_enum(const std::optional<std::wstring>& value, std::pair<Enum, const char*> const (&mappings)[Size], Enum default_value, bool is_set = false)
+		inline Enum string_to_enum(const std::optional<std::wstring>& value, const std::pair<Enum, const char*> (&mappings)[Size],
+		                           Enum default_value, bool is_set = false)
 		{
-			auto compare = [ ] (const char* a, const char* b) -> bool
+			auto compare = [](const char* a, const char* b) -> bool
+			{
+				if (a == nullptr || b == nullptr)
+					return false;
+				for (; *a && *b; ++a, ++b)
 				{
-					if (a == nullptr || b == nullptr)
+					auto l = std::tolower(*a);
+					auto r = std::tolower(*b);
+					if (l != r)
 						return false;
-					for (; *a && *b; ++a, ++b)
-					{
-						auto l = std::tolower(*a);
-						auto r = std::tolower(*b);
-						if (l != r)
-							return false;
-					}
-					return *a == 0 && *b == 0;
-				};
+				}
+				return *a == 0 && *b == 0;
+			};
 
 			if (!value.has_value())
 				return default_value;
@@ -586,29 +583,22 @@ namespace Hyland
 
 			std::string v = w_to_u8(value.value());
 
-			(void) is_set;
+			(void)is_set;
 
-			auto it = std::find_if(std::begin(mappings), std::end(mappings),
-				[ v, compare ] (const std::pair<Enum, const char*>& ej_pair) -> bool
-				{
-					return ej_pair.second && compare(v.c_str(), ej_pair.second);
-				});
+			auto it
+			    = std::find_if(std::begin(mappings), std::end(mappings), [v, compare](const std::pair<Enum, const char*>& ej_pair) -> bool
+			                   { return ej_pair.second && compare(v.c_str(), ej_pair.second); });
 
-			return (it != std::end(mappings)
-				? it
-				: std::begin(mappings))->first;
+			return (it != std::end(mappings) ? it : std::begin(mappings))->first;
 		}
 
 		template <typename Enum, size_t Size>
-		JsonWriter& enum_to_json(JsonWriter& writer, Enum e, std::pair<Enum, const char*> const (&mappings)[Size], bool is_set)
+		JsonWriter& enum_to_json(JsonWriter& writer, Enum e, const std::pair<Enum, const char*> (&mappings)[Size], bool is_set)
 		{
 			if (!is_set)
 			{
 				auto it = std::find_if(std::begin(mappings), std::end(mappings),
-					[ e ] (const std::pair<Enum, const char*>& ej_pair) -> bool
-					{
-						return ej_pair.first == e;
-					});
+				                       [e](const std::pair<Enum, const char*>& ej_pair) -> bool { return ej_pair.first == e; });
 				if (it != std::end(mappings))
 				{
 					if (it->second == nullptr)
@@ -697,7 +687,8 @@ namespace Hyland
 			return writer;
 		}
 
-		template <> JsonWriter& json_write<Color>(JsonWriter& writer, const Color& value)
+		template <>
+		JsonWriter& json_write<Color>(JsonWriter& writer, const Color& value)
 		{
 			if (value.r == 0 && value.g == 0 && value.b == 0 && value.a == 0)
 				writer.value_null();
@@ -708,211 +699,251 @@ namespace Hyland
 				ss << "#" << std::hex << std::setfill('0');
 				if (value.a != 0xff) // NOLINT
 					ss << std::setw(2) << static_cast<int>(value.a);
-				ss << std::setw(2) << static_cast<int>(value.r)
-					<< std::setw(2) << static_cast<int>(value.g)
-					<< std::setw(2) << static_cast<int>(value.b);
+				ss << std::setw(2) << static_cast<int>(value.r) << std::setw(2) << static_cast<int>(value.g) << std::setw(2)
+				   << static_cast<int>(value.b);
 				writer.value(ss.str());
 			}
 			return writer;
 		}
 
-		template <> JsonWriter& json_write<Point>(JsonWriter& writer, const Point& value)
+		template <>
+		JsonWriter& json_write<Point>(JsonWriter& writer, const Point& value)
 		{
-			return writer.object_begin()
-				.key("x").value(value.x())
-				.key("y").value(value.y())
-				.object_end();
+			return writer.object_begin().key("x").value(value.x()).key("y").value(value.y()).object_end();
 		}
 
-		template <> JsonWriter& json_write<RectUI32>(JsonWriter& writer, const RectUI32& value)
+		template <>
+		JsonWriter& json_write<RectUI32>(JsonWriter& writer, const RectUI32& value)
 		{
 			return writer.object_begin()
-				.key("left").value(static_cast<uint32_t>(value.left))
-				.key("top").value(static_cast<uint32_t>(value.top))
-				.key("right").value(static_cast<uint32_t>(value.right))
-				.key("bottom").value(static_cast<uint32_t>(value.bottom))
-				.object_end();
+			    .key("left")
+			    .value(static_cast<uint32_t>(value.left))
+			    .key("top")
+			    .value(static_cast<uint32_t>(value.top))
+			    .key("right")
+			    .value(static_cast<uint32_t>(value.right))
+			    .key("bottom")
+			    .value(static_cast<uint32_t>(value.bottom))
+			    .object_end();
 		}
 
-		template <> JsonWriter& json_write<RectI32>(JsonWriter& writer, const RectI32& value)
+		template <>
+		JsonWriter& json_write<RectI32>(JsonWriter& writer, const RectI32& value)
 		{
 			return writer.object_begin()
-				.key("left").value(static_cast<int>(value.left))
-				.key("top").value(static_cast<int>(value.top))
-				.key("right").value(static_cast<int>(value.right))
-				.key("bottom").value(static_cast<int>(value.bottom))
-				.object_end();
+			    .key("left")
+			    .value(static_cast<int>(value.left))
+			    .key("top")
+			    .value(static_cast<int>(value.top))
+			    .key("right")
+			    .value(static_cast<int>(value.right))
+			    .key("bottom")
+			    .value(static_cast<int>(value.bottom))
+			    .object_end();
 		}
 
-		template <> JsonWriter& json_write<DateTime>(JsonWriter& writer, const DateTime& value)
+		template <>
+		JsonWriter& json_write<DateTime>(JsonWriter& writer, const DateTime& value)
 		{
 			return writer.value(value.ToIsoString());
 		}
 
 #ifdef _MSC_VER
-#define WSTR(S) L##S
+#	define WSTR(S) L##S
 #else
-#define WSTR(S) L ## S
+#	define WSTR(S) L##S
 #endif
 
 
 #define DOCFILTERS_ENUM_SERIALIZABLE_SET(ENUM_TYPE, ...) \
-	inline ENUM_TYPE& json_bind(const AnnoBind& src, const std::wstring& name, ENUM_TYPE& e) { \
-		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__;                         \
-		return e = string_to_enum<ENUM_TYPE>(src.get_string(name), m, e, true) ;                  \
-	}                                                                                             \
-	inline JsonWriter& json_write(JsonWriter& writer, ENUM_TYPE e) {                            \
-		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__;                         \
-		return enum_to_json(writer, e, m, true);                                                  \
+	inline ENUM_TYPE& json_bind(const AnnoBind& src, const std::wstring& name, ENUM_TYPE& e) \
+	{ \
+		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__; \
+		return e = string_to_enum<ENUM_TYPE>(src.get_string(name), m, e, true); \
+	} \
+	inline JsonWriter& json_write(JsonWriter& writer, ENUM_TYPE e) \
+	{ \
+		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__; \
+		return enum_to_json(writer, e, m, true); \
 	}
 
-#define DOCFILTERS_ENUM_SERIALIZABLE(ENUM_TYPE, ...)  \
-	inline ENUM_TYPE& json_bind(const AnnoBind& src, const std::wstring& name, ENUM_TYPE& e) { \
-		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__;                         \
-		return e = string_to_enum<ENUM_TYPE>(src.get_string(name), m, e, false);                  \
-	}                                                                                             \
-	inline JsonWriter& json_write(JsonWriter& writer, ENUM_TYPE e) {                            \
-		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__;                         \
-		return enum_to_json(writer, e, m, false);                                                 \
+#define DOCFILTERS_ENUM_SERIALIZABLE(ENUM_TYPE, ...) \
+	inline ENUM_TYPE& json_bind(const AnnoBind& src, const std::wstring& name, ENUM_TYPE& e) \
+	{ \
+		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__; \
+		return e = string_to_enum<ENUM_TYPE>(src.get_string(name), m, e, false); \
+	} \
+	inline JsonWriter& json_write(JsonWriter& writer, ENUM_TYPE e) \
+	{ \
+		static const std::pair<ENUM_TYPE, const char*> m[] = __VA_ARGS__; \
+		return enum_to_json(writer, e, m, false); \
 	}
 
-#define DOCFILTERS_JSON_TO(prop) if (!is_empty(src.get##prop())) { writer.key(normalize_json_name<std::string>(#prop)); json_write(writer, src.get##prop()); }
-#define DOCFILTERS_JSON_FROM(prop) json_bind(obj, normalize_json_name<std::wstring>(WSTR(#prop)), dest.get##prop());
+#define DOCFILTERS_JSON_TO(prop) \
+	if (!is_empty(src.get##prop())) \
+	{ \
+		writer.key(normalize_json_name<std::string>(#prop)); \
+		json_write(writer, src.get##prop()); \
+	}
+#define DOCFILTERS_JSON_FROM(prop)    json_bind(obj, normalize_json_name<std::wstring>(WSTR(#prop)), dest.get##prop());
 #define DOCFILTERS_JSON_COMPARE(prop) result &= json_equal(get##prop(), other.get##prop());
 
-#define DOCFILTERS_SERIALIZABLE_OBJECT(Type, Base, ...)  \
-    Type& json_bind(const AnnoBind& src, const std::wstring& name, Type& dest) { \
+#define DOCFILTERS_SERIALIZABLE_OBJECT(Type, Base, ...) \
+	Type& json_bind(const AnnoBind& src, const std::wstring& name, Type& dest) \
+	{ \
 		json_bind(src, name, static_cast<Base&>(dest)); \
 		AnnoBind obj = src.inner(name); \
-		DOCFILTERS_JSON_EXPAND(DOCFILTERS_JSON_PASTE(DOCFILTERS_JSON_FROM, __VA_ARGS__)) return dest; } \
-	JsonWriter& json_write_props(JsonWriter& writer, const Type& src) { \
+		DOCFILTERS_JSON_EXPAND(DOCFILTERS_JSON_PASTE(DOCFILTERS_JSON_FROM, __VA_ARGS__)) return dest; \
+	} \
+	JsonWriter& json_write_props(JsonWriter& writer, const Type& src) \
+	{ \
 		json_write_props(writer, static_cast<const Base&>(src)); \
 		DOCFILTERS_JSON_EXPAND(DOCFILTERS_JSON_PASTE(DOCFILTERS_JSON_TO, __VA_ARGS__)) \
-		return writer; } \
-	JsonWriter& json_write(JsonWriter& writer, const Type& src) { \
+		return writer; \
+	} \
+	JsonWriter& json_write(JsonWriter& writer, const Type& src) \
+	{ \
 		writer.object_begin(); \
 		json_write_props(writer, src); \
-		writer.object_end();\
-		return writer; } \
-	std::string Type::serialize() const { \
+		writer.object_end(); \
+		return writer; \
+	} \
+	std::string Type::serialize() const \
+	{ \
 		JsonWriter writer; \
 		json_write(writer, *this); \
-		return writer.str(); } \
-	bool Type::operator==(const Type& other) const { \
+		return writer.str(); \
+	} \
+	bool Type::operator==(const Type& other) const \
+	{ \
 		bool result = Base::operator==(static_cast<const Base&>(other)); \
-		DOCFILTERS_JSON_EXPAND(DOCFILTERS_JSON_PASTE(DOCFILTERS_JSON_COMPARE, __VA_ARGS__)) return result; } \
+		DOCFILTERS_JSON_EXPAND(DOCFILTERS_JSON_PASTE(DOCFILTERS_JSON_COMPARE, __VA_ARGS__)) return result; \
+	}
 
 #define DOCFILTERS_SERIALIZABLE_ANNOTATION(Type, Base, ...) \
 	DOCFILTERS_SERIALIZABLE_OBJECT(Type, Base, __VA_ARGS__) \
-	void Type::bind(const IGR_Annotation& anno) { json_bind({anno}, std::wstring(), *this); } 
+	void Type::bind(const IGR_Annotation& anno) \
+	{ \
+		json_bind({ anno }, std::wstring(), *this); \
+	}
 
-#define DOCFILTERS_SERIALIZABLE_ANNOTATION_EMPTY(Type, Base)  \
-    Type& json_bind(const AnnoBind& src, const std::wstring& name, Type& dest) { \
+#define DOCFILTERS_SERIALIZABLE_ANNOTATION_EMPTY(Type, Base) \
+	Type& json_bind(const AnnoBind& src, const std::wstring& name, Type& dest) \
+	{ \
 		json_bind(src, name, static_cast<Base&>(dest)); \
-		return dest; } \
-	JsonWriter& json_write_props(JsonWriter& writer, const Type& src) { \
+		return dest; \
+	} \
+	JsonWriter& json_write_props(JsonWriter& writer, const Type& src) \
+	{ \
 		json_write_props(writer, static_cast<const Base&>(src)); \
-		return writer; } \
-	JsonWriter& json_write(JsonWriter& writer, const Type& src) { \
+		return writer; \
+	} \
+	JsonWriter& json_write(JsonWriter& writer, const Type& src) \
+	{ \
 		writer.object_begin(); \
 		json_write_props(writer, static_cast<const Base&>(src)); \
-		writer.object_end();\
-		return writer; } \
-	std::string Type::serialize() const { \
+		writer.object_end(); \
+		return writer; \
+	} \
+	std::string Type::serialize() const \
+	{ \
 		JsonWriter writer; \
 		json_write(writer, *this); \
-		return writer.str(); } \
-	void Type::bind(const IGR_Annotation& anno) { json_bind({anno}, std::wstring(), *this); } \
-	bool Type::operator==(const Type& other) const { \
-		return Base::operator==(static_cast<const Base&>(other)); }
+		return writer.str(); \
+	} \
+	void Type::bind(const IGR_Annotation& anno) \
+	{ \
+		json_bind({ anno }, std::wstring(), *this); \
+	} \
+	bool Type::operator==(const Type& other) const \
+	{ \
+		return Base::operator==(static_cast<const Base&>(other)); \
+	}
 
 
-		DOCFILTERS_ENUM_SERIALIZABLE_SET(AnnotationBase::Flags, {
-			{ AnnotationBase::Flags::None, "none" },
-			{ AnnotationBase::Flags::Invisible, "invisible" },
-			{ AnnotationBase::Flags::Hidden, "hidden" },
-			{ AnnotationBase::Flags::Print, "print" },
-			{ AnnotationBase::Flags::NoZoom, "noZoom" },
-			{ AnnotationBase::Flags::NoRotate, "noRotate" },
-			{ AnnotationBase::Flags::NoView, "noView" },
-			{ AnnotationBase::Flags::ReadOnly, "readOnly" },
-			{ AnnotationBase::Flags::Locked, "locked" },
-			{ AnnotationBase::Flags::ToogleNoView, "toggleNoView" },
-			{ AnnotationBase::Flags::LockedContents, "lockedContents" },
-			});
-		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::Type, {
-			{ AnnotationBase::Type::Unknown, "unknown" },
-			{ AnnotationBase::Type::Text, "text" },
-			{ AnnotationBase::Type::Link, "link" },
-			{ AnnotationBase::Type::Freetext, "freetext" },
-			{ AnnotationBase::Type::Line, "line" },
-			{ AnnotationBase::Type::Rectangle, "rectangle" },
-			{ AnnotationBase::Type::Ellipse, "ellipse" },
-			{ AnnotationBase::Type::Polygon, "polygon" },
-			{ AnnotationBase::Type::Polyline, "polyline" },
-			{ AnnotationBase::Type::Highlight, "highlight" },
-			{ AnnotationBase::Type::Underline, "underline" },
-			{ AnnotationBase::Type::Squiggly, "squiggly" },
-			{ AnnotationBase::Type::Strikeout, "strikeout" },
-			{ AnnotationBase::Type::Stamp, "stamp" },
-			{ AnnotationBase::Type::Caret, "caret" },
-			{ AnnotationBase::Type::Ink, "ink" },
-			{ AnnotationBase::Type::Popup, "popup" },
-			{ AnnotationBase::Type::FileAttachment, "fileAttachment" },
-			{ AnnotationBase::Type::Sound, "sound" },
-			{ AnnotationBase::Type::Movie, "movie" },
-			{ AnnotationBase::Type::Widget, "widget" },
-			{ AnnotationBase::Type::Screen, "screen" },
-			{ AnnotationBase::Type::Printermark, "printermark" },
-			{ AnnotationBase::Type::Trapnet, "trapnet" },
-			{ AnnotationBase::Type::Watermark, "watermark" },
-			{ AnnotationBase::Type::ThreeD, "three_d" },
-			{ AnnotationBase::Type::Barcode, "barcode" },
-			{ AnnotationBase::Type::NamedDestination, "namedDestination" },
-			{ AnnotationBase::Type::Rectangle, "square" },
-			{ AnnotationBase::Type::Ellipse, "circle" },
-			});
-		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::BorderStyleType, {
-			{AnnotationBase::BorderStyleType::Unknown, "unknown"},
-			{AnnotationBase::BorderStyleType::Solid, "solid"},
-			{AnnotationBase::BorderStyleType::Dashed, "dashed"},
-			{AnnotationBase::BorderStyleType::Beveled, "beveled"},
-			{AnnotationBase::BorderStyleType::Inset, "inset"},
-			{AnnotationBase::BorderStyleType::Underline, "underline"},
-			{AnnotationBase::BorderStyleType::RightOpenArrow, "right_open_arrow"},
-			{AnnotationBase::BorderStyleType::RightClosedArrow, "right_closed_arrow"},
-			{AnnotationBase::BorderStyleType::Slash, "slash"}
-			});
-		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::LineEndingType, {
-			{AnnotationBase::LineEndingType::None, "none"},
-			{AnnotationBase::LineEndingType::Square, "square"},
-			{AnnotationBase::LineEndingType::Circle, "circle"},
-			{AnnotationBase::LineEndingType::Diamond, "diamond"},
-			{AnnotationBase::LineEndingType::OpenArrow, "openArrow"},
-			{AnnotationBase::LineEndingType::ClosedArrow, "closedArrow"},
-			{AnnotationBase::LineEndingType::Butt, "butt"},
-			{AnnotationBase::LineEndingType::RightOpenArrow, "rightOpenArrow"},
-			{AnnotationBase::LineEndingType::RightClosedArrow, "rightClosedArrow"},
-			{AnnotationBase::LineEndingType::Slash, "slash"}
-			});
-		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::AlignmentType, {
-			{AnnotationBase::AlignmentType::Left, "left"},
-			{AnnotationBase::AlignmentType::Center, "center"},
-			{AnnotationBase::AlignmentType::Right, "right"}
-			});
-		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationLink::HighlightType, {
-			{ AnnotationLink::HighlightType::None, "none" },
-			{ AnnotationLink::HighlightType::Invert, "invert" },
-			{ AnnotationLink::HighlightType::Outline, "outline" },
-			{ AnnotationLink::HighlightType::Push, "push" }
-			});
-		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationAction::ActionType, {
-			{ AnnotationAction::ActionType::Unknown, nullptr },
-			{ AnnotationAction::ActionType::GoTo, "GoTo" },
-			{ AnnotationAction::ActionType::Uri, "URI" },
-			{ AnnotationAction::ActionType::GoToRemote, "GoToR" },
-			{ AnnotationAction::ActionType::Named, "Named"}
-			});
+		DOCFILTERS_ENUM_SERIALIZABLE_SET(AnnotationBase::Flags,
+		                                 {
+		                                     { AnnotationBase::Flags::None, "none" },
+		                                     { AnnotationBase::Flags::Invisible, "invisible" },
+		                                     { AnnotationBase::Flags::Hidden, "hidden" },
+		                                     { AnnotationBase::Flags::Print, "print" },
+		                                     { AnnotationBase::Flags::NoZoom, "noZoom" },
+		                                     { AnnotationBase::Flags::NoRotate, "noRotate" },
+		                                     { AnnotationBase::Flags::NoView, "noView" },
+		                                     { AnnotationBase::Flags::ReadOnly, "readOnly" },
+		                                     { AnnotationBase::Flags::Locked, "locked" },
+		                                     { AnnotationBase::Flags::ToogleNoView, "toggleNoView" },
+		                                     { AnnotationBase::Flags::LockedContents, "lockedContents" },
+		                                 });
+		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::Type,
+		                             {
+		                                 { AnnotationBase::Type::Unknown, "unknown" },
+		                                 { AnnotationBase::Type::Text, "text" },
+		                                 { AnnotationBase::Type::Link, "link" },
+		                                 { AnnotationBase::Type::Freetext, "freetext" },
+		                                 { AnnotationBase::Type::Line, "line" },
+		                                 { AnnotationBase::Type::Rectangle, "rectangle" },
+		                                 { AnnotationBase::Type::Ellipse, "ellipse" },
+		                                 { AnnotationBase::Type::Polygon, "polygon" },
+		                                 { AnnotationBase::Type::Polyline, "polyline" },
+		                                 { AnnotationBase::Type::Highlight, "highlight" },
+		                                 { AnnotationBase::Type::Underline, "underline" },
+		                                 { AnnotationBase::Type::Squiggly, "squiggly" },
+		                                 { AnnotationBase::Type::Strikeout, "strikeout" },
+		                                 { AnnotationBase::Type::Stamp, "stamp" },
+		                                 { AnnotationBase::Type::Caret, "caret" },
+		                                 { AnnotationBase::Type::Ink, "ink" },
+		                                 { AnnotationBase::Type::Popup, "popup" },
+		                                 { AnnotationBase::Type::FileAttachment, "fileAttachment" },
+		                                 { AnnotationBase::Type::Sound, "sound" },
+		                                 { AnnotationBase::Type::Movie, "movie" },
+		                                 { AnnotationBase::Type::Widget, "widget" },
+		                                 { AnnotationBase::Type::Screen, "screen" },
+		                                 { AnnotationBase::Type::Printermark, "printermark" },
+		                                 { AnnotationBase::Type::Trapnet, "trapnet" },
+		                                 { AnnotationBase::Type::Watermark, "watermark" },
+		                                 { AnnotationBase::Type::ThreeD, "three_d" },
+		                                 { AnnotationBase::Type::Barcode, "barcode" },
+		                                 { AnnotationBase::Type::NamedDestination, "namedDestination" },
+		                                 { AnnotationBase::Type::Rectangle, "square" },
+		                                 { AnnotationBase::Type::Ellipse, "circle" },
+		                             });
+		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::BorderStyleType,
+		                             { { AnnotationBase::BorderStyleType::Unknown, "unknown" },
+		                               { AnnotationBase::BorderStyleType::Solid, "solid" },
+		                               { AnnotationBase::BorderStyleType::Dashed, "dashed" },
+		                               { AnnotationBase::BorderStyleType::Beveled, "beveled" },
+		                               { AnnotationBase::BorderStyleType::Inset, "inset" },
+		                               { AnnotationBase::BorderStyleType::Underline, "underline" },
+		                               { AnnotationBase::BorderStyleType::RightOpenArrow, "right_open_arrow" },
+		                               { AnnotationBase::BorderStyleType::RightClosedArrow, "right_closed_arrow" },
+		                               { AnnotationBase::BorderStyleType::Slash, "slash" } });
+		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::LineEndingType,
+		                             { { AnnotationBase::LineEndingType::None, "none" },
+		                               { AnnotationBase::LineEndingType::Square, "square" },
+		                               { AnnotationBase::LineEndingType::Circle, "circle" },
+		                               { AnnotationBase::LineEndingType::Diamond, "diamond" },
+		                               { AnnotationBase::LineEndingType::OpenArrow, "openArrow" },
+		                               { AnnotationBase::LineEndingType::ClosedArrow, "closedArrow" },
+		                               { AnnotationBase::LineEndingType::Butt, "butt" },
+		                               { AnnotationBase::LineEndingType::RightOpenArrow, "rightOpenArrow" },
+		                               { AnnotationBase::LineEndingType::RightClosedArrow, "rightClosedArrow" },
+		                               { AnnotationBase::LineEndingType::Slash, "slash" } });
+		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationBase::AlignmentType,
+		                             { { AnnotationBase::AlignmentType::Left, "left" },
+		                               { AnnotationBase::AlignmentType::Center, "center" },
+		                               { AnnotationBase::AlignmentType::Right, "right" } });
+		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationLink::HighlightType,
+		                             { { AnnotationLink::HighlightType::None, "none" },
+		                               { AnnotationLink::HighlightType::Invert, "invert" },
+		                               { AnnotationLink::HighlightType::Outline, "outline" },
+		                               { AnnotationLink::HighlightType::Push, "push" } });
+		DOCFILTERS_ENUM_SERIALIZABLE(AnnotationAction::ActionType,
+		                             { { AnnotationAction::ActionType::Unknown, nullptr },
+		                               { AnnotationAction::ActionType::GoTo, "GoTo" },
+		                               { AnnotationAction::ActionType::Uri, "URI" },
+		                               { AnnotationAction::ActionType::GoToRemote, "GoToR" },
+		                               { AnnotationAction::ActionType::Named, "Named" } });
 
 		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::AppearanceStream, AnnotationSerializable, Content, ContentType, Encoding);
 		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationBase::AppearanceStreams, AnnotationSerializable, Normal, Rollover, Down);
@@ -923,7 +954,8 @@ namespace Hyland
 
 		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationAction, AnnotationSerializable, NewWindow, Type, Page, Uri, Name, Zoom, Rect, Filename);
 		DOCFILTERS_SERIALIZABLE_OBJECT(AnnotationNote, AnnotationBase, State, StateModel, Author);
-		DOCFILTERS_SERIALIZABLE_ANNOTATION(Annotation, AnnotationBase, Subject, Title, Intent, Opacity, DateCreated, DefaultAppearance, Popup, Replies, Appearance, Points);
+		DOCFILTERS_SERIALIZABLE_ANNOTATION(Annotation, AnnotationBase, Subject, Title, Intent, Opacity, DateCreated, DefaultAppearance,
+		                                   Popup, Replies, Appearance, Points);
 		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationPopup, AnnotationBase, Open);
 		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationStickyNote, Annotation, IconName, Open, Author, State, StateModel);
 		DOCFILTERS_SERIALIZABLE_ANNOTATION(AnnotationLink, Annotation, Highlight, Action);
@@ -956,59 +988,61 @@ namespace Hyland
 
 		std::unique_ptr<Annotation> Annotation::make(const IGR_Annotation& anno)
 		{
-			auto create = [ anno ] () -> std::unique_ptr<Annotation> {
+			auto create = [anno]() -> std::unique_ptr<Annotation>
+			{
 				switch (anno.type)
 				{
-				case IGR_ANNOTATION_TEXT:
-					return std::make_unique<AnnotationStickyNote>();
-				case IGR_ANNOTATION_POPUP:
-					return std::make_unique<AnnotationPopup>();
-				case IGR_ANNOTATION_LINK:
-					return std::make_unique<AnnotationLink>();
-				case IGR_ANNOTATION_FREETEXT:
-					return std::make_unique<AnnotationFreeText>();
-				case IGR_ANNOTATION_LINE:
-					return std::make_unique<AnnotationLine>();
-				case IGR_ANNOTATION_SQUARE:
-					return std::make_unique<AnnotationRectangle>();
-				case IGR_ANNOTATION_CIRCLE:
-					return std::make_unique<AnnotationEllipse>();
-				case IGR_ANNOTATION_POLYGON:
-					return std::make_unique<AnnotationPolygon>();
-				case IGR_ANNOTATION_POLYLINE:
-					return std::make_unique<AnnotationPolyline>();
-				case IGR_ANNOTATION_HIGHLIGHT:
-					return std::make_unique<AnnotationHighlight>();
-				case IGR_ANNOTATION_UNDERLINE:
-					return std::make_unique<AnnotationUnderline>();
-				case IGR_ANNOTATION_SQUIGGLE:
-					return std::make_unique<AnnotationSquiggly>();
-				case IGR_ANNOTATION_STRIKEOUT:
-					return std::make_unique<AnnotationStrikeOut>();
-				case IGR_ANNOTATION_STAMP:
-					return std::make_unique<AnnotationStamp>();
-				case IGR_ANNOTATION_INK:
-					return std::make_unique<AnnotationInk>();
-				case IGR_ANNOTATION_BARCODE:
-					return std::make_unique<AnnotationBarcode>();
-				case IGR_ANNOTATION_NAMED_DESTINATION:
-					return std::make_unique<AnnotationNamedDestination>();
+					case IGR_ANNOTATION_TEXT:
+						return std::make_unique<AnnotationStickyNote>();
+					case IGR_ANNOTATION_POPUP:
+						return std::make_unique<AnnotationPopup>();
+					case IGR_ANNOTATION_LINK:
+						return std::make_unique<AnnotationLink>();
+					case IGR_ANNOTATION_FREETEXT:
+						return std::make_unique<AnnotationFreeText>();
+					case IGR_ANNOTATION_LINE:
+						return std::make_unique<AnnotationLine>();
+					case IGR_ANNOTATION_SQUARE:
+						return std::make_unique<AnnotationRectangle>();
+					case IGR_ANNOTATION_CIRCLE:
+						return std::make_unique<AnnotationEllipse>();
+					case IGR_ANNOTATION_POLYGON:
+						return std::make_unique<AnnotationPolygon>();
+					case IGR_ANNOTATION_POLYLINE:
+						return std::make_unique<AnnotationPolyline>();
+					case IGR_ANNOTATION_HIGHLIGHT:
+						return std::make_unique<AnnotationHighlight>();
+					case IGR_ANNOTATION_UNDERLINE:
+						return std::make_unique<AnnotationUnderline>();
+					case IGR_ANNOTATION_SQUIGGLE:
+						return std::make_unique<AnnotationSquiggly>();
+					case IGR_ANNOTATION_STRIKEOUT:
+						return std::make_unique<AnnotationStrikeOut>();
+					case IGR_ANNOTATION_STAMP:
+						return std::make_unique<AnnotationStamp>();
+					case IGR_ANNOTATION_INK:
+						return std::make_unique<AnnotationInk>();
+					case IGR_ANNOTATION_BARCODE:
+						return std::make_unique<AnnotationBarcode>();
+					case IGR_ANNOTATION_NAMED_DESTINATION:
+						return std::make_unique<AnnotationNamedDestination>();
 
-					// No mappings...				
-				case IGR_ANNOTATION_CARET:
-				case IGR_ANNOTATION_FILEATTACHMENT:
-				case IGR_ANNOTATION_SOUND:
-				case IGR_ANNOTATION_MOVIE:
-				case IGR_ANNOTATION_WIDGET:
-				case IGR_ANNOTATION_SCREEN:
-				case IGR_ANNOTATION_PRINTERMARK:
-				case IGR_ANNOTATION_TRAPNET:
-				case IGR_ANNOTATION_WATERMARK:
-				case IGR_ANNOTATION_3D:
-				case IGR_ANNOTATION_UNKNOWN:
-				default:
-					return std::make_unique<Annotation>();
-				}};
+						// No mappings...
+					case IGR_ANNOTATION_CARET:
+					case IGR_ANNOTATION_FILEATTACHMENT:
+					case IGR_ANNOTATION_SOUND:
+					case IGR_ANNOTATION_MOVIE:
+					case IGR_ANNOTATION_WIDGET:
+					case IGR_ANNOTATION_SCREEN:
+					case IGR_ANNOTATION_PRINTERMARK:
+					case IGR_ANNOTATION_TRAPNET:
+					case IGR_ANNOTATION_WATERMARK:
+					case IGR_ANNOTATION_3D:
+					case IGR_ANNOTATION_UNKNOWN:
+					default:
+						return std::make_unique<Annotation>();
+				}
+			};
 			auto res = create();
 			res->bind(anno);
 			return res;
@@ -1028,44 +1062,43 @@ namespace Hyland
 
 			switch (a.type)
 			{
-			case AnnotationPopup::AnnoType:
-				return dynamic_cast<const AnnotationPopup&>(a) == dynamic_cast<const AnnotationPopup&>(b);
-			case AnnotationLink::AnnoType:
-				return dynamic_cast<const AnnotationLink&>(a) == dynamic_cast<const AnnotationLink&>(b);
-			case AnnotationStickyNote::AnnoType:
-				return dynamic_cast<const AnnotationStickyNote&>(a) == dynamic_cast<const AnnotationStickyNote&>(b);
-			case AnnotationFreeText::AnnoType:
-				return dynamic_cast<const AnnotationFreeText&>(a) == dynamic_cast<const AnnotationFreeText&>(b);
-			case AnnotationLine::AnnoType:
-				return dynamic_cast<const AnnotationLine&>(a) == dynamic_cast<const AnnotationLine&>(b);
-			case AnnotationRectangle::AnnoType:
-				return dynamic_cast<const AnnotationRectangle&>(a) == dynamic_cast<const AnnotationRectangle&>(b);
-			case AnnotationEllipse::AnnoType:
-				return dynamic_cast<const AnnotationEllipse&>(a) == dynamic_cast<const AnnotationEllipse&>(b);
-			case AnnotationPolygon::AnnoType:
-				return dynamic_cast<const AnnotationPolygon&>(a) == dynamic_cast<const AnnotationPolygon&>(b);
-			case AnnotationPolyline::AnnoType:
-				return dynamic_cast<const AnnotationPolyline&>(a) == dynamic_cast<const AnnotationPolyline&>(b);
-			case AnnotationHighlight::AnnoType:
-				return dynamic_cast<const AnnotationHighlight&>(a) == dynamic_cast<const AnnotationHighlight&>(b);
-			case AnnotationUnderline::AnnoType:
-				return dynamic_cast<const AnnotationUnderline&>(a) == dynamic_cast<const AnnotationUnderline&>(b);
-			case AnnotationSquiggly::AnnoType:
-				return dynamic_cast<const AnnotationSquiggly&>(a) == dynamic_cast<const AnnotationSquiggly&>(b);
-			case AnnotationStrikeOut::AnnoType:
-				return dynamic_cast<const AnnotationStrikeOut&>(a) == dynamic_cast<const AnnotationStrikeOut&>(b);
-			case AnnotationStamp::AnnoType:
-				return dynamic_cast<const AnnotationStamp&>(a) == dynamic_cast<const AnnotationStamp&>(b);
-			case AnnotationInk::AnnoType:
-				return dynamic_cast<const AnnotationInk&>(a) == dynamic_cast<const AnnotationInk&>(b);
-			case AnnotationBarcode::AnnoType:
-				return dynamic_cast<const AnnotationBarcode&>(a) == dynamic_cast<const AnnotationBarcode&>(b);
-			case AnnotationNamedDestination::AnnoType:
-				return dynamic_cast<const AnnotationNamedDestination&>(a) == dynamic_cast<const AnnotationNamedDestination&>(b);
-			default:
-				return dynamic_cast<const Annotation&>(a) == dynamic_cast<const Annotation&>(b);
+				case AnnotationPopup::AnnoType:
+					return dynamic_cast<const AnnotationPopup&>(a) == dynamic_cast<const AnnotationPopup&>(b);
+				case AnnotationLink::AnnoType:
+					return dynamic_cast<const AnnotationLink&>(a) == dynamic_cast<const AnnotationLink&>(b);
+				case AnnotationStickyNote::AnnoType:
+					return dynamic_cast<const AnnotationStickyNote&>(a) == dynamic_cast<const AnnotationStickyNote&>(b);
+				case AnnotationFreeText::AnnoType:
+					return dynamic_cast<const AnnotationFreeText&>(a) == dynamic_cast<const AnnotationFreeText&>(b);
+				case AnnotationLine::AnnoType:
+					return dynamic_cast<const AnnotationLine&>(a) == dynamic_cast<const AnnotationLine&>(b);
+				case AnnotationRectangle::AnnoType:
+					return dynamic_cast<const AnnotationRectangle&>(a) == dynamic_cast<const AnnotationRectangle&>(b);
+				case AnnotationEllipse::AnnoType:
+					return dynamic_cast<const AnnotationEllipse&>(a) == dynamic_cast<const AnnotationEllipse&>(b);
+				case AnnotationPolygon::AnnoType:
+					return dynamic_cast<const AnnotationPolygon&>(a) == dynamic_cast<const AnnotationPolygon&>(b);
+				case AnnotationPolyline::AnnoType:
+					return dynamic_cast<const AnnotationPolyline&>(a) == dynamic_cast<const AnnotationPolyline&>(b);
+				case AnnotationHighlight::AnnoType:
+					return dynamic_cast<const AnnotationHighlight&>(a) == dynamic_cast<const AnnotationHighlight&>(b);
+				case AnnotationUnderline::AnnoType:
+					return dynamic_cast<const AnnotationUnderline&>(a) == dynamic_cast<const AnnotationUnderline&>(b);
+				case AnnotationSquiggly::AnnoType:
+					return dynamic_cast<const AnnotationSquiggly&>(a) == dynamic_cast<const AnnotationSquiggly&>(b);
+				case AnnotationStrikeOut::AnnoType:
+					return dynamic_cast<const AnnotationStrikeOut&>(a) == dynamic_cast<const AnnotationStrikeOut&>(b);
+				case AnnotationStamp::AnnoType:
+					return dynamic_cast<const AnnotationStamp&>(a) == dynamic_cast<const AnnotationStamp&>(b);
+				case AnnotationInk::AnnoType:
+					return dynamic_cast<const AnnotationInk&>(a) == dynamic_cast<const AnnotationInk&>(b);
+				case AnnotationBarcode::AnnoType:
+					return dynamic_cast<const AnnotationBarcode&>(a) == dynamic_cast<const AnnotationBarcode&>(b);
+				case AnnotationNamedDestination::AnnoType:
+					return dynamic_cast<const AnnotationNamedDestination&>(a) == dynamic_cast<const AnnotationNamedDestination&>(b);
+				default:
+					return dynamic_cast<const Annotation&>(a) == dynamic_cast<const Annotation&>(b);
 			}
-
 		}
 	} // namespace DocFilters
 } // namespace Hyland

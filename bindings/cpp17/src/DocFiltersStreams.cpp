@@ -12,8 +12,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
+
 #include <cstring>
 
 namespace Hyland
@@ -38,13 +39,8 @@ namespace Hyland
 				{
 					return Traits::seek(reinterpret_cast<InnerStream*>(handle), offset, origin);
 				}
-				static void IGR_EXPORT destroy(void* handle)
-				{
-					Traits::destroy(reinterpret_cast<InnerStream*>(handle));
-				}
-				static void IGR_EXPORT destroy_noop(void* handle)
-				{
-				}
+				static void IGR_EXPORT destroy(void* handle) { Traits::destroy(reinterpret_cast<InnerStream*>(handle)); }
+				static void IGR_EXPORT destroy_noop(void* handle) { }
 			};
 			if (!stream)
 				throw std::invalid_argument("stream cannot be null");
@@ -52,14 +48,10 @@ namespace Hyland
 				throw std::invalid_argument("igr_stream cannot be null");
 
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Make_Stream_From_Functions(stream
-				, 0
-				, funcs::seek
-				, funcs::read
-				, funcs::write
-				, nullptr // no actions
-				, own_stream ? funcs::destroy : funcs::destroy_noop, igr_stream, &ecb),
-				ecb, "IGR_Make_Stream_From_Functions", "Failed to create stream from file");
+			throw_on_error(IGR_Make_Stream_From_Functions(stream, 0, funcs::seek, funcs::read, funcs::write, nullptr // no actions
+			                                              ,
+			                                              own_stream ? funcs::destroy : funcs::destroy_noop, igr_stream, &ecb),
+			               ecb, "IGR_Make_Stream_From_Functions", "Failed to create stream from file");
 
 			return *igr_stream;
 		}
@@ -72,10 +64,7 @@ namespace Hyland
 				stream->read(reinterpret_cast<char*>(buffer), size);
 				return static_cast<IGR_ULONG>(stream->gcount());
 			}
-			static IGR_ULONG write(std::istream* /*stream*/, const void* /*buffer*/, IGR_ULONG /*size*/)
-			{
-				return 0;
-			}
+			static IGR_ULONG write(std::istream* /*stream*/, const void* /*buffer*/, IGR_ULONG /*size*/) { return 0; }
 			static IGR_ULONG write(std::iostream* stream, const void* buffer, IGR_ULONG size)
 			{
 				stream->clear(); // clear any bad-bit state
@@ -97,14 +86,8 @@ namespace Hyland
 				std::streamoff res = stream->tellg();
 				return static_cast<IGR_LONGLONG>(res);
 			}
-			static void destroy(std::iostream* stream)
-			{
-				delete stream;
-			}
-			static void destroy(std::istream* stream)
-			{
-				delete stream;
-			}
+			static void destroy(std::iostream* stream) { delete stream; }
+			static void destroy(std::istream* stream) { delete stream; }
 		};
 
 		IGR_Stream* Stream::bridge_iostream(std::iostream* stream, bool own_stream, IGR_Stream** igr_stream)
@@ -142,10 +125,7 @@ namespace Hyland
 					return ftello64(file);
 #endif
 				}
-				static void destroy(FILE* file)
-				{
-					fclose(file);
-				}
+				static void destroy(FILE* file) { fclose(file); }
 			};
 
 			return bridge_stream_t<FILE, traits>(file, own_file, igr_stream);
@@ -167,10 +147,7 @@ namespace Hyland
 				{
 					return stream->seek(offset, static_cast<std::ios_base::seekdir>(origin));
 				}
-				static void destroy(Hyland::DocFilters::Stream* stream)
-				{
-					delete stream;
-				}
+				static void destroy(Hyland::DocFilters::Stream* stream) { delete stream; }
 			};
 
 			if (stream == nullptr || igr_stream == nullptr)
@@ -208,31 +185,31 @@ namespace Hyland
 		// --------------------------------------------------------------------------------
 
 		MemStream::MemStream(void* buffer, size_t size)
-			: m_buffer(buffer), m_size(size), m_capacity(size)
-		{
-		}
+		    : m_buffer(buffer)
+		    , m_size(size)
+		    , m_capacity(size)
+		{ }
 		MemStream::MemStream(const void* buffer, size_t size)
-			: m_buffer(const_cast<void*>(buffer)) // NOLINT
-			, m_size(size)
-			, m_capacity(size)
-		{
-		}
+		    : m_buffer(const_cast<void*>(buffer)) // NOLINT
+		    , m_size(size)
+		    , m_capacity(size)
+		{ }
 
 		std::streamoff MemStream::seek(std::streampos offset, std::ios_base::seekdir way)
 		{
 			switch (way)
 			{
-			case std::ios::beg:
-				m_offset = offset;
-				break;
-			case std::ios::end:
-				m_offset = m_size + offset;
-				break;
-			case std::ios::cur:
-				m_offset += offset;
-				break;
-			default:
-				throw std::runtime_error("Not implemented");
+				case std::ios::beg:
+					m_offset = offset;
+					break;
+				case std::ios::end:
+					m_offset = m_size + offset;
+					break;
+				case std::ios::cur:
+					m_offset += offset;
+					break;
+				default:
+					throw std::runtime_error("Not implemented");
 			}
 			return m_offset;
 		}
@@ -283,10 +260,8 @@ namespace Hyland
 		// --------------------------------------------------------------------------------
 
 		VectorStream::VectorStream()
-			: MemStream(static_cast<void*>(nullptr), 0)
-		{
-
-		}
+		    : MemStream(static_cast<void*>(nullptr), 0)
+		{ }
 
 		void* VectorStream::resize_buffer(void* /*buffer*/, size_t new_size)
 		{
@@ -342,7 +317,7 @@ namespace Hyland
 			Stream::bridge_istream(strm.release(), true, reinterpret_cast<IGR_Stream**>(&m_inner));
 		}
 
-		FileStream::~FileStream() 
+		FileStream::~FileStream()
 		{
 			close();
 		}
@@ -371,7 +346,7 @@ namespace Hyland
 			return m_inner ? m_inner->Write(m_inner, const_cast<void*>(buffer), static_cast<IGR_ULONG>(size)) : 0;
 		}
 
-		IGR_Stream* FileStream::relinquish_igr_stream() 
+		IGR_Stream* FileStream::relinquish_igr_stream()
 		{
 			IGR_Stream* res = &m_inner->base;
 			m_inner = nullptr;

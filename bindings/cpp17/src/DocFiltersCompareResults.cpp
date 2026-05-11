@@ -12,8 +12,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
@@ -27,21 +27,21 @@ namespace Hyland
 			bool m_eof = false;
 
 			explicit impl_t(IGR_HTEXTCOMPARE handle)
-				: m_handle(handle)
-			{
-			}
-			impl_t(const impl_t&) = delete; 
+			    : m_handle(handle)
+			{ }
+			impl_t(const impl_t&) = delete;
 			impl_t& operator=(const impl_t&) = delete;
-			impl_t(impl_t&&) = delete; 
-			impl_t& operator=(impl_t&&) = delete;			
+			impl_t(impl_t&&) = delete;
+			impl_t& operator=(impl_t&&) = delete;
 
 			~impl_t()
 			{
-				try {
+				try
+				{
 					Close();
 				}
-				catch (...) {
-				}
+				catch (...)
+				{ }
 			}
 
 			void Close()
@@ -49,24 +49,24 @@ namespace Hyland
 				if (m_handle != nullptr)
 				{
 					Error_Control_Block ecb = { 0 };
-					throw_on_error(IGR_Text_Compare_Close(m_handle, &ecb), ecb, "IGR_Text_Compare_Close", "Failed to close compare results");
+					throw_on_error(IGR_Text_Compare_Close(m_handle, &ecb), ecb, "IGR_Text_Compare_Close",
+					               "Failed to close compare results");
 					m_handle = nullptr;
 				}
 			}
 
-			[[nodiscard]] 
+			[[nodiscard]]
 			IGR_HTEXTCOMPARE need_handle() const
 			{
 				if (m_handle == nullptr)
 					throw DocumentFilters::Error("Invalid compare results handle");
-				return  m_handle;
+				return m_handle;
 			}
 		};
 
 		CompareResults::CompareResults(IGR_HTEXTCOMPARE handle)
-			: m_impl(new impl_t(handle))
-		{
-		}
+		    : m_impl(new impl_t(handle))
+		{ }
 
 		void CompareResults::Close()
 		{
@@ -76,7 +76,8 @@ namespace Hyland
 		void CompareResults::Reset()
 		{
 			Error_Control_Block ecb = { 0 };
-			throw_on_error(IGR_Text_Compare_Reset(m_impl->need_handle(), &ecb), ecb, "IGR_Text_Compare_Reset", "Failed to reset compare results");
+			throw_on_error(IGR_Text_Compare_Reset(m_impl->need_handle(), &ecb), ecb, "IGR_Text_Compare_Reset",
+			               "Failed to reset compare results");
 		}
 
 		bool CompareResults::MoveNext()

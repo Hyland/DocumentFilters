@@ -12,8 +12,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
@@ -30,9 +30,9 @@ namespace Hyland
 			std::shared_ptr<enumerable_t<PageElement>> m_children_all;
 
 			explicit impl_t(IGR_HPAGE page_handle = 0, const IGR_Page_Element& element = { 0 })
-				: m_page(page_handle), m_element(element)
-			{
-			}
+			    : m_page(page_handle)
+			    , m_element(element)
+			{ }
 
 			PageElement getFirstChild()
 			{
@@ -46,25 +46,23 @@ namespace Hyland
 			{
 				Error_Control_Block ecb = { 0 };
 				IGR_Page_Element next = { sizeof(IGR_Page_Element) };
-				throw_on_error(IGR_Get_Page_Element_Next_Sibling(m_page, &m_element, &next, &ecb), ecb, "IGR_Get_Page_Element_Next_Sibling");
+				throw_on_error(IGR_Get_Page_Element_Next_Sibling(m_page, &m_element, &next, &ecb), ecb,
+				               "IGR_Get_Page_Element_Next_Sibling");
 				return PageElement(m_page, next);
 			}
 		};
 
 		PageElement::PageElement()
-			: m_impl(new impl_t(0, { 0 }))
-		{
-		}
+		    : m_impl(new impl_t(0, { 0 }))
+		{ }
 
 		PageElement::PageElement(IGR_HPAGE page_handle, const IGR_Page_Element& element)
-			: m_impl(new impl_t(page_handle, element))
-		{
-		}
+		    : m_impl(new impl_t(page_handle, element))
+		{ }
 
 		PageElement::PageElement(const std::shared_ptr<impl_t>& impl)
-			: m_impl(impl)
-		{
-		}
+		    : m_impl(impl)
+		{ }
 
 		bool PageElement::ok() const
 		{
@@ -116,7 +114,10 @@ namespace Hyland
 			Error_Control_Block ecb = { 0 };
 			std::vector<IGR_UCS2> buffer(4096); // NOLINT
 			auto buffer_size = static_cast<IGR_ULONG>(buffer.size());
-			throw_on_error(IGR_Get_Page_Element_Style(m_impl->m_page, &m_impl->m_element, reinterpret_cast<const IGR_UCS2*>(w_to_u16(name).c_str()), &buffer_size, &buffer[0], &ecb), ecb, "IGR_Get_Page_Element_Style");
+			throw_on_error(IGR_Get_Page_Element_Style(m_impl->m_page, &m_impl->m_element,
+			                                          reinterpret_cast<const IGR_UCS2*>(w_to_u16(name).c_str()), &buffer_size, &buffer[0],
+			                                          &ecb),
+			               ecb, "IGR_Get_Page_Element_Style");
 			return u16_to_w(&buffer[0], buffer_size);
 		}
 
@@ -127,17 +128,15 @@ namespace Hyland
 				m_impl->m_styles.emplace();
 
 				Error_Control_Block ecb = { 0 };
-				IGR_PAGE_ELEMENT_STYLES_CALLBACK cb = [](const IGR_UCS2* name, const IGR_UCS2* value, void* context)->IGR_LONG {
+				IGR_PAGE_ELEMENT_STYLES_CALLBACK cb = [](const IGR_UCS2* name, const IGR_UCS2* value, void* context) -> IGR_LONG
+				{
 					auto& styles = *reinterpret_cast<PageElement::style_map_t*>(context);
 					styles[u16_to_w(name)] = u16_to_w(value);
 					return IGR_OK;
-					};
+				};
 
-				throw_on_error(IGR_Get_Page_Element_Styles(m_impl->m_page
-					, &m_impl->m_element
-					, cb
-					, &m_impl->m_styles
-					, &ecb), ecb, "IGR_Get_Page_Element_Styles");
+				throw_on_error(IGR_Get_Page_Element_Styles(m_impl->m_page, &m_impl->m_element, cb, &m_impl->m_styles, &ecb), ecb,
+				               "IGR_Get_Page_Element_Styles");
 			}
 			return *m_impl->m_styles;
 		}
@@ -149,12 +148,14 @@ namespace Hyland
 				Error_Control_Block ecb = { 0 };
 				IGR_ULONG buffer_size = 0;
 				// Get the size of the buffer
-				throw_on_error(IGR_Get_Page_Element_Text(m_impl->m_page, &m_impl->m_element, &buffer_size, nullptr, &ecb), ecb, "IGR_Get_Page_Element_Text");
+				throw_on_error(IGR_Get_Page_Element_Text(m_impl->m_page, &m_impl->m_element, &buffer_size, nullptr, &ecb), ecb,
+				               "IGR_Get_Page_Element_Text");
 				if (buffer_size > 0)
 				{
 					buffer_size++;
 					std::vector<IGR_UCS2> buffer(buffer_size);
-					throw_on_error(IGR_Get_Page_Element_Text(m_impl->m_page, &m_impl->m_element, &buffer_size, &buffer[0], &ecb), ecb, "IGR_Get_Page_Element_Text");
+					throw_on_error(IGR_Get_Page_Element_Text(m_impl->m_page, &m_impl->m_element, &buffer_size, &buffer[0], &ecb), ecb,
+					               "IGR_Get_Page_Element_Text");
 					m_impl->m_text = u16_to_w(&buffer[0], buffer_size);
 				}
 				else
