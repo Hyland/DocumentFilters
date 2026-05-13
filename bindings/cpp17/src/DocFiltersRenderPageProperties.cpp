@@ -12,8 +12,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
+
 #include <list>
 
 namespace Hyland
@@ -56,25 +57,21 @@ namespace Hyland
 		};
 
 		RenderPageProperties::RenderPageProperties()
-			: m_impl(new impl_t())
-		{
-		}
+		    : m_impl(new impl_t())
+		{ }
 
 		bool RenderPageProperties::empty() const
 		{
-			return m_impl->m_form_values.empty()
-				&& m_impl->m_redactions.empty()
-				&& m_impl->m_properties.dest_rect.left == m_impl->m_properties.dest_rect.right
-				&& m_impl->m_properties.dest_rect.top == m_impl->m_properties.dest_rect.bottom
-				&& m_impl->m_properties.source_rect.left == m_impl->m_properties.source_rect.right
-				&& m_impl->m_properties.source_rect.top == m_impl->m_properties.source_rect.bottom;
+			return m_impl->m_form_values.empty() && m_impl->m_redactions.empty()
+			    && m_impl->m_properties.dest_rect.left == m_impl->m_properties.dest_rect.right
+			    && m_impl->m_properties.dest_rect.top == m_impl->m_properties.dest_rect.bottom
+			    && m_impl->m_properties.source_rect.left == m_impl->m_properties.source_rect.right
+			    && m_impl->m_properties.source_rect.top == m_impl->m_properties.source_rect.bottom;
 		}
 
 		IGR_Render_Page_Properties* RenderPageProperties::data() const
 		{
-			return empty()
-				? nullptr
-				: m_impl->data();
+			return empty() ? nullptr : m_impl->data();
 		}
 
 		RenderPageProperties& RenderPageProperties::setSourceRect(const IGR_Rect& value)
@@ -84,7 +81,7 @@ namespace Hyland
 		}
 		RenderPageProperties& RenderPageProperties::setSourceRect(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 		{
-			return setSourceRect(IGR_Rect{ left, top, right, bottom });
+			return setSourceRect(IGR_Rect { left, top, right, bottom });
 		}
 
 		RenderPageProperties& RenderPageProperties::setDestRect(const IGR_Rect& value)
@@ -95,7 +92,7 @@ namespace Hyland
 
 		RenderPageProperties& RenderPageProperties::setDestRect(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 		{
-			return setDestRect(IGR_Rect{ left, top, right, bottom });
+			return setDestRect(IGR_Rect { left, top, right, bottom });
 		}
 
 		uint32_t RenderPageProperties::getFlags() const
@@ -132,12 +129,12 @@ namespace Hyland
 
 		RenderPageProperties& RenderPageProperties::AddRedaction(int32_t left, int32_t top, int32_t right, int32_t bottom, const Color& c)
 		{
-			return AddRedaction(IGR_SRect{ left, top, right, bottom }, c);
+			return AddRedaction(IGR_SRect { left, top, right, bottom }, c);
 		}
 
 		RenderPageProperties& RenderPageProperties::AddFormValue(const std::wstring& name, const std::wstring& value, bool selected)
 		{
-			return AddFormValue(form_value_t{ name, value, selected });
+			return AddFormValue(form_value_t { name, value, selected });
 		}
 
 		RenderPageProperties& RenderPageProperties::AddFormValue(const form_value_t& value)

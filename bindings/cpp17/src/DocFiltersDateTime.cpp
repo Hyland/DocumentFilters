@@ -12,15 +12,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 
 #ifdef _WIN32
-#define timegm _mkgmtime
+#	define timegm _mkgmtime
 #endif
 
 namespace Hyland
@@ -28,23 +28,22 @@ namespace Hyland
 	namespace DocFilters
 	{
 		DateTime::DateTime(IGR_ULONGLONG value)
-			: m_time(from_filetime(value))
-		{
-		}
+		    : m_time(from_filetime(value))
+		{ }
 
 		DateTime::DateTime(const std::chrono::system_clock::time_point& time)
-			: m_time(time)
-		{
-		}
+		    : m_time(time)
+		{ }
 
-		DateTime::DateTime(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second, uint16_t millisecond)
-			: DateTime(DateTime::date_type_t::utc, year, month, day, hour, minute, second, millisecond)
+		DateTime::DateTime(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second,
+		                   uint16_t millisecond)
+		    : DateTime(DateTime::date_type_t::utc, year, month, day, hour, minute, second, millisecond)
+		{ }
+
+		DateTime::DateTime(date_type_t type, uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second,
+		                   uint16_t /*millisecond*/)
 		{
-		}
-		
-		DateTime::DateTime(date_type_t type, uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second, uint16_t /*millisecond*/)
-		{
-			auto x = std::tm{ second, minute, hour, day, month - 1, year - 1900 }; // NOLINT
+			auto x = std::tm { second, minute, hour, day, month - 1, year - 1900 }; // NOLINT
 			if (type == date_type_t::local)
 			{
 				m_time = std::chrono::system_clock::from_time_t(std::mktime(&x));
@@ -65,9 +64,7 @@ namespace Hyland
 				ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S") >> tz;
 				if (!ss.bad())
 				{
-					time_t tt = tz == "GMT" || tz == "UTC"
-						? timegm(&tm) 
-						: mktime(&tm);
+					time_t tt = tz == "GMT" || tz == "UTC" ? timegm(&tm) : mktime(&tm);
 
 					m_time = std::chrono::system_clock::from_time_t(tt);
 				}
@@ -75,18 +72,17 @@ namespace Hyland
 		}
 
 		DateTime::DateTime(const std::wstring& value)
-			: DateTime(w_to_u8(value))
+		    : DateTime(w_to_u8(value))
+		{ }
+
+		bool DateTime::operator==(const DateTime& other) const
 		{
+			return m_time == other.m_time;
 		}
 
-		bool DateTime::operator==(const DateTime& other) const 
-		{ 
-			return m_time == other.m_time; 
-		}
-		
-		bool DateTime::operator!=(const DateTime& other) const 
-		{ 
-			return m_time != other.m_time; 
+		bool DateTime::operator!=(const DateTime& other) const
+		{
+			return m_time != other.m_time;
 		}
 
 		std::chrono::system_clock::time_point DateTime::ToTimePoint() const
@@ -107,13 +103,9 @@ namespace Hyland
 			// Convert time_t to tm struct
 			std::tm tm_value = { 0 };
 #ifdef _WIN32
-			bool ok = as_utc 
-				? gmtime_s(&tm_value, &time_t_value) == 0
-				: localtime_s(&tm_value, &time_t_value) == 0;
+			bool ok = as_utc ? gmtime_s(&tm_value, &time_t_value) == 0 : localtime_s(&tm_value, &time_t_value) == 0;
 #else
-			bool ok = as_utc
-				? gmtime_r(&time_t_value, &tm_value) != nullptr
-				: localtime_r(&time_t_value, &tm_value) != nullptr;
+			bool ok = as_utc ? gmtime_r(&time_t_value, &tm_value) != nullptr : localtime_r(&time_t_value, &tm_value) != nullptr;
 #endif
 			if (ok)
 				return tm_value;
@@ -133,7 +125,7 @@ namespace Hyland
 #else
 			bool ok = gmtime_r(&time_t_value, &tm_value) != nullptr;
 #endif
-			
+
 			// Create a string stream to hold the formatted date and time
 			if (ok)
 			{
@@ -160,11 +152,13 @@ namespace Hyland
 			return std::chrono::system_clock::time_point();
 		}
 
-		DateTime DateTime::utc(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second, uint16_t millisecond)
+		DateTime DateTime::utc(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second,
+		                       uint16_t millisecond)
 		{
 			return DateTime(DateTime::date_type_t::utc, year, month, day, hour, minute, second, millisecond);
 		}
-		DateTime DateTime::local(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second, uint16_t millisecond)
+		DateTime DateTime::local(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second,
+		                         uint16_t millisecond)
 		{
 			return DateTime(DateTime::date_type_t::local, year, month, day, hour, minute, second, millisecond);
 		}

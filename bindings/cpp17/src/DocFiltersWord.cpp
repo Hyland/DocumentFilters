@@ -12,17 +12,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
 		Word::Word(const IGR_Page_Word& Word, size_t index)
-			: m_word(Word), m_index(index)
-		{
-		}
+		    : m_word(Word)
+		    , m_index(index)
+		{ }
 		std::wstring Word::getText() const
 		{
 			return u16_to_w(m_word.word, m_word.wordLength);

@@ -12,8 +12,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
@@ -27,16 +27,15 @@ namespace Hyland
 		}
 
 		CompareDocumentSource::CompareDocumentSource(const Extractor& Extractor, const CompareDocumentSettings& settings)
-			: CompareDocumentSource(Extractor.getHandle(), settings)
-		{
-		}
+		    : CompareDocumentSource(Extractor.getHandle(), settings)
+		{ }
 
 		CompareDocumentSource& CompareDocumentSource::assign(const CompareDocumentSettings& settings)
 		{
 			setFirstPage(settings.getFirstPage());
 			setPageCount(settings.getPageCount());
 			setMargins(settings.getMargins());
-			
+
 			return *this;
 		}
 

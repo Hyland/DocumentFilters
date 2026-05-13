@@ -12,8 +12,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
+
 #include <list>
 
 namespace Hyland
@@ -25,15 +26,14 @@ namespace Hyland
 		public:
 			IGR_LONG m_doc = 0;
 			IGR_Bookmark m_item = { nullptr };
-			std::shared_ptr<enumerable_t<Bookmark> > m_children;
-			std::shared_ptr<enumerable_t<Bookmark> > m_all_children;
+			std::shared_ptr<enumerable_t<Bookmark>> m_children;
+			std::shared_ptr<enumerable_t<Bookmark>> m_all_children;
 			std::list<Bookmark> m_alt_children;
 
 			explicit impl_t(IGR_LONG doc_handle, const IGR_Bookmark item)
-				: m_doc(doc_handle)
-				, m_item(item)
-			{
-			}
+			    : m_doc(doc_handle)
+			    , m_item(item)
+			{ }
 			impl_t(const impl_t&) = delete;
 			impl_t& operator=(const impl_t&) = delete;
 			impl_t(impl_t&&) = delete;
@@ -72,17 +72,15 @@ namespace Hyland
 		};
 
 		Bookmark::Bookmark()
-			: m_impl(new impl_t(0, IGR_Bookmark{}))
-		{
-		}
+		    : m_impl(new impl_t(0, IGR_Bookmark {}))
+		{ }
 
 		Bookmark::Bookmark(const std::shared_ptr<impl_t>& impl) // NOLINT
-			: m_impl(impl)
-		{
-		}
+		    : m_impl(impl)
+		{ }
 
 		Bookmark::Bookmark(IGR_LONG doc_handle)
-			: m_impl(new impl_t(doc_handle, IGR_Bookmark{}))
+		    : m_impl(new impl_t(doc_handle, IGR_Bookmark {}))
 		{
 			Error_Control_Block ecb = { 0 };
 
@@ -90,7 +88,7 @@ namespace Hyland
 		}
 
 		Bookmark::Bookmark(IGR_LONG doc_handle, const IGR_Bookmark& Bookmark)
-			: m_impl(new impl_t(doc_handle, Bookmark))
+		    : m_impl(new impl_t(doc_handle, Bookmark))
 		{
 			m_impl->m_item = Bookmark;
 		}
@@ -125,12 +123,7 @@ namespace Hyland
 		}
 		RectI32 Bookmark::getRect() const
 		{
-			return RectI32::xywh(
-				m_impl->m_item.x,
-				m_impl->m_item.y,
-				m_impl->m_item.width,
-				m_impl->m_item.height
-			);
+			return RectI32::xywh(m_impl->m_item.x, m_impl->m_item.y, m_impl->m_item.width, m_impl->m_item.height);
 		}
 		uint32_t Bookmark::getPageIndex() const
 		{
@@ -147,9 +140,9 @@ namespace Hyland
 			if (!m_impl->m_children)
 			{
 				if (m_impl->m_alt_children.empty())
-					m_impl->m_children = std::make_shared<x_enumerable<Bookmark, Bookmark::impl_t> >(m_impl);
+					m_impl->m_children = std::make_shared<x_enumerable<Bookmark, Bookmark::impl_t>>(m_impl);
 				else
-					m_impl->m_children = std::make_shared<x_std_enumerable<Bookmark, std::list<Bookmark> > >(m_impl->m_alt_children);
+					m_impl->m_children = std::make_shared<x_std_enumerable<Bookmark, std::list<Bookmark>>>(m_impl->m_alt_children);
 			}
 
 			return *m_impl->m_children;
@@ -158,7 +151,7 @@ namespace Hyland
 		const Bookmark::bookmarks_t& Bookmark::allChildren() const
 		{
 			if (!m_impl->m_all_children)
-				m_impl->m_all_children = std::make_shared<x_deep_enumerable<Bookmark, Bookmark::impl_t> >(m_impl);
+				m_impl->m_all_children = std::make_shared<x_deep_enumerable<Bookmark, Bookmark::impl_t>>(m_impl);
 			return *m_impl->m_all_children;
 		}
 

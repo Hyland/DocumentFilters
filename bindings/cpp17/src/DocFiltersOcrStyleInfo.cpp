@@ -12,15 +12,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
 		OcrStyleInfo::OcrStyleInfo()
-			: m_style{}
+		    : m_style {}
 		{
 			m_style.struct_size = sizeof(IGR_Open_Callback_Action_OCR_Image_Style_Info);
 			m_style.font_size = 12;
@@ -34,7 +34,9 @@ namespace Hyland
 		OcrStyleInfo& OcrStyleInfo::setFontFamily(const std::wstring& fontFamily)
 		{
 			const auto&& u16 = w_to_u16(fontFamily);
-			m_style.font_family[u16.copy(reinterpret_cast<char16_t*>(m_style.font_family), (sizeof(m_style.font_family) / sizeof(m_style.font_family[0])) - 1)] = 0;
+			m_style.font_family[u16.copy(reinterpret_cast<char16_t*>(m_style.font_family),
+			                             (sizeof(m_style.font_family) / sizeof(m_style.font_family[0])) - 1)]
+			    = 0;
 			return *this;
 		}
 

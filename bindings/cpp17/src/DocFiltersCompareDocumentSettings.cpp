@@ -12,17 +12,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "DocumentFiltersObjects.h"
 #include "DocFiltersCommon.h"
+#include "DocumentFiltersObjects.h"
 
 namespace Hyland
 {
 	namespace DocFilters
 	{
 		CompareDocumentSettings::CompareDocumentSettings()
-			: m_impl(new IGR_Text_Compare_Document_Source{ sizeof(IGR_Text_Compare_Document_Source) })
-		{
-		}
+		    : m_impl(new IGR_Text_Compare_Document_Source { sizeof(IGR_Text_Compare_Document_Source) })
+		{ }
 
 		uint32_t CompareDocumentSettings::getFirstPage() const
 		{
@@ -55,7 +54,7 @@ namespace Hyland
 			m_impl->doc_margins = margins;
 			return *this;
 		}
-		
+
 		CompareDocumentSettings& CompareDocumentSettings::setMargins(float left, float top, float right, float bottom)
 		{
 			return setMargins(RectF(left, top, right, bottom));
