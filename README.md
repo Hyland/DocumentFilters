@@ -101,6 +101,20 @@ This repo contains samples that demonstrating using Document Filters for differe
 
 Check more samples here: [C#](./samples/csharp/README.md) | [Java](./samples/java/) | [Python](./samples/python/) | [C++](./samples/cpp17/)
 
+## AI Agent Skills
+
+The [`skills/`](./skills) folder contains prompt files for AI coding agents and AI pipeline tools (Claude Code, Cursor, GitHub Copilot, and others). Install them to teach your AI agent how to work with Document Filters.
+
+```bash
+# macOS/Linux/WSL
+bash skills/install.sh
+
+# Windows PowerShell
+.\skills\install.ps1
+```
+
+See [`skills/README.md`](./skills/README.md) for the full skill list and manual install instructions.
+
 ## License
 
 Sample Code: MIT License | Release Binaries: Commercial License
