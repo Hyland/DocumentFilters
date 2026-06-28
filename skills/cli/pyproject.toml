@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "document-filters-cli"
+version = "26.2.0"
+description = "CLI tools for Hyland Document Filters — extract, convert, and process 600+ document formats"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Hyland Software, Inc." }]
+dependencies = [
+    "DocumentFilters @ git+https://github.com/Hyland/DocumentFilters.git@master#subdirectory=bindings/python",
+]
+
+[project.scripts]
+df = "document_filters_cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["document_filters_cli*"]
