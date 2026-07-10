@@ -653,7 +653,8 @@ namespace Hyland.DocumentFilters
 
             Check(ISYS11df.IGR_Get_Text(NeedHandle(), buffer, ref retval, ref ecb), ecb);
             _eof = retval == 0;
-            return buffer.ToString().Substring(0, retval);
+            buffer.Length = retval;
+            return buffer.ToString();
         }
 
         /// <summary>
