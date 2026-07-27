@@ -1571,6 +1571,13 @@ namespace Hyland.DocumentFilters
         [DllImport("ISYS11df", EntryPoint = "IGR_Get_Text")]
         public static extern int IGR_Get_Text(int handle, [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder buffer, ref int bufferSize, ref Error_Control_Block error);
 
+        // Return Type: IGR_RETURN_CODE->LONG->int
+        ///handle: LONG->int
+        ///buffer: LPWSTR->WCHAR*
+        ///bufferSize: LONG*
+        ///error: Error_Control_Block*
+        [DllImport("ISYS11df", EntryPoint = "IGR_Get_Text")]
+        public static extern int IGR_Get_Text_Ptr(int handle, IntPtr buffer, ref int bufferSize, ref Error_Control_Block error);
 
         // Return Type: IGR_RETURN_CODE->LONG->int
         ///handle: LONG->int

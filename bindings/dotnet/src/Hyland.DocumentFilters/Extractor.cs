@@ -640,6 +640,24 @@ namespace Hyland.DocumentFilters
             return _eof;
         }
 
+#if NETSTANDARD
+        /// <summary>
+        /// The GetText method extracts the next portion of text content from the document.
+        /// </summary>
+        /// <param name="memory">The memory buffer to store the UTF-16 characters.</param>
+        /// <returns>The number of characters read.</returns>
+        public unsafe int GetText(Memory<char> memory)
+        {
+            using (var handle = memory.Pin())
+            {
+                var ecb = new Error_Control_Block();
+                var retval = memory.Length;
+                IGRException.Check(ISYS11df.IGR_Get_Text_Ptr(NeedHandle(), (IntPtr)handle.Pointer, ref retval, ref ecb), ecb);
+                return retval;
+            }
+        }
+#endif
+
         /// <summary>
         /// The GetText method extracts the next portion of text content from the document.
         /// </summary>
@@ -822,6 +840,14 @@ namespace Hyland.DocumentFilters
             return new SubFile(this, NeedHandle(), id, null, 0, 0, ISYS11df.IGR_Extract_Image_Stream);
         }
 
+        /// <summary>
+        /// The ToStream method extracts the binary content of the sub-document to a stream.
+        /// </summary>
+        /// <returns>A stream containing the binary content of the sub-document.</returns>
+        public System.IO.Stream ToStream()
+        {
+            return new StreamBridge(NeedStream());
+        }
 
         /// <summary>
         /// The CopyTo method extracts the binary content of the sub-document to a file.
