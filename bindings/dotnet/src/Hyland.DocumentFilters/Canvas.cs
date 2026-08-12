@@ -20,10 +20,10 @@ namespace Hyland.DocumentFilters
     public class Canvas : DocumentFiltersBase, IDisposable
     {
         private int _handle = -1;
-        private CanvasType _type = 0;
+        private readonly CanvasType _type = 0;
         private string _options = null;
-        private string _filename = null;
-        private IGRStream _stream = null;
+        private readonly string _filename = null;
+        private readonly IGRStream _stream = null;
         private IntPtr _streamHandle = IntPtr.Zero;
         private readonly object _disposeSyncRoot = new object();
 
@@ -173,7 +173,7 @@ namespace Hyland.DocumentFilters
         private class DisposableHGlobal
             : IDisposable
         {
-            public IntPtr ptr;
+            public readonly IntPtr ptr;
 
             /// <summary>
             /// Constructor for the DisposableHGlobal class.

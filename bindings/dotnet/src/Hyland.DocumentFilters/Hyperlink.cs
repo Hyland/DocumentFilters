@@ -180,10 +180,10 @@ namespace Hyland.DocumentFilters
 
         private string GetStr(int type, int maxLength = 4096)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder res = new StringBuilder(maxLength);
 
-            Check(ISYS11df.IGR_Get_Page_Hyperlink_Str(ref _hyperlink, type, res.Capacity, res, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Hyperlink_Str(ref _hyperlink, type, res.Capacity, res, ref localEcb), localEcb);
             return res.ToString();
         }
 

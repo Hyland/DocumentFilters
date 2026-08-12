@@ -36,7 +36,7 @@ namespace Hyland.DocumentFilters
             public bool Selected { get; internal set; }
         }
         private IGR_Page_Form_Element _element;
-        private OptionsCollection _options = new OptionsCollection();
+        private readonly OptionsCollection _options = new OptionsCollection();
 
         internal FormElement(IGR_Page_Form_Element element)
         {
@@ -223,18 +223,18 @@ namespace Hyland.DocumentFilters
 
         private string GetStr(int type, int maxLength = 4096)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder res = new StringBuilder(maxLength);
 
-            Check(ISYS11df.IGR_Get_Page_Form_Element_Str(ref _element, type, res.Capacity, res, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Form_Element_Str(ref _element, type, res.Capacity, res, ref localEcb), localEcb);
             return res.ToString();
         }
         private string GetOptionStr(int type, int index, int maxLength = 4096)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder res = new StringBuilder(maxLength);
 
-            Check(ISYS11df.IGR_Get_Page_Form_Element_Option_Str(ref _element, type, index, res.Capacity, res, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Form_Element_Option_Str(ref _element, type, index, res.Capacity, res, ref localEcb), localEcb);
             return res.ToString();
         }
 
@@ -243,7 +243,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public class OptionsCollection : ReadOnlyList<OptionItem>
         {
-            private List<OptionItem> _values = new List<OptionItem>();
+            private readonly List<OptionItem> _values = new List<OptionItem>();
             internal void AddValue(OptionItem item)
             {
                 _values.Add(item);

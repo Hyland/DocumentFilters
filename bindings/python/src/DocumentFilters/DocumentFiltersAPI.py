@@ -292,6 +292,15 @@ IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE = 4
 IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE = 5
 IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM = 6
 IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE = 7
+IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE = 8
+
+IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_APPEND = 0x00
+IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_REPLACE = 0x01
+
+IGR_DESCRIBE_IMAGE_TYPE_UNKNOWN = 0x00
+IGR_DESCRIBE_IMAGE_TYPE_PICTURE = 0x01
+IGR_DESCRIBE_IMAGE_TYPE_DRAWING = 0x02
+IGR_DESCRIBE_IMAGE_TYPE_CHART = 0x03
 
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_EQUAL = 0
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT = 1
@@ -748,7 +757,36 @@ class IGR_Open_Callback_Action_OCR_Image(ctypes.Structure):
             ctypes.POINTER(None),  # Pointer to this structure
             IGR_FLOAT))  # Degrees
     ]
-    
+
+
+class IGR_Open_Callback_Action_Describe_Image(ctypes.Structure):
+    _fields_ = [
+        ('struct_size', IGR_ULONG),
+        ('reserved', ctypes.c_void_p),
+        
+        ('GetSourceImagePixels', ctypes.CFUNCTYPE(
+            IGR_Open_DIB_Info,
+            ctypes.POINTER(None))),  # Pointer to this structure
+
+        ('source_page_index', IGR_ULONG),
+        ('source_rect', IGR_Rect),
+        ('source_type', IGR_LONG),
+        ('source_name', IGR_UCS2 * 128),
+        ('existing_alt_text', IGR_UCS2 * 4096),
+
+        ('SaveImage', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            ctypes.POINTER(None),  # Filename
+            ctypes.POINTER(None))),  # Mime type
+
+        ('AddText', ctypes.CFUNCTYPE(
+            IGR_RETURN_CODE,
+            ctypes.POINTER(None),  # Pointer to this structure
+            ctypes.POINTER(None),  # Text
+            IGR_ULONG)),  # Flags
+    ]
+
 
 IGR_OPEN_CALLBACK = ctypes.CFUNCTYPE(UNCHECKED(IGR_LONG), IGR_OPEN_CALLBACK_ACTION, ctypes.POINTER(None), ctypes.POINTER(None))
 

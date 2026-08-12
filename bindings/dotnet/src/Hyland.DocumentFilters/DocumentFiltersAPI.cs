@@ -273,6 +273,24 @@ namespace Hyland.DocumentFilters
 
         public const int IGR_TEXTRECT_FLAG_STRETCHTOFIT = 0x02;
 
+        /// @brief Append the provided text to existing alt text.
+        public const int IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_APPEND = 0x00;
+
+        /// @brief Replace existing alt text with the provided text.
+        public const int IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_REPLACE = 0x01;
+
+        /// @brief Unknown type of image.
+        public const int IGR_DESCRIBE_IMAGE_TYPE_UNKNOWN = 0x00;
+
+        /// @brief Picture type of image.
+        public const int IGR_DESCRIBE_IMAGE_TYPE_PICTURE = 0x01;
+
+        /// @brief Drawing type of image.
+        public const int IGR_DESCRIBE_IMAGE_TYPE_DRAWING = 0x02;
+
+        /// @brief Chart type of image.
+        public const int IGR_DESCRIBE_IMAGE_TYPE_CHART = 0x03;
+
         // IGR_ACTION_GET_STREAM_PART -> 10
         public const int IGR_ACTION_GET_STREAM_PART = 10;
 
@@ -426,6 +444,7 @@ namespace Hyland.DocumentFilters
         public const int IGR_OPEN_CALLBACK_ACTION_APPROVE_EXTERNAL_RESOURCE = 5;
         public const int IGR_OPEN_CALLBACK_ACTION_GET_RESOURCE_STREAM = 6;
         public const int IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE = 7;
+        public const int IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE = 8;
 
         public const int IGR_COMPARE_DOCUMENTS_DIFFERENCE_EQUAL = 0;
         public const int IGR_COMPARE_DOCUMENTS_DIFFERENCE_INSERT = 1;
@@ -715,10 +734,13 @@ namespace Hyland.DocumentFilters
         }
     }
 
-    // Return Type: LONG->int
-    ///actionID: int
-    ///actionData: void*
-    ///context: void*
+    /// <summary>
+    /// Native callback delegate matching the IGR_CALLBACK signature.
+    /// </summary>
+    /// <param name="actionID">The action identifier.</param>
+    /// <param name="actionData">Pointer to action-specific data.</param>
+    /// <param name="context">User-defined context pointer.</param>
+    /// <returns>Return code; use IGR_OK (0) for success.</returns>
     public delegate int IGR_CALLBACK(int actionID, System.IntPtr actionData, System.IntPtr context);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -813,7 +835,7 @@ namespace Hyland.DocumentFilters
     {
         public IGR_FPoint upperLeft;
 		public IGR_FPoint upperRight;
-		public IGR_FPoint lowerRight;     
+		public IGR_FPoint lowerRight;
 		public IGR_FPoint lowerLeft;
     }
 
@@ -991,6 +1013,12 @@ namespace Hyland.DocumentFilters
         public IntPtr palette;
         // Indicate the number of colors in the palette
         public uint palette_count;
+        // Horizontal resolution of the bitmap
+        public uint dpi_x;
+        // Vertical resolution of the bitmap.
+        public uint dpi_y;
+        // Orientation of the bitmap
+        public uint orientation;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -1022,7 +1050,7 @@ namespace Hyland.DocumentFilters
     */
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public class IGR_Open_Callback_Action_Heartbeat
-    { 
+    {
         // [out] Indicate the size of this structure; must be populated.
         public uint struct_size;
     };
@@ -1225,6 +1253,55 @@ namespace Hyland.DocumentFilters
         public IGR_Open_Callback_Action_OCR_Image_ReorientDelegate Reorient;
     };
 
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_Open_DIB_Info IGR_Open_Callback_Action_Describe_Image_GetSourceImagePixelsDelegate(
+        IntPtr action
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_Describe_Image_SaveImageDelegate(
+        IntPtr action,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string filename,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string mimetype
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate IGR_RETURN_CODE IGR_Open_Callback_Action_Describe_Image_AddTextDelegate(
+        IntPtr action,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        string text,
+        uint flags
+    );
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class IGR_Open_Callback_Action_Describe_Image
+    {
+        public uint struct_size;
+
+        public IntPtr reserved;
+
+        public IGR_Open_Callback_Action_Describe_Image_GetSourceImagePixelsDelegate GetSourceImagePixels;
+
+        public IGR_ULONG source_page_index;
+
+        public IGR_Rect source_rect;
+
+        public IGR_LONG type;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string source_name;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4096)]
+        public string existing_alt_text;
+
+        public IGR_Open_Callback_Action_Describe_Image_SaveImageDelegate SaveImage;
+
+        public IGR_Open_Callback_Action_Describe_Image_AddTextDelegate AddText;
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct IGR_Compare_Documents_Callback_Context
     {
@@ -1341,7 +1418,7 @@ namespace Hyland.DocumentFilters
         {
 #if !NETSTANDARD
             static private IntPtr _libraryHandle;
-            static private object _libraryLock = new object();
+            static private readonly object _libraryLock = new object();
             static internal void Prepare()
             {
                 lock (_libraryLock)
@@ -1349,8 +1426,9 @@ namespace Hyland.DocumentFilters
                     if (_libraryHandle.ToInt64() == 0)
                     {
                         string assemblyFilename = System.Reflection.Assembly.GetCallingAssembly().Location;
-                        string assemblyPath = System.IO.Path.GetDirectoryName(assemblyFilename);
-                        string runtimePath = System.IO.Path.Combine(assemblyPath, ((IntPtr.Size == 8) ? "x64" : "x86"));
+                        string assemblyPath = System.IO.Path.GetDirectoryName(assemblyFilename) ?? "";
+                        string arch = (IntPtr.Size == 8) ? "x64" : "x86";
+                        string runtimePath = System.IO.Path.Combine(assemblyPath, arch);
                         string libraryFilename = System.IO.Path.Combine(runtimePath, "ISYS11df.dll");
                         if (System.IO.File.Exists(libraryFilename))
                         {

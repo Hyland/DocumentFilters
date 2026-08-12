@@ -105,12 +105,12 @@ namespace Hyland.DocumentFilters
         {
             internal static readonly Methods Instance = new Methods();
 
-            public Tuple<IGR_Stream_Open, GCHandle> Open;
-            public Tuple<IGR_Stream_Read, GCHandle> Read;
-            public Tuple<IGR_Stream_Seek, GCHandle> Seek;
-            public Tuple<IGR_Stream_Close, GCHandle> Close;
-            public Tuple<IGR_Writable_Stream_Write, GCHandle> Write;
-            public Tuple<IGR_CALLBACK, GCHandle> StreamCallback;
+            public readonly Tuple<IGR_Stream_Open, GCHandle> Open;
+            public readonly Tuple<IGR_Stream_Read, GCHandle> Read;
+            public readonly Tuple<IGR_Stream_Seek, GCHandle> Seek;
+            public readonly Tuple<IGR_Stream_Close, GCHandle> Close;
+            public readonly Tuple<IGR_Writable_Stream_Write, GCHandle> Write;
+            public readonly Tuple<IGR_CALLBACK, GCHandle> StreamCallback;
 
             public Methods()
             {
@@ -146,7 +146,7 @@ namespace Hyland.DocumentFilters
                 {
                     return payload.GetStream().Read(bufferSize, buffer);
                 }
-                catch
+                catch (Exception)
                 {
                     // Sentinel value used to notify the calling C code of an error condition
                     return UInt32.MaxValue;
@@ -159,7 +159,7 @@ namespace Hyland.DocumentFilters
                 {
                     return payload.GetStream().Write(buffer, bufferSize);
                 }
-                catch
+                catch (Exception)
                 {
                     // Sentinel value used to notify the calling C code of an error condition
                     return UInt32.MaxValue;
@@ -172,7 +172,7 @@ namespace Hyland.DocumentFilters
                 {
                     return (Int64)payload.GetStream().Seek(offset, (int)whence);
                 }
-                catch
+                catch (Exception)
                 {
                     // Sentinel value used to notify the calling C code of an error condition
                     return -1;
@@ -256,7 +256,7 @@ namespace Hyland.DocumentFilters
 
         }
 
-        internal long _id;
+        internal readonly long _id;
         internal virtual string GetName()
         {
             return ToString();

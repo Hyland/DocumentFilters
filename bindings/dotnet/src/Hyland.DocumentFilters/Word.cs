@@ -9,8 +9,8 @@ namespace Hyland.DocumentFilters
     /// </summary>
     public class Word : global::System.IDisposable
     {
-        private IGR_Page_Word _word;
-        private int _index;
+        private readonly IGR_Page_Word _word;
+        private readonly int _index;
 
         internal Word(IGR_Page_Word word, int index)
         {
