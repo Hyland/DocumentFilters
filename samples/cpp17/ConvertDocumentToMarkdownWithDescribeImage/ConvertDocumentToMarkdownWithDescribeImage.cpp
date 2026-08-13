@@ -44,6 +44,8 @@ void process_file(DF::Extractor& doc, const options_t& options, std::ostream& de
 	DocumentFiltersSamples::handle_password_prompt(doc);
 
 	doc.setDescribeImageCallback([](DF::DescribeImage& image) -> bool {
+		if (image.getSourceType() != IGR_DESCRIBE_IMAGE_TYPE_PICTURE)
+			return false;
 		image.AddText(L"FAKE SAMPLE DESCRIBE IMAGE RESULT");
 		return true;
 	});

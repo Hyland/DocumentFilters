@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
-set (PROJECT_NAME "ConvertDocumentToUTF8WithCustomOCR")
+set (PROJECT_NAME "ConvertDocumentToMarkdownWithDescribeImage")
 
-add_executable (${PROJECT_NAME} "ConvertDocumentToUTF8WithCustomOCR.cpp")
+add_executable (${PROJECT_NAME} "ConvertDocumentToMarkdownWithDescribeImage.cpp")
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 target_compile_definitions(${PROJECT_NAME} PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
 target_link_libraries (${PROJECT_NAME} PRIVATE DocumentFilters DocumentFiltersSamples CLI11::CLI11)
