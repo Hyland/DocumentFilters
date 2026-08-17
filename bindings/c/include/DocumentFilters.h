@@ -2222,7 +2222,10 @@ typedef uint32_t IGR_ULONG;
 		void* reserved;
 
 		/// @brief Getter for the image data to be processed.
-		struct IGR_Open_DIB_Info(IGR_EXPORT* GetSourceImagePixels)(const struct IGR_Open_Callback_Action_Describe_Image* action);
+		/// @details The returned structure, along with its @c pixel_data and @c palette buffers, is owned by Document Filters and remains
+		/// valid only until the callback returns. Copy any data that is needed beyond that point. Returns NULL if the image data could
+		/// not be prepared.
+		const struct IGR_Open_DIB_Info*(IGR_EXPORT* GetSourceImagePixels)(const struct IGR_Open_Callback_Action_Describe_Image* action);
 
 		/// @brief Page index containing the image.
 		IGR_ULONG source_page_index;

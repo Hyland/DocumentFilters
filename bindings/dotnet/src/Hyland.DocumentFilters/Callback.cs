@@ -292,9 +292,17 @@ namespace Hyland.DocumentFilters
         /// Retrieves the pixel data from the source image of the describe image process. This data is represented by the
         /// IGR_Open_DIB_Info type.
         /// </summary>
+        /// <remarks>
+        /// The returned structure is a copy, but its pixel_data and palette members point to memory owned by Document
+        /// Filters that is only valid until the callback returns.
+        /// </remarks>
         public IGR_Open_DIB_Info PixelData()
         {
-            return _describeImage.GetSourceImagePixels(_handle);
+            IntPtr dib = _describeImage.GetSourceImagePixels(_handle);
+            if (dib == IntPtr.Zero)
+                return new IGR_Open_DIB_Info();
+
+            return Marshaler.PtrToStructure<IGR_Open_DIB_Info>(dib);
         }
 
         /// <summary>

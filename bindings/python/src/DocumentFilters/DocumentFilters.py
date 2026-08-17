@@ -2757,9 +2757,12 @@ class DocumentFilters(DocumentFiltersBase):
             def ExistingAltText(self) -> str:
                 return DocumentFiltersBase._FromUTF16(self._internal.existing_alt_text)
 
-            def PixelData(self):
-                return self._internal.GetSourceImagePixels(
+            def PixelData(self) -> IGR_Open_DIB_Info:
+                # The returned structure and the buffers it points at are owned by Document Filters and are only
+                # valid until the callback returns.
+                dib = self._internal.GetSourceImagePixels(
                     self._handle)
+                return dib.contents if dib else IGR_Open_DIB_Info()
 
             def SaveImage(self, filename: str, mimetype: str):
                 self._internal.SaveImage(

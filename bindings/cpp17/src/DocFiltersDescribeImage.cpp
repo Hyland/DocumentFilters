@@ -57,8 +57,11 @@ namespace Hyland
 			return m_dest;
 		}
 
-		IGR_Open_DIB_Info DescribeImage::getPixelData() const
+		const IGR_Open_DIB_Info* DescribeImage::getPixelData() const
 		{
+			if (!HAS_METHOD(m_dest, GetSourceImagePixels))
+				throw std::runtime_error("GetSourceImagePixels method not available");
+
 			return m_dest->GetSourceImagePixels(m_dest);
 		}
 

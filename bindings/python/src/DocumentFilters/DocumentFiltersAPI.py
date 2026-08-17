@@ -764,8 +764,9 @@ class IGR_Open_Callback_Action_Describe_Image(ctypes.Structure):
         ('struct_size', IGR_ULONG),
         ('reserved', ctypes.c_void_p),
         
+        # Returns a pointer to an IGR_Open_DIB_Info owned by Document Filters, valid only until the callback returns.
         ('GetSourceImagePixels', ctypes.CFUNCTYPE(
-            IGR_Open_DIB_Info,
+            ctypes.POINTER(IGR_Open_DIB_Info),
             ctypes.POINTER(None))),  # Pointer to this structure
 
         ('source_page_index', IGR_ULONG),

@@ -1254,8 +1254,9 @@ namespace Hyland.DocumentFilters
     };
 
 
+    // Returns a pointer to an IGR_Open_DIB_Info owned by Document Filters, valid only until the callback returns.
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate IGR_Open_DIB_Info IGR_Open_Callback_Action_Describe_Image_GetSourceImagePixelsDelegate(
+    public delegate IntPtr IGR_Open_Callback_Action_Describe_Image_GetSourceImagePixelsDelegate(
         IntPtr action
     );
 

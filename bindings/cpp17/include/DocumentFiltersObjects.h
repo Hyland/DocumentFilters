@@ -3786,9 +3786,13 @@ namespace Hyland
 			/// @return A constant pointer to an `IGR_Open_Callback_Action_Describe_Image`
 			const IGR_Open_Callback_Action_Describe_Image* raw() const;
 
-			/// @brief Retrieves the pixel data information of the image.
-			/// @return An IGR_Open_DIB_Info structure containing the pixel data information.
-			IGR_Open_DIB_Info getPixelData() const;
+			/// @brief Retrieves a pointer to the pixel data information of the image.
+			/// @details The returned structure and the buffers it points at are owned by Document Filters and remain valid only until the
+			/// callback returns. Copy any data that is needed beyond that point.
+			/// @return A constant pointer to an IGR_Open_DIB_Info structure containing the pixel data information, or nullptr if the image
+			/// data could not be prepared.
+			/// @throws std::runtime_error if the underlying action does not provide the accessor.
+			const IGR_Open_DIB_Info* getPixelData() const;
 
 			/// @brief Retrieves the index of the source page.
 			/// @return The index of the source page as a size_t value.
