@@ -34,27 +34,25 @@ namespace DocFilters
         private void ProcessFile(string filename)
         {
             if (string.IsNullOrEmpty(destination))
-                destination = Path.ChangeExtension(filename, ".txt");
+                destination = Path.ChangeExtension(filename, ".md");
 
             Console.Error.WriteLine("Processing " + filename + " to " + destination);
             try
             {
-                using StreamWriter outputFile = new StreamWriter(File.Open(destination, FileMode.Create), Encoding.UTF8);
                 using Extractor doc = m_docfilters.GetExtractor(filename);
 
                 doc.DescribeImageCallback = (OpenCallbackActionDescribeImage image) =>
                 {
                     if (image.Type != ISYS11dfConstants.IGR_DESCRIBE_IMAGE_TYPE_PICTURE)
                         return false;
-                    image.AddText("FAKE SAMPLE DESCRIBE IMAGE RESULT", 0);
+                    image.AddText("FAKE SAMPLE DESCRIBE IMAGE RESULT", ISYS11dfConstants.IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_REPLACE);
                     return true;
                 };
 
-                doc.Open(OpenMode.Text, OpenType.BodyAndMeta, "DESCRIBE_IMAGE=ON");
+                doc.Open(OpenMode.Paginated, OpenType.BodyAndMeta, "DESCRIBE_IMAGE=ON");
 
-                if (doc.getSupportsText())
-                    while (!doc.getEOF())
-                        outputFile.WriteLine(doc.GetText(MaxCharsPerGetText));
+                using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, CanvasType.MARKDOWN, "");
+                canvas.RenderPages(doc);
             }
             catch (Exception e)
             {
