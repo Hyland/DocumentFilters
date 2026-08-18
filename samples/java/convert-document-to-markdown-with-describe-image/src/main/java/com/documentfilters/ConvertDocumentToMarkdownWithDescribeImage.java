@@ -34,10 +34,14 @@ public class ConvertDocumentToMarkdownWithDescribeImage {
 			item.setDescribeImageCallback(new Extractor.IDescribeImageCallback() {
 				@Override
 				public boolean run(OpenCallbackActionDescribeImage image) {
-					if (image.GetSourceType() != isys_docfiltersConstants.IGR_DESCRIBE_IMAGE_TYPE_PICTURE)
-						return false;
-					image.AddText("FAKE SAMPLE DESCRIBE IMAGE RESULT");
-					return true;
+					try {
+						if (image.GetSourceType() != isys_docfiltersConstants.IGR_DESCRIBE_IMAGE_TYPE_PICTURE)
+							return false;
+						image.AddText("FAKE SAMPLE DESCRIBE IMAGE RESULT");
+						return true;
+					} catch (IGRException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			});
 
