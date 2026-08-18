@@ -14,9 +14,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /****************************************************************************
-* Document Filters Example - Convert a document to UTF8 text using a custom
-* OCR callback. Instead of using a real OCR engine, this sample demonstrates
-* how to hook into the OCR pipeline by providing a fake OCR result for every
+* Document Filters Example - Convert a document using a custom DescribeImage
+* callback. Instead of using a real AI model, this sample demonstrates how to
+* hook into the DescribeImage pipeline by providing a fake description for every
 * image encountered.
 ****************************************************************************/
 
