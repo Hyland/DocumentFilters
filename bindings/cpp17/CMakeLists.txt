@@ -28,6 +28,7 @@ set(SOURCES
     "src/DocFiltersCompareResults.cpp"
     "src/DocFiltersCompareSettings.cpp" 
     "src/DocFiltersDateTime.cpp"
+    "src/DocFiltersDescribeImage.cpp"
     "src/DocFiltersExtractor.cpp"
     "src/DocFiltersFormat.cpp"
     "src/DocFiltersFormElement.cpp"
