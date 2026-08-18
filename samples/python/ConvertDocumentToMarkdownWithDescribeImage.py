@@ -60,12 +60,11 @@ try:
     # Prepare and Initialize Engine
     DocumentFiltersSample.InitializeAPI(api, args)
 
-    # Create or open existing file with proper encoding
-    if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".txt"
-    output = open(args.output, "w", encoding="utf-8")
+    # Output markdown filename
+    if args.output is None: args.output = os.path.basename(os.path.splitext(args.file)[0]) + ".md"
 
     # Get Extractor and Convert Document
-    ProcessFile(args.file, output, sys.stderr)
+    ProcessFile(args.file, args.output, sys.stderr)
 except Exception as e:
     sys.stderr.write(str(e) + "\n")
     exit(1)
