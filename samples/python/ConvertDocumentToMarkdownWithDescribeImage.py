@@ -31,8 +31,8 @@ def describe_image_callback(image):
     image.AddText("FAKE SAMPLE DESCRIBE IMAGE RESULT", IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_REPLACE)
     return True
 
-def ProcessFile(filename, output, console):
-    MaxCharsPerGetText = 4096
+def ProcessFile(filename, outFilename, console):
+    console.write("Processing (FILE): " + filename + "\n")
 
     with api.GetExtractor(filename) as file:
         docType = file.getFileType()
@@ -41,12 +41,15 @@ def ProcessFile(filename, output, console):
 
         file.DescribeImageCallback = describe_image_callback
 
-        if file.getSupportsText():
-            file.Open(IGR_BODY_AND_META, "DESCRIBE_IMAGE=ON")
+        file.Open(IGR_BODY_AND_META | IGR_FORMAT_IMAGE, "DESCRIBE_IMAGE=ON")
 
-            while not file.getEOF():
-                output.write(file.GetText(MaxCharsPerGetText, stripControlCodes=True))
-
+        with api.MakeOutputCanvas(outFilename, IGR_DEVICE_MARKDOWN, "") as canvas:
+            pageIndex = 0
+            for page in file.Pages:
+                with page:
+                    console.write(f"Rendering Page {pageIndex + 1}\n")
+                    canvas.RenderPage(page)
+                    pageIndex += 1
 try:
     parser = argparse.ArgumentParser(description='Convert Document to UTF8 with DescribeImage callback.')
     parser.add_argument('file', metavar='file', type=str, nargs='?', help='Filename of file to convert')
