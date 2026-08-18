@@ -28,7 +28,7 @@ public class ConvertDocumentToMarkdownWithDescribeImage {
 
 	protected void ProcessFileImpl(String filename, Extractor item, PrintStream OutStream, PrintStream ErrStream)
 			throws IGRException {
-		String destination = outputFolder + File.separator + getBaseName(filename) + ".txt";
+		String destination = outputFolder + File.separator + getBaseName(filename) + ".md";
 
 		try {
 			item.setDescribeImageCallback(new Extractor.IDescribeImageCallback() {
