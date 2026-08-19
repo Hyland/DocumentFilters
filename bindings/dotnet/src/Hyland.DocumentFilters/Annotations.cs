@@ -429,7 +429,7 @@ namespace Hyland.DocumentFilters.Annotations
     /// </summary>
     internal class Serializer
     {
-        private System.IO.TextWriter _stream;
+        private readonly System.IO.TextWriter _stream;
 
         /// <summary>
         /// Constructor for the serializer.
@@ -453,10 +453,7 @@ namespace Hyland.DocumentFilters.Annotations
         /// </summary>
         public Serializer WriteRect(System.Drawing.Rectangle value)
         {
-            if (value.IsEmpty)
-                return Raw("null");
-            else
-                return Write(new double[] { value.Left, value.Top, value.Right, value.Bottom });
+            return value.IsEmpty ? Raw("null") : Write(new double[] { value.Left, value.Top, value.Right, value.Bottom });
         }
 
         /// <summary>
@@ -464,10 +461,7 @@ namespace Hyland.DocumentFilters.Annotations
         /// </summary>
         public Serializer WriteColor(System.Drawing.Color value)
         {
-            if (value.IsEmpty)
-                return Raw("null");
-            else
-                return Write(string.Format("#{0:X2}{1:X2}{2:X2}", value.R, value.G, value.B));
+            return value.IsEmpty ? Raw("null") : Write(string.Format("#{0:X2}{1:X2}{2:X2}", value.R, value.G, value.B));
         }
 
         /// <summary>
@@ -530,13 +524,14 @@ namespace Hyland.DocumentFilters.Annotations
         /// </summary>
         public Serializer Write(object value)
         {
-            var type = value?.GetType();
             if (value == null)
             {
                 _stream.Write("null");
                 return this;
             }
-            else if (value is string) return WriteString(value as string);
+
+            var type = value.GetType();
+            if (value is string) return WriteString(value as string);
             else if (type == typeof(bool)) return Raw((bool)value ? "true" : "false");
             else if (type == typeof(char)) return WriteString(value.ToString());
             else if (type == typeof(byte)) return Raw(((byte)value).ToString(CultureInfo.InvariantCulture));
@@ -696,11 +691,11 @@ namespace Hyland.DocumentFilters.Annotations
 
         public int GetLong(string path)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder pathSb = new StringBuilder(path);
             int res = 0;
 
-            Check(ISYS11df.IGR_Get_Page_Annotation_Long(ref _annotation, pathSb, ref res, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Annotation_Long(ref _annotation, pathSb, ref res, ref localEcb), localEcb);
 
             return res;
         }
@@ -710,12 +705,12 @@ namespace Hyland.DocumentFilters.Annotations
             if (path == "text")
                 maxLength = 128*1024;
 
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder pathSb = new StringBuilder(path);
             StringBuilder res = new StringBuilder(maxLength);
             int ml = res.Capacity;
 
-            Check(ISYS11df.IGR_Get_Page_Annotation_Str(ref _annotation, pathSb, ref ml, res, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Annotation_Str(ref _annotation, pathSb, ref ml, res, ref localEcb), localEcb);
             res.Length = ml;
 
             return res.ToString();
@@ -1105,7 +1100,9 @@ namespace Hyland.DocumentFilters.Annotations
                     }
                 }
                 catch (IGRException ex) when (ex.errorCode == ISYS11dfConstants.IGR_E_NOT_FOUND)
-                { }
+                {
+                    // Loop terminates when no more items exist; IGR_E_NOT_FOUND is the expected exit condition.
+                }
 
                 target = list;
                 return;
@@ -1145,7 +1142,9 @@ namespace Hyland.DocumentFilters.Annotations
                     }
                 }
                 catch (IGRException ex) when (ex.errorCode == ISYS11dfConstants.IGR_E_NOT_FOUND)
-                { }
+                {
+                    // Loop terminates when no more items exist; IGR_E_NOT_FOUND is the expected exit condition.
+                }
 
                 target = list;
                 return;

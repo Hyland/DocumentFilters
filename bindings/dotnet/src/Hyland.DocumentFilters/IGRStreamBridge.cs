@@ -11,7 +11,7 @@ namespace Hyland.DocumentFilters
 #pragma warning disable 1591
     public class IGRStreamBridge : IGRStream
     {
-        private System.IO.Stream _stream;
+        private readonly System.IO.Stream _stream;
         public IGRStreamBridge(System.IO.Stream stream)
             : base()
         {
@@ -67,8 +67,8 @@ namespace Hyland.DocumentFilters
     }
     public class StreamBridge : System.IO.Stream
     {
-        IntPtr _stream;
-        IGR_Stream _methods;
+        readonly IntPtr _stream;
+        readonly IGR_Stream _methods;
 
         public StreamBridge(IntPtr stream)
         {

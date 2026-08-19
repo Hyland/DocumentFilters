@@ -12,7 +12,7 @@ namespace Hyland.DocumentFilters
 
     public class IGRStream_Data 
     {
-        private IGRStreamAction callback;
+        private readonly IGRStreamAction callback;
 
         public IGRStream_Data(IGRStreamAction cb)
         {

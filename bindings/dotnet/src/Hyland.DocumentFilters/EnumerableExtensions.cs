@@ -11,8 +11,8 @@ namespace Hyland.DocumentFilters
     {
         struct Buffer<TElement>
         {
-            internal TElement[] items;
-            internal int count;
+            internal readonly TElement[] items;
+            internal readonly int count;
 
             internal Buffer(IEnumerable<TElement> source)
             {

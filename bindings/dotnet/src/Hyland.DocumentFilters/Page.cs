@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing.Printing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -20,7 +21,7 @@ namespace Hyland.DocumentFilters
     /// </summary>
     public class Page : DocumentFiltersBase, global::System.IDisposable
     {
-        private int _docHandle;
+        private readonly int _docHandle;
         private int _pageHandle;
         private IGR_Page_Word[] _words;
         private List<FormElement> _formElements;
@@ -133,8 +134,8 @@ namespace Hyland.DocumentFilters
             {
                 if (_pageHandle > 0)
                 {
-                    Error_Control_Block ecb = new Error_Control_Block();
-                    Check(ISYS11df.IGR_Close_Page(_pageHandle, ref ecb), ecb);
+                    Error_Control_Block localEcb = new Error_Control_Block();
+                    Check(ISYS11df.IGR_Close_Page(_pageHandle, ref localEcb), localEcb);
                     _pageHandle = 0;
                 }
             }
@@ -146,9 +147,9 @@ namespace Hyland.DocumentFilters
         /// <returns></returns>
         public int GetWordCount()
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             int retval = 0;
-            Check(ISYS11df.IGR_Get_Page_Word_Count(Handle, ref retval, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Word_Count(Handle, ref retval, ref localEcb), localEcb);
             return retval;
         }
 
@@ -169,9 +170,9 @@ namespace Hyland.DocumentFilters
         /// <returns></returns>
         public int GetWidth()
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             int width = 0, height = 0;
-            Check(ISYS11df.IGR_Get_Page_Dimensions(Handle, ref width, ref height, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Dimensions(Handle, ref width, ref height, ref localEcb), localEcb);
             return width;
         }
 
@@ -181,9 +182,9 @@ namespace Hyland.DocumentFilters
         /// <returns></returns>
         public int GetHeight()
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             int width = 0, height = 0;
-            Check(ISYS11df.IGR_Get_Page_Dimensions(Handle, ref width, ref height, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Dimensions(Handle, ref width, ref height, ref localEcb), localEcb);
             return height;
         }
 
@@ -195,14 +196,16 @@ namespace Hyland.DocumentFilters
         {
             if (string.IsNullOrEmpty(_pageText))
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 StringBuilder buffer = new StringBuilder(4096);
                 int bufferSize = buffer.Capacity;
-                
-                while (ISYS11df.IGR_Get_Page_Text(Handle, buffer, ref bufferSize, ref ecb) == 0)
+                var sb = new StringBuilder();
+
+                while (ISYS11df.IGR_Get_Page_Text(Handle, buffer, ref bufferSize, ref localEcb) == 0)
                 {
-                    _pageText += buffer.ToString(0, bufferSize);
+                    sb.Append(buffer.ToString(0, bufferSize));
                 }
+                _pageText = sb.ToString();
             }
             return _pageText;
         }
@@ -253,11 +256,11 @@ namespace Hyland.DocumentFilters
         {
             StringBuilder id = new StringBuilder(4096);
             StringBuilder name = new StringBuilder(1024);
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             long date = 0;
             long size = 0;
 
-            if (ISYS11df.IGR_Get_Page_Image_Entry(Handle, id, name, ref date, ref size, ref ecb) == 0)
+            if (ISYS11df.IGR_Get_Page_Image_Entry(Handle, id, name, ref date, ref size, ref localEcb) == 0)
             {
                 return new SubFile(this, Handle, id.ToString(), name.ToString(), size, date, ISYS11df.IGR_Extract_Page_Image_Stream);
             }
@@ -281,9 +284,9 @@ namespace Hyland.DocumentFilters
         /// <param name="lastWord"></param>
         public void Redact(int firstWord, int lastWord)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
 
-            Check(ISYS11df.IGR_Redact_Page_Text(_pageHandle, firstWord, lastWord, 0, ref ecb), ecb);
+            Check(ISYS11df.IGR_Redact_Page_Text(_pageHandle, firstWord, lastWord, 0, ref localEcb), localEcb);
         }
 
         /// <summary>
@@ -295,9 +298,9 @@ namespace Hyland.DocumentFilters
         {
             StringBuilder buffer = new StringBuilder(1024);
             int bufferSize = buffer.Capacity;
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
 
-            Check(ISYS11df.IGR_Get_Page_Attribute(Handle, Name, buffer, ref bufferSize, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Page_Attribute(Handle, Name, buffer, ref bufferSize, ref localEcb), localEcb);
             return buffer.ToString(0, bufferSize);
         }
 
@@ -466,14 +469,13 @@ namespace Hyland.DocumentFilters
         /// <returns>PageElement representing the root of the page.</returns>
         public PageElement GetRootPageElement()
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             IGR_Page_Element res = new IGR_Page_Element();
             res.struct_size = (uint)Marshaler.SizeOf<IGR_Page_Element>();
 
-            if (ISYS11df.IGR_Get_Page_Element_Root((IntPtr) _pageHandle, ref res, ref ecb) == 0)
-                return new PageElement((IntPtr)_pageHandle, res);
-            else
-                return null;
+            return ISYS11df.IGR_Get_Page_Element_Root((IntPtr) _pageHandle, ref res, ref localEcb) == 0
+                ? new PageElement((IntPtr)_pageHandle, res)
+                : null;
         }
 
         private System.Drawing.Imaging.PixelFormat MapPixelFormat(int value)
@@ -498,12 +500,12 @@ namespace Hyland.DocumentFilters
         {
             if (_words == null)
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 int wordCount = GetWordCount();
                 _words = new IGR_Page_Word[wordCount];
                 if (wordCount > 0)
                 {
-                    Check(ISYS11df.IGR_Get_Page_Words(_pageHandle, 0, ref wordCount, _words, ref ecb), ecb);
+                    Check(ISYS11df.IGR_Get_Page_Words(_pageHandle, 0, ref wordCount, _words, ref localEcb), localEcb);
                 }
             }
         }
@@ -512,16 +514,16 @@ namespace Hyland.DocumentFilters
         {
             if (_formElements == null)
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 _formElements = new List<FormElement>();
 
                 int count = 0;
-                Check(ISYS11df.IGR_Get_Page_Form_Element_Count(_pageHandle, ref count, ref ecb), ecb);
+                Check(ISYS11df.IGR_Get_Page_Form_Element_Count(_pageHandle, ref count, ref localEcb), localEcb);
                 for (int i = 0; i < count; ++i)
                 {
                     int read = 1;
                     IGR_Page_Form_Element item = new IGR_Page_Form_Element();
-                    Check(ISYS11df.IGR_Get_Page_Form_Elements(_pageHandle, i, ref read, ref item, ref ecb), ecb);
+                    Check(ISYS11df.IGR_Get_Page_Form_Elements(_pageHandle, i, ref read, ref item, ref localEcb), localEcb);
                     if (read == 1)
                         _formElements.Add(new FormElement(item));
                 }
@@ -533,16 +535,16 @@ namespace Hyland.DocumentFilters
         {
             if (_hyperlinks == null)
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 _hyperlinks = new List<Hyperlink>();
 
                 int count = 0;
-                Check(ISYS11df.IGR_Get_Page_Hyperlink_Count(_pageHandle, ref count, ref ecb), ecb);
+                Check(ISYS11df.IGR_Get_Page_Hyperlink_Count(_pageHandle, ref count, ref localEcb), localEcb);
                 for (int i = 0; i < count; ++i)
                 {
                     int read = 1;
                     IGR_Hyperlink item = new IGR_Hyperlink();
-                    Check(ISYS11df.IGR_Get_Page_Hyperlinks(_pageHandle, i, ref read, ref item, ref ecb), ecb);
+                    Check(ISYS11df.IGR_Get_Page_Hyperlinks(_pageHandle, i, ref read, ref item, ref localEcb), localEcb);
                     if (read == 1)
                         _hyperlinks.Add(new Hyperlink(item));
                 }
@@ -554,16 +556,16 @@ namespace Hyland.DocumentFilters
         {
             if (_annotations == null)
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 _annotations = new List<Annotation>();
 
                 int count = 0;
-                Check(ISYS11df.IGR_Get_Page_Annotation_Count(_pageHandle, ref count, ref ecb), ecb);
+                Check(ISYS11df.IGR_Get_Page_Annotation_Count(_pageHandle, ref count, ref localEcb), localEcb);
                 for (int i = 0; i < count; ++i)
                 {
                     int read = 1;
                     IGR_Annotation item = new IGR_Annotation();
-                    Check(ISYS11df.IGR_Get_Page_Annotations(_pageHandle, i, ref read, ref item, ref ecb), ecb);
+                    Check(ISYS11df.IGR_Get_Page_Annotations(_pageHandle, i, ref read, ref item, ref localEcb), localEcb);
                     if (read == 1)
                         _annotations.Add(Annotation.From(item));
                 }
@@ -579,15 +581,15 @@ namespace Hyland.DocumentFilters
         private IntPtr CreateImageEnumerator()
         {
             IntPtr result = IntPtr.Zero;
-            Error_Control_Block ecb = new Error_Control_Block();
-            Check(ISYS11df.IGR_Get_Page_Images_Enumerator(_pageHandle, ref result, ref ecb), ecb);
+            Error_Control_Block localEcb = new Error_Control_Block();
+            Check(ISYS11df.IGR_Get_Page_Images_Enumerator(_pageHandle, ref result, ref localEcb), localEcb);
             return result;
         }
 
 
         internal class WordCollection : ReadOnlyList<Word>
         {
-            private Page _page;
+            private readonly Page _page;
 
             internal WordCollection(Page page)
             {
@@ -611,22 +613,14 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public class FormElementCollection : ReadOnlyList<FormElement>
         {
-            private List<FormElement> _items;
+            private readonly List<FormElement> _items;
 
             /// <summary>
             /// Returns the form element with the given name.
             /// </summary>
             public FormElement this[string name]
             {
-                get
-                { 
-                    foreach (var i in _items)
-                    {
-                        if (i.Name == name)
-                            return i;
-                    }
-                    return null;
-                }
+                get => _items.FirstOrDefault(i => i.Name == name);
             }
             internal FormElementCollection(List<FormElement> items)
             {
@@ -655,7 +649,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public class HyperlinkCollection : ReadOnlyList<Hyperlink>
         {
-            private List<Hyperlink> _items;
+            private readonly List<Hyperlink> _items;
 
             internal HyperlinkCollection(List<Hyperlink> items)
             {
@@ -684,7 +678,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public class AnnotationCollection : ReadOnlyList<Annotation>
         {
-            private List<Annotation> _items;
+            private readonly List<Annotation> _items;
 
             internal AnnotationCollection(List<Annotation> items)
             {

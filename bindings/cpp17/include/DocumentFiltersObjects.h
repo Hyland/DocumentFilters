@@ -82,6 +82,7 @@ namespace Hyland
 		class Hyperlink;
 		class Format;
 		class Option;
+		class DescribeImage;
 		class OcrImage;
 		class OcrStyleInfo;
 		class Page;
@@ -2007,6 +2008,7 @@ namespace Hyland
 			typedef std::function<bool(const std::wstring&)> approve_external_resource_callback_t;
 			typedef std::function<std::unique_ptr<Stream>(const std::wstring&)> get_resource_stream_callback_t;
 			typedef std::function<bool(OcrImage&)> ocr_image_callback_t;
+			typedef std::function<bool(DescribeImage&)> describe_image_callback_t;
 			typedef lazy_loader_indexed<Page> pages_t;
 			typedef enumerable_t<Subfile> subfiles_t;
 
@@ -2200,6 +2202,11 @@ namespace Hyland
 			///
 			/// @param callback The callback function to be set for OCR image processing.
 			void setOcrImageCallback(const ocr_image_callback_t& callback);
+
+			/// @brief Sets the callback function for describing images.
+			///
+			/// @param callback The callback function to be set for describing images.
+			void setDescribeImageCallback(const describe_image_callback_t& callback);
 
 			/// Retrieves the bookmarks in the document.
 			///
@@ -3765,6 +3772,70 @@ namespace Hyland
 
 		private:
 			IGR_Open_Callback_Action_OCR_Image* m_dest;
+		};
+
+		/// @brief Represents a described image object with methods for managing image data and alt text.
+		class DescribeImage
+		{
+		public:
+			/// @brief Processes a described image using the provided callback action.
+			/// @param dest A pointer to an IGR_Open_Callback_Action_Describe_Image object that will handle the described image processing.
+			DescribeImage(IGR_Open_Callback_Action_Describe_Image* dest);
+
+			/// @brief Retrieves a raw pointer to a described image callback action.
+			/// @return A constant pointer to an `IGR_Open_Callback_Action_Describe_Image`
+			const IGR_Open_Callback_Action_Describe_Image* raw() const;
+
+			/// @brief Retrieves a pointer to the pixel data information of the image.
+			/// @details The returned structure and the buffers it points at are owned by Document Filters and remain valid only until the
+			/// callback returns. Copy any data that is needed beyond that point.
+			/// @return A constant pointer to an IGR_Open_DIB_Info structure containing the pixel data information, or nullptr if the image
+			/// data could not be prepared.
+			/// @throws std::runtime_error if the underlying action does not provide the accessor.
+			const IGR_Open_DIB_Info* getPixelData() const;
+
+			/// @brief Retrieves the index of the source page.
+			/// @return The index of the source page as a size_t value.
+			size_t getSourcePageIndex() const;
+
+			/// @brief Retrieves the source rectangle.
+			/// @return A Rect object representing the source rectangle.
+			Rect getSourceRect() const;
+
+			/// @brief Retrieves the source name.
+			/// @return A std::wstring containing the source name.
+			std::wstring getSourceName() const;
+
+			/// @brief Retrieves the existing alt text associated with the image.
+			/// @return A std::wstring containing the existing alt text.
+			std::wstring getExistingAltText() const;
+
+			/// @brief Retrieves the source type of the image.
+			/// @return The source type as an IGR_LONG value.
+			IGR_LONG getSourceType() const;
+
+			/// @brief Saves an image to a file with the specified filename and MIME type.
+			/// @param filename The name of the file where the image will be saved, including its path.
+			/// @param mimeType The MIME type of the image format to use for saving (e.g., 'image/png', 'image/jpeg').
+			void SaveImage(const std::wstring& filename, const std::wstring& mimeType) const;
+
+			/// @brief Saves an image to a file with the specified filename and MIME type.
+			/// @param filename The name of the file where the image will be saved, including its path.
+			/// @param mimeType The MIME type of the image format to use for saving (e.g., 'image/png', 'image/jpeg').
+			void SaveImage(const std::string& filename, const std::string& mimeType) const;
+
+			/// @brief Adds an (additional) alt text.
+			/// @param text The text to be added, represented as a wide string.
+			/// @param flags Optional flags that modify the behavior of the text addition. Defaults to 0.
+			void AddText(const std::wstring& text, const IGR_ULONG flags = 0) const;
+
+			/// @brief Adds an (additional) alt text.
+			/// @param text The text to be added, represented as a string.
+			/// @param flags Optional flags that modify the behavior of the text addition. Defaults to 0.
+			void AddText(const std::string& text, const IGR_ULONG flags = 0) const;
+
+		private:
+			IGR_Open_Callback_Action_Describe_Image* m_dest;
 		};
 
 		// --------------------------------------------------------------------------------

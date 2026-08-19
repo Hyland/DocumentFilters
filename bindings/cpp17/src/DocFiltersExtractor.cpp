@@ -90,6 +90,7 @@ namespace Hyland
 			Extractor::approve_external_resource_callback_t m_approve_external_resource_callback;
 			Extractor::get_resource_stream_callback_t m_get_resource_stream_callback;
 			Extractor::ocr_image_callback_t m_ocr_image_callback;
+			Extractor::describe_image_callback_t m_describe_image_callback;
 			std::optional<Extractor::pages_t> m_pages_loader;
 			std::shared_ptr<subfile_enumerable_t> m_subfiles;
 			std::shared_ptr<subfile_enumerable_t> m_images;
@@ -308,6 +309,23 @@ namespace Hyland
 							                   else if (impl->m_callback)
 								                   return impl->m_callback(action, payload);
 							                   break;
+						                   case IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE:
+							                   if (impl->m_describe_image_callback)
+							                   {
+								                   auto* p = reinterpret_cast<IGR_Open_Callback_Action_Describe_Image*>(payload);
+								                   if (p->struct_size >= sizeof(*p))
+								                   {
+									                   DescribeImage describe_image(p);
+
+									                   auto res = impl->m_describe_image_callback(describe_image);
+									                   if (res)
+										                   return IGR_OK;
+									                   return IGR_CANCELLED;
+								                   }
+							                   }
+							                   else if (impl->m_callback)
+								                   return impl->m_callback(action, payload);
+							                   break;
 						                   default:
 							                   if (impl->m_callback)
 								                   return impl->m_callback(action, payload);
@@ -392,6 +410,11 @@ namespace Hyland
 		void Extractor::setOcrImageCallback(const ocr_image_callback_t& callback)
 		{
 			m_impl->m_ocr_image_callback = callback;
+		}
+
+		void Extractor::setDescribeImageCallback(const describe_image_callback_t& callback)
+		{
+			m_impl->m_describe_image_callback = callback;
 		}
 
 		uint32_t Extractor::getFileType() const

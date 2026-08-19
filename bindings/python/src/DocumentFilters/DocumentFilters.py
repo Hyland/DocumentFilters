@@ -2731,7 +2731,50 @@ class DocumentFilters(DocumentFiltersBase):
                 self._internal.Reorient(
                     self._handle,
                     angle)
-                                       
+
+        class ActionDescribeImage:
+            def __init__(self, internal, handle):
+                self._internal: IGR_Open_Callback_Action_Describe_Image = internal
+                self._handle = handle
+
+            @property
+            def SourcePageIndex(self) -> int:
+                return self._internal.source_page_index
+
+            @property
+            def SourceRect(self) -> IGR_Rect:
+                return self._internal.source_rect
+
+            @property
+            def SourceName(self) -> str:
+                return DocumentFiltersBase._FromUTF16(self._internal.source_name)
+
+            @property
+            def SourceType(self) -> int:
+                return self._internal.source_type
+
+            @property
+            def ExistingAltText(self) -> str:
+                return DocumentFiltersBase._FromUTF16(self._internal.existing_alt_text)
+
+            def PixelData(self) -> IGR_Open_DIB_Info:
+                # The returned structure and the buffers it points at are owned by Document Filters and are only
+                # valid until the callback returns.
+                dib = self._internal.GetSourceImagePixels(
+                    self._handle)
+                return dib.contents if dib else IGR_Open_DIB_Info()
+
+            def SaveImage(self, filename: str, mimetype: str):
+                self._internal.SaveImage(
+                    self._handle,
+                    DocumentFiltersBase._ToUTF16(filename),
+                    DocumentFiltersBase._ToUTF16(mimetype))
+
+            def AddText(self, text: str, flags: int = IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_REPLACE):
+                self._internal.AddText(
+                    self._handle,
+                    DocumentFiltersBase._ToUTF16(text),
+                    flags)
 
         @property
         def Action(self) -> int: return self._action
@@ -2756,6 +2799,9 @@ class DocumentFilters(DocumentFiltersBase):
 
         @property
         def GetResourceStream(self) -> ActionGetResourceStream: return self._getResourceStream
+
+        @property
+        def DescribeImage(self) -> ActionDescribeImage: return self._describeImage
 
     class Extractor(DocumentFiltersBase):
         class SubFileEnumerator(DocumentFiltersBase):
@@ -2815,6 +2861,7 @@ class DocumentFilters(DocumentFiltersBase):
             self._localizer: 'Callable[[int, str], str]' = None
             self._getResourceStream: 'Callable[[str], IGRStream]' = None
             self._ocrImage: 'Callable[[OpenCallback.ActionOcrImage], bool]' = None
+            self._describeImage: 'Callable[[OpenCallback.ActionDescribeImage], bool]' = None
             self._passwordCallback: 'Callable[[str], str]' = None
             self._heartbeatCallback: 'Callable[[], bool]' = None
             self._approveExternalResourceCallback: 'Callable[[str], bool]' = None
@@ -2944,6 +2991,8 @@ class DocumentFilters(DocumentFiltersBase):
                     callbackRequest._getResourceStream = DocumentFilters.OpenCallback.ActionGetResourceStream(IGR_Open_Callback_Action_Get_Resource_Stream.from_address(payload))
                 elif action == IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE:
                     callbackRequest._ocrImage = DocumentFilters.OpenCallback.ActionOcrImage(IGR_Open_Callback_Action_OCR_Image.from_address(payload), payload)
+                elif action == IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE:
+                    callbackRequest._describeImage = DocumentFilters.OpenCallback.ActionDescribeImage(IGR_Open_Callback_Action_Describe_Image.from_address(payload), payload)
 
                 # Handle exceptions raised from user-provided callback
                 # - Not handling these results in "Exception ignored on calling ctypes callback function" output from ctypes
@@ -2972,6 +3021,11 @@ class DocumentFilters(DocumentFiltersBase):
                     elif action == IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE:
                         if self._ocrImage is not None:
                             if self._ocrImage(callbackRequest._ocrImage):
+                                result = IGR_OK
+                                handled = True
+                    elif action == IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE:
+                        if self._describeImage is not None:
+                            if self._describeImage(callbackRequest._describeImage):
                                 result = IGR_OK
                                 handled = True
                     elif action == IGR_OPEN_CALLBACK_ACTION_HEARTBEAT:
@@ -3040,7 +3094,8 @@ class DocumentFilters(DocumentFiltersBase):
                 len(self._localize) == 0 and 
                 self._localizer is None and 
                 self._getResourceStream is None and 
-                self._ocrImage is None and 
+                self._ocrImage is None and
+                self._describeImage is None and
                 self._passwordCallback is None and 
                 self._heartbeatCallback is None and 
                 self._approveExternalResourceCallback is None and 
@@ -3344,7 +3399,15 @@ class DocumentFilters(DocumentFiltersBase):
         @OcrImageCallback.setter
         def OcrImageCallback(self, value: 'Callable[[OpenCallback.ActionOcrImage], bool]'):
             self._ocrImage = value
-            
+
+        @property
+        def DescribeImageCallback(self) -> 'Callable[[OpenCallback.ActionDescribeImage], bool]':
+            return self._describeImage
+
+        @DescribeImageCallback.setter
+        def DescribeImageCallback(self, value: 'Callable[[OpenCallback.ActionDescribeImage], bool]'):
+            self._describeImage = value
+
         @property
         def PasswordCallback(self) -> 'Callable[[str], str]':
             return self._passwordCallback
@@ -3599,6 +3662,7 @@ OpenCallbackHeartbeat = DocumentFilters.OpenCallback.ActionHeartbeat
 OpenCallbackLocalize = DocumentFilters.OpenCallback.ActionLocalize
 OpenCallbackLogLevel = DocumentFilters.OpenCallback.ActionLogLevel
 OpenCallbackLogMessage = DocumentFilters.OpenCallback.ActionLogMessage
+OpenCallbackDescribeImage = DocumentFilters.OpenCallback.ActionDescribeImage
 OpenCallbackOcrImage = DocumentFilters.OpenCallback.ActionOcrImage
 OpenCallbackPassword = DocumentFilters.OpenCallback.ActionPassword
 Option = DocumentFilters.Option

@@ -92,7 +92,7 @@ namespace Hyland.DocumentFilters
 
     /// <summary>
     /// The Extractor interface allows you to extract the content of a document and/or enumerate its sub-documents, such as email attachments and ZIP archives.
-    /// 
+    ///
     /// To obtain this interface, call the DocumentFilters.GetExtractor method.
     /// </summary>
     public class Extractor : DocumentFiltersBase, IDisposable
@@ -114,10 +114,10 @@ namespace Hyland.DocumentFilters
         private Func<OpenCallback, int> _userCallback = null;
         private GCHandle _callbackHandle;
         private IEnumerator<SubFile> _subfileEnumerator;
-        
+
         private readonly object _disposeSyncRoot = new object();
-        
-        private IDictionary<string, string> _localized = new Dictionary<string, string>();
+
+        private readonly IDictionary<string, string> _localized = new Dictionary<string, string>();
 
         /// <summary>
         /// Returns an enumerable set of pages.
@@ -224,6 +224,11 @@ namespace Hyland.DocumentFilters
         public Func<OpenCallbackActionOcrImage, bool> OcrImageCallback { get; set; }
 
         /// <summary>
+        /// Represents a callback action that processes an object related to image description.
+        /// </summary>
+        public Func<OpenCallbackActionDescribeImage, bool> DescribeImageCallback { get; set; }
+
+        /// <summary>
         /// A delegate that represents a callback function returning a boolean value. It is used to handle heartbeat
         /// events.
         /// </summary>
@@ -266,8 +271,8 @@ namespace Hyland.DocumentFilters
         /// <param name="filename">Filename of resource on disk to open.</param>
         internal Extractor(DocumentFiltersBase parent, string filename)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
-            Check(ISYS11df.IGR_Make_Stream_From_File(filename, 0, ref _streamHandle, ref ecb), ecb);
+            Error_Control_Block localEcb = new Error_Control_Block();
+            Check(ISYS11df.IGR_Make_Stream_From_File(filename, 0, ref _streamHandle, ref localEcb), localEcb);
         }
 
         /// <summary>
@@ -291,8 +296,8 @@ namespace Hyland.DocumentFilters
             _bytes = GCHandle.Alloc(byteArray, GCHandleType.Pinned);
             _bytesLength = (uint)byteArray.Length;
 
-            Error_Control_Block ecb = new Error_Control_Block();
-            Check(ISYS11df.IGR_Make_Stream_From_Memory(_bytes.AddrOfPinnedObject(), new System.IntPtr(_bytesLength), IntPtr.Zero, ref _streamHandle, ref ecb), ecb);
+            Error_Control_Block localEcb = new Error_Control_Block();
+            Check(ISYS11df.IGR_Make_Stream_From_Memory(_bytes.AddrOfPinnedObject(), new System.IntPtr(_bytesLength), IntPtr.Zero, ref _streamHandle, ref localEcb), localEcb);
         }
 
         /// <summary>
@@ -435,13 +440,14 @@ namespace Hyland.DocumentFilters
             IntPtr cbPtr = IntPtr.Zero;
             _userCallback = callback;
 
-            if (callback != null 
-                || _localized.Count > 0 
-                || Localizer != null 
-                || GetResourceStreamCallback != null 
-                || OcrImageCallback != null 
-                || PasswordCallback != null 
-                || HeartbeatCallback != null 
+            if (callback != null
+                || _localized.Count > 0
+                || Localizer != null
+                || GetResourceStreamCallback != null
+                || OcrImageCallback != null
+                || DescribeImageCallback != null
+                || PasswordCallback != null
+                || HeartbeatCallback != null
                 || LogLevelCallback != null
                 || LogMessageCallback != null
                 || ApproveExternalResourceCallback != null)
@@ -463,11 +469,11 @@ namespace Hyland.DocumentFilters
             }
             //native parameter marshalling marshals a delegate to a native function pointer
             //so no need for explicit Marshal.GetFuntionPointerForDelegate
-            //we use the function pointer here though instead of Open_Callback directly 
+            //we use the function pointer here though instead of Open_Callback directly
             //for explicit reference t tohe saved _callbackHandle reference
             //https://learn.microsoft.com/en-us/dotnet/standard/native-interop/type-marshalling
             Check(ISYS11df.IGR_Open_Ex(ISYS11dfConstants.IGR_OPEN_FROM_STREAM, NeedStream(), (int)flags, options, ref _capabilities, ref _filetype, IntPtr.Zero, cbPtr, IntPtr.Zero, ref _handle, ref ecb), ecb); ;
-            
+
             if (((int)(flags) & 0xffff0000) == (int)OpenType.FormatImage)
                 Check(ISYS11df.IGR_Get_Page_Count(_handle, ref _pageCount, ref ecb));
             _flags = flags;
@@ -549,7 +555,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         /// <param name="flags">Specify the open-mode flags.</param>
         public void Open(int flags) => Open(flags, "", callback: null);
-        
+
         /// <summary>
         /// Returns the file-type code for the document
         /// </summary>
@@ -562,9 +568,9 @@ namespace Hyland.DocumentFilters
             }
             else
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 int caps = 0, filetype = 0;
-                Check(ISYS11df.IGR_Get_Stream_Type(NeedStream(), ref caps, ref filetype, ref ecb), ecb);
+                Check(ISYS11df.IGR_Get_Stream_Type(NeedStream(), ref caps, ref filetype, ref localEcb), localEcb);
                 return filetype;
             }
         }
@@ -581,9 +587,9 @@ namespace Hyland.DocumentFilters
             }
             else
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 int caps = 0, filetype = 0;
-                Check(ISYS11df.IGR_Get_Stream_Type(NeedStream(), ref caps, ref filetype, ref ecb), ecb);
+                Check(ISYS11df.IGR_Get_Stream_Type(NeedStream(), ref caps, ref filetype, ref localEcb), localEcb);
                 return caps;
             }
         }
@@ -595,10 +601,10 @@ namespace Hyland.DocumentFilters
         /// <returns></returns>
         public string getFileType(IGRFormatWhat what)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder buffer = new StringBuilder(255);
 
-            Check(ISYS11df.IGR_Get_Format_Attribute(getFileType(), (int)what, buffer, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Format_Attribute(getFileType(), (int)what, buffer, ref localEcb), localEcb);
             return buffer.ToString();
         }
 
@@ -630,8 +636,8 @@ namespace Hyland.DocumentFilters
         }
 
         /// <summary>
-        /// The EOF property is only valid for documents where the SupportsText property is TRUE. The EOF property will be 
-        /// set to TRUE when no more text can be extracted from the document with calls to GetText. If the document needs to 
+        /// The EOF property is only valid for documents where the SupportsText property is TRUE. The EOF property will be
+        /// set to TRUE when no more text can be extracted from the document with calls to GetText. If the document needs to
         /// be re-read, call Close and Open first.
         /// </summary>
         /// <returns></returns>
@@ -647,11 +653,11 @@ namespace Hyland.DocumentFilters
         /// <returns>A unicode string containing the requested content.</returns>
         public string GetText(int maxLength)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder buffer = new StringBuilder(maxLength);
             int retval = maxLength;
 
-            Check(ISYS11df.IGR_Get_Text(NeedHandle(), buffer, ref retval, ref ecb), ecb);
+            Check(ISYS11df.IGR_Get_Text(NeedHandle(), buffer, ref retval, ref localEcb), localEcb);
             _eof = retval == 0;
             return buffer.ToString().Substring(0, retval);
         }
@@ -712,10 +718,10 @@ namespace Hyland.DocumentFilters
         /// <returns>Returns a string containing the Hash.</returns>
         public string getHashMD5()
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder buffer = new StringBuilder(33);
 
-            Check(ISYS11df.IGR_Calculate_MD5(NeedStream(), buffer, ref ecb), ecb);
+            Check(ISYS11df.IGR_Calculate_MD5(NeedStream(), buffer, ref localEcb), localEcb);
             return buffer.ToString();
         }
 
@@ -732,7 +738,7 @@ namespace Hyland.DocumentFilters
         }
 
         /// <summary>
-        /// The GetFirstSubFile and GetFirstImage methods obtains a SubFile object representing the first sub-document or attached 
+        /// The GetFirstSubFile and GetFirstImage methods obtains a SubFile object representing the first sub-document or attached
         /// image (if using HTML conversion) of the current document.
         /// </summary>
         /// <returns>Returns a SubFile if more files are available, otherwise null.</returns>
@@ -747,7 +753,7 @@ namespace Hyland.DocumentFilters
         }
 
         /// <summary>
-        /// The GetFirstSubFile and GetFirstImage methods obtains a SubFile object representing the first sub-document 
+        /// The GetFirstSubFile and GetFirstImage methods obtains a SubFile object representing the first sub-document
         /// or attached image (if using HTML conversion) of the current document.
         /// </summary>
         /// <returns>Returns a SubFile if more files are available, otherwise null.</returns>
@@ -756,10 +762,7 @@ namespace Hyland.DocumentFilters
             if (_subfileEnumerator == null)
                 _subfileEnumerator = CreateSubFileEnumeration().GetEnumerator();
 
-            if (_subfileEnumerator.MoveNext())
-                return _subfileEnumerator.Current;
-            else
-                return null;
+            return _subfileEnumerator.MoveNext() ? _subfileEnumerator.Current : null;
         }
 
         /// <summary>
@@ -782,11 +785,11 @@ namespace Hyland.DocumentFilters
         /// <returns>A SubFile object, or null if no more are available.</returns>
         protected SubFile GetNext(int handle, IGR_Get_Entry GetNext, IGR_Extract_Stream extractor)
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             StringBuilder id = new StringBuilder(4096);
             StringBuilder name = new StringBuilder(1024);
             long date = 0, size = 0;
-            if (Check(GetNext(handle, id, name, ref date, ref size, ref ecb), ecb) != ISYS11dfConstants.IGR_NO_MORE)
+            if (Check(GetNext(handle, id, name, ref date, ref size, ref localEcb), localEcb) != ISYS11dfConstants.IGR_NO_MORE)
             {
                 return new SubFile(this, handle, id.ToString(), name.ToString(), size, date, extractor);
             }
@@ -836,7 +839,7 @@ namespace Hyland.DocumentFilters
 
                 byte[] buffer = new byte[1024];
                 int len;
-                
+
                 while((len = src.Read(buffer, 0, buffer.Length)) > 0)
                 {
                     dest.Write(buffer, 0, len);
@@ -875,9 +878,9 @@ namespace Hyland.DocumentFilters
         {
             if (_pageIndex < _pageCount)
             {
-                Error_Control_Block ecb = new Error_Control_Block();
+                Error_Control_Block localEcb = new Error_Control_Block();
                 int pageHandle = 0;
-                Check(ISYS11df.IGR_Open_Page(NeedHandle(), _pageIndex, ref pageHandle, ref ecb), ecb);
+                Check(ISYS11df.IGR_Open_Page(NeedHandle(), _pageIndex, ref pageHandle, ref localEcb), localEcb);
 
                 _pageIndex++;
 
@@ -897,9 +900,9 @@ namespace Hyland.DocumentFilters
         public Page GetPage(int page)
         {
             VerifyArgumentInRange(page, 0, _pageCount - 1, "page");
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             int pageHandle = 0;
-            Check(ISYS11df.IGR_Open_Page(NeedHandle(), page, ref pageHandle, ref ecb), ecb);
+            Check(ISYS11df.IGR_Open_Page(NeedHandle(), page, ref pageHandle, ref localEcb), localEcb);
 
             return new Page(NeedHandle(), pageHandle);
         }
@@ -953,8 +956,8 @@ namespace Hyland.DocumentFilters
         private IntPtr CreateSubFileEnumerator()
         {
             IntPtr result = IntPtr.Zero;
-            Error_Control_Block ecb = new Error_Control_Block();
-            Check(ISYS11df.IGR_Get_Subfiles_Enumerator(NeedHandle(), ref result, ref ecb), ecb);
+            Error_Control_Block localEcb = new Error_Control_Block();
+            Check(ISYS11df.IGR_Get_Subfiles_Enumerator(NeedHandle(), ref result, ref localEcb), localEcb);
             return result;
         }
 
@@ -974,8 +977,8 @@ namespace Hyland.DocumentFilters
         private IntPtr CreateImageEnumerator()
         {
             IntPtr result = IntPtr.Zero;
-            Error_Control_Block ecb = new Error_Control_Block();
-            Check(ISYS11df.IGR_Get_Images_Enumerator(NeedHandle(), ref result, ref ecb), ecb);
+            Error_Control_Block localEcb = new Error_Control_Block();
+            Check(ISYS11df.IGR_Get_Images_Enumerator(NeedHandle(), ref result, ref localEcb), localEcb);
             return result;
         }
 
@@ -1038,6 +1041,11 @@ namespace Hyland.DocumentFilters
                             callback.GetOcrImage = Marshaler.PtrToStructure<IGR_Open_Callback_Action_OCR_Image>(actionData);
                             break;
                         }
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE:
+                        {
+                            callback.DescribeImage = Marshaler.PtrToStructure<IGR_Open_Callback_Action_Describe_Image>(actionData);
+                            break;
+                        }
                 }
 
                 if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOCALIZE)
@@ -1078,6 +1086,15 @@ namespace Hyland.DocumentFilters
                             retval = ISYS11dfConstants.IGR_OK;
                     }
                 }
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE)
+                {
+                    if (DescribeImageCallback != null)
+                    {
+                        var payload = new OpenCallbackActionDescribeImage(callback);
+                        if (DescribeImageCallback(payload))
+                            retval = ISYS11dfConstants.IGR_OK;
+                    }
+                }
                 else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_HEARTBEAT)
                 {
                     if (HeartbeatCallback != null && !HeartbeatCallback())
@@ -1090,10 +1107,9 @@ namespace Hyland.DocumentFilters
                 {
                     if (ApproveExternalResourceCallback != null)
                     {
-                        if (ApproveExternalResourceCallback(callback.ApproveExternalResource.url))
-                            retval = ISYS11dfConstants.IGR_OK;
-                        else
-                            retval = ISYS11dfConstants.IGR_CANCELLED;
+                        retval = ApproveExternalResourceCallback(callback.ApproveExternalResource.url)
+                            ? ISYS11dfConstants.IGR_OK
+                            : ISYS11dfConstants.IGR_CANCELLED;
                         handled = true;
                     }
                 }
@@ -1119,14 +1135,11 @@ namespace Hyland.DocumentFilters
                         handled = true;
                     }
                 }
-                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE)
+                else if (actionID == ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_LOG_MESSAGE && LogMessageCallback != null)
                 {
-                    if (LogMessageCallback != null)
-                    {
-                        LogMessageCallback((int) callback.LogMessage.log_level, callback.LogMessage.module, callback.LogMessage.message);
-                        retval = ISYS11dfConstants.IGR_OK;
-                        handled = true;
-                    }
+                    LogMessageCallback((int) callback.LogMessage.log_level, callback.LogMessage.module, callback.LogMessage.message);
+                    retval = ISYS11dfConstants.IGR_OK;
+                    handled = true;
                 }
 
                 //call user's callback and marshal the data back for unmanaged code
@@ -1167,8 +1180,14 @@ namespace Hyland.DocumentFilters
                         if (callback.GetOcrImage != null)
                             Marshaler.StructureToPtr<IGR_Open_Callback_Action_OCR_Image>(callback.GetOcrImage, actionData, true);
                         break;
+                    case ISYS11dfConstants.IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE:
+                        if (callback.DescribeImage != null)
+                            Marshaler.StructureToPtr<IGR_Open_Callback_Action_Describe_Image>(callback.DescribeImage, actionData, true);
+                        break;
                 }
             }
+            // Intentional broad catch: user-provided callback delegates must not propagate exceptions
+            // across the native/managed boundary. All failures are mapped to IGR_E_ERROR.
             catch(Exception ex)
             {
                 Trace.WriteLine($"Return value from user-provided Func<OpenCallback, int> cannot be interpreted as an integer. Handling as if IGR_E_ERROR was returned. Exception details: error={ex.Message}, type(error)={ex.GetType()}");
@@ -1209,14 +1228,14 @@ namespace Hyland.DocumentFilters
             IGR_Text_Compare_Settings wrappedSettings = (settings ?? new CompareSettings()).Make();
             IGR_Text_Compare_Document_Source wrappedDoc1 = original.Make();
             IGR_Text_Compare_Document_Source wrappedDoc2 = revised.Make();
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
 
             Check(ISYS11df.IGR_Text_Compare_Documents(
                 ref wrappedDoc1,
                 ref wrappedDoc2,
                 ref wrappedSettings,
                 out enumerator,
-                ref ecb), ecb);
+                ref localEcb), localEcb);
 
             return CompareResults.Make(enumerator);
         }
@@ -1271,7 +1290,7 @@ namespace Hyland.DocumentFilters
         /// </summary>
         internal class PageCollection : ReadOnlyList<Page>
         {
-            private Extractor _extractor;
+            private readonly Extractor _extractor;
 
             /// <summary>
             /// Construct a new PageCollection for the given Extractor.
@@ -1308,11 +1327,11 @@ namespace Hyland.DocumentFilters
         /// </summary>
         internal class SubFileEnumeratorCollection : IEnumerable<SubFile>
         {
-            private DocumentFiltersBase _parent;
-            private int _parentHandle;
-            private IGR_Extract_Stream _extractMethod;
-            private SubfileEnumeratorCreate _createMethod;
-            private SubfileDelegate _legacyFirst, _legacyNext;
+            private readonly DocumentFiltersBase _parent;
+            private readonly int _parentHandle;
+            private readonly IGR_Extract_Stream _extractMethod;
+            private readonly SubfileEnumeratorCreate _createMethod;
+            private readonly SubfileDelegate _legacyFirst, _legacyNext;
 
             /// <summary>
             /// Creates a collection of enumerable subfiles or images. Newer DocFilters APIs support a re-usable enumerator
@@ -1364,7 +1383,7 @@ namespace Hyland.DocumentFilters
                 try
                 {
                     return new Enumerator(_parent, _parentHandle, _createMethod(), _extractMethod);
-                } 
+                }
                 catch (EntryPointNotFoundException)
                 {
                     return new LegacyEnumerator(_parent, _legacyFirst, _legacyNext);
@@ -1377,9 +1396,9 @@ namespace Hyland.DocumentFilters
             internal class Enumerator : IEnumerator<SubFile>
             {
                 private IntPtr _handle;
-                private DocumentFiltersBase _parent;
-                private int _parentHandle;
-                private IGR_Extract_Stream _extractMethod;
+                private readonly DocumentFiltersBase _parent;
+                private readonly int _parentHandle;
+                private readonly IGR_Extract_Stream _extractMethod;
                 private IGR_Subfile_Info _info;
 
                 /// <summary>
@@ -1453,12 +1472,12 @@ namespace Hyland.DocumentFilters
                 {
                     CheckDisposed();
 
-                    Error_Control_Block ecb = new Error_Control_Block();
-                    int result = ISYS11df.IGR_Subfiles_Next_Ex(_handle, ref _info, ref ecb);
+                    Error_Control_Block localEcb = new Error_Control_Block();
+                    int result = ISYS11df.IGR_Subfiles_Next_Ex(_handle, ref _info, ref localEcb);
                     if (result == ISYS11dfConstants.IGR_OK)
                         return true;
                     else if (result != ISYS11dfConstants.IGR_NO_MORE)
-                        Check(result, ecb);
+                        Check(result, localEcb);
                     return false;
                 }
 
@@ -1469,8 +1488,8 @@ namespace Hyland.DocumentFilters
                 {
                     CheckDisposed();
 
-                    Error_Control_Block ecb = new Error_Control_Block();
-                    Check(ISYS11df.IGR_Subfiles_Reset(_handle, ref ecb), ecb);
+                    Error_Control_Block localEcb = new Error_Control_Block();
+                    Check(ISYS11df.IGR_Subfiles_Reset(_handle, ref localEcb), localEcb);
                 }
 
                 /// <summary>

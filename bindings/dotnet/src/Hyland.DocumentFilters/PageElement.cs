@@ -157,10 +157,9 @@ namespace Hyland.DocumentFilters
             IGR_Page_Element res = new IGR_Page_Element();
             res.struct_size = (uint)Marshaler.SizeOf<IGR_Page_Element>();
 
-            if (ISYS11df.IGR_Get_Page_Element_First_Child(_pageHandle, ref _info, ref res, ref ecb) == 0)
-                return new PageElement(_pageHandle, res);
-            else
-                return null;
+            return ISYS11df.IGR_Get_Page_Element_First_Child(_pageHandle, ref _info, ref res, ref ecb) == 0
+                ? new PageElement(_pageHandle, res)
+                : null;
         }
 
         /// <summary>
@@ -172,10 +171,9 @@ namespace Hyland.DocumentFilters
             IGR_Page_Element res = new IGR_Page_Element();
             res.struct_size = (uint)Marshaler.SizeOf<IGR_Page_Element>();
 
-            if (ISYS11df.IGR_Get_Page_Element_Next_Sibling(_pageHandle, ref _info, ref res, ref ecb) == 0)
-                return new PageElement(_pageHandle, res);
-            else
-                return null;
+            return ISYS11df.IGR_Get_Page_Element_Next_Sibling(_pageHandle, ref _info, ref res, ref ecb) == 0
+                ? new PageElement(_pageHandle, res)
+                : null;
         }
 
         /// <summary>
@@ -188,10 +186,9 @@ namespace Hyland.DocumentFilters
             StringBuilder res = new StringBuilder(4096);
 
             uint len = (uint)res.Capacity;
-            if (ISYS11df.IGR_Get_Page_Element_Style(_pageHandle, ref _info, styleName, ref len, res, ref ecb) == 0)
-                return res.ToString();
-            else
-                return null;
+            return ISYS11df.IGR_Get_Page_Element_Style(_pageHandle, ref _info, styleName, ref len, res, ref ecb) == 0
+                ? res.ToString()
+                : null;
         }
 
         /// <summary>
@@ -227,12 +224,12 @@ namespace Hyland.DocumentFilters
                 {
                     _styles = new Dictionary<string, string>();
 
-                    Error_Control_Block ecb = new Error_Control_Block();
+                    Error_Control_Block localEcb = new Error_Control_Block();
                     Check(ISYS11df.IGR_Get_Page_Element_Styles(_pageHandle, ref _info, (name, value, _) =>
                     {
                         _styles[name] = value;
                         return 0;
-                    }, IntPtr.Zero, ref ecb), ecb);
+                    }, IntPtr.Zero, ref localEcb), localEcb);
                 }
 
                 return _styles;

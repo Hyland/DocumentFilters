@@ -13,7 +13,7 @@ namespace Hyland.DocumentFilters
     /// </summary>
     public class IGRException : System.Exception
     {
-        private int m_errorCode;
+        private readonly int m_errorCode;
 
         /// <summary>
         /// Constructs a new IGRException.
