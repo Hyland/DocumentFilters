@@ -86,16 +86,11 @@ namespace Hyland.DocumentFilters
         public void Initialize(string license, string path = "")
         {
             Instance_Status_Block isb = new Instance_Status_Block();
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
 
-            if (!string.IsNullOrEmpty(license) && license != "******")
-            {
-                isb.Licensee_ID1 = license;
-            }
-            else
-            {
-                isb.Licensee_ID1 = System.Environment.GetEnvironmentVariable("DOCFILTERS_LICENSE_KEY");
-            }
+            isb.Licensee_ID1 = (!string.IsNullOrEmpty(license) && license != "******")
+                ? license
+                : System.Environment.GetEnvironmentVariable("DOCFILTERS_LICENSE_KEY");
 
             ISYS11df.Runtime.Prepare();
 
@@ -104,8 +99,8 @@ namespace Hyland.DocumentFilters
                 path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetCallingAssembly().Location);
             }
 
-            ISYS11df.Init_Instance(0, path, ref isb, ref _handle, ref ecb);
-            IGRException.Check(ecb);
+            ISYS11df.Init_Instance(0, path, ref isb, ref _handle, ref localEcb);
+            IGRException.Check(localEcb);
         }
 
         /// <summary>
@@ -117,9 +112,9 @@ namespace Hyland.DocumentFilters
             {
                 if (_handle > 0)
                 {
-                    Error_Control_Block ecb = new Error_Control_Block();
-                    ISYS11df.Close_Instance(ref ecb);
-                    IGRException.Check(ecb);
+                    Error_Control_Block localEcb = new Error_Control_Block();
+                    ISYS11df.Close_Instance(ref localEcb);
+                    IGRException.Check(localEcb);
                     _handle = 0;
                 }
             }

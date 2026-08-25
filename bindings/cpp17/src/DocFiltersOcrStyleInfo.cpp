@@ -33,7 +33,7 @@ namespace Hyland
 
 		OcrStyleInfo& OcrStyleInfo::setFontFamily(const std::wstring& fontFamily)
 		{
-			const auto&& u16 = w_to_u16(fontFamily);
+			const auto u16 = w_to_u16(fontFamily);
 			m_style.font_family[u16.copy(reinterpret_cast<char16_t*>(m_style.font_family),
 			                             (sizeof(m_style.font_family) / sizeof(m_style.font_family[0])) - 1)]
 			    = 0;

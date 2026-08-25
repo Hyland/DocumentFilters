@@ -110,7 +110,7 @@ namespace Hyland.DocumentFilters
         internal class Enumerator : IEnumerator<T>
         {
             private int _index;
-            private ReadOnlyList<T> _parent;
+            private readonly ReadOnlyList<T> _parent;
 
             public T Current => GetCurrent();
 

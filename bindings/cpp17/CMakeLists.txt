@@ -7,7 +7,7 @@ if (POLICY CMP0141)
 endif()
 
 project(DocumentFilters
-    VERSION 26.2.0
+    VERSION 26.3.0
     DESCRIPTION "Document Filters - c++17 bindings"
     LANGUAGES CXX
 )
@@ -28,6 +28,7 @@ set(SOURCES
     "src/DocFiltersCompareResults.cpp"
     "src/DocFiltersCompareSettings.cpp" 
     "src/DocFiltersDateTime.cpp"
+    "src/DocFiltersDescribeImage.cpp"
     "src/DocFiltersExtractor.cpp"
     "src/DocFiltersFormat.cpp"
     "src/DocFiltersFormElement.cpp"

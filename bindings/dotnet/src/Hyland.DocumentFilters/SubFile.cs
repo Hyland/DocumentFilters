@@ -12,15 +12,15 @@ namespace Hyland.DocumentFilters
     /// </summary>
     public class SubFile : Extractor
     {
-        private int _docHandle;
+        private readonly int _docHandle;
         private readonly string _id;
         private readonly string _name;
         private readonly string _comment;
 
         private readonly long _size;
-        private long _date;
-        private int _flags;
-        private IGR_Extract_Stream _extractor;
+        private readonly long _date;
+        private readonly int _flags;
+        private readonly IGR_Extract_Stream _extractor;
 
         private readonly object _disposeSyncRoot = new object();
 
@@ -78,9 +78,9 @@ namespace Hyland.DocumentFilters
         /// <returns></returns>
         protected override System.IntPtr ResolveStreamPtr()
         {
-            Error_Control_Block ecb = new Error_Control_Block();
+            Error_Control_Block localEcb = new Error_Control_Block();
             System.IntPtr ret = new System.IntPtr();
-            Check(_extractor(_docHandle, _id, ref ret, ref ecb), ecb);
+            Check(_extractor(_docHandle, _id, ref ret, ref localEcb), localEcb);
             return ret;
         }
 

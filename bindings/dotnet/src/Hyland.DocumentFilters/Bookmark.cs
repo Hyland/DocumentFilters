@@ -376,7 +376,7 @@ namespace Hyland.DocumentFilters
         {
             internal class BookmarkEnumerator : IEnumerator<Bookmark>
             {
-                private Bookmark _parent;
+                private readonly Bookmark _parent;
                 private bool _first;
 
                 public BookmarkEnumerator(Bookmark bookmark)
@@ -410,7 +410,7 @@ namespace Hyland.DocumentFilters
                 }
             }
 
-            Bookmark _bookmark;
+            readonly Bookmark _bookmark;
             public BookmarkEnumerable(Bookmark bookmark)
             {
                 _bookmark = bookmark;

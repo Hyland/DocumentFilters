@@ -14,7 +14,7 @@ namespace Hyland.DocumentFilters
     public class OpenCallback
     {
         /// <summary>
-        /// Represents a pointer to a resource handle, initialized to zero. 
+        /// Represents a pointer to a resource handle, initialized to zero.
         /// </summary>
         public IntPtr Handle { get; internal set; } = IntPtr.Zero;
         /// <summary>
@@ -53,7 +53,7 @@ namespace Hyland.DocumentFilters
         public IGR_Open_Callback_Action_Approve_External_Resource ApproveExternalResource { get; internal set; }
 
         /// <summary>
-        /// Gets the resource stream through a callback action. 
+        /// Gets the resource stream through a callback action.
         /// </summary>
         public IGR_Open_Callback_Action_Get_Resource_Stream GetResourceStream { get; internal set; }
 
@@ -61,6 +61,11 @@ namespace Hyland.DocumentFilters
         /// Retrieves an OCR image through the GetOcrImage property. It is accessible internally within the assembly.
         /// </summary>
         public IGR_Open_Callback_Action_OCR_Image GetOcrImage { get; internal set; }
+
+        /// <summary>
+        /// Allows to add/overwrite image's description. It is accessible internally within the assembly.
+        /// </summary>
+        public IGR_Open_Callback_Action_Describe_Image DescribeImage { get; internal set; }
     }
 
     /// <summary>
@@ -89,11 +94,11 @@ namespace Hyland.DocumentFilters
     }
 
     /// <summary>
-    /// Represents information related to the style of OCR (Optical Character Recognition) images. 
+    /// Represents information related to the style of OCR (Optical Character Recognition) images.
     /// </summary>
     public class OcrStyleInfo
     {
-        private IGR_Open_Callback_Action_OCR_Image_Style_Info _payload = new IGR_Open_Callback_Action_OCR_Image_Style_Info();
+        private readonly IGR_Open_Callback_Action_OCR_Image_Style_Info _payload = new IGR_Open_Callback_Action_OCR_Image_Style_Info();
 
         /// <summary>
         /// Gets or sets the font family used in the payload. It directly modifies the font_family property of the
@@ -107,7 +112,7 @@ namespace Hyland.DocumentFilters
         public float FontSize { get => _payload.font_size; set => _payload.font_size = value; }
 
         /// <summary>
-        /// Gets or sets the text style for OCR processing. 
+        /// Gets or sets the text style for OCR processing.
         /// </summary>
         public OcrTextStyle TextStyle { get => (OcrTextStyle)_payload.text_style; set => _payload.text_style = (uint)value; }
 
@@ -119,9 +124,9 @@ namespace Hyland.DocumentFilters
     }
 
     /// <summary>
-    /// Represents an action for processing OCR images in an open callback context. 
+    /// Represents an action for processing OCR images in an open callback context.
     /// </summary>
-    public class OpenCallbackActionOcrImage 
+    public class OpenCallbackActionOcrImage
     {
         private readonly IGR_Open_Callback_Action_OCR_Image _ocrImage;
         private readonly IGR_Open_DIB_Info _dib_info;
@@ -254,6 +259,95 @@ namespace Hyland.DocumentFilters
         public void Reorient(float degrees)
         {
             _ocrImage.Reorient(_handle, degrees);
+        }
+    }
+
+
+    /// <summary>
+    /// Represents an action for describing images in an open callback context.
+    /// </summary>
+    public class OpenCallbackActionDescribeImage
+    {
+        private readonly IGR_Open_Callback_Action_Describe_Image _describeImage;
+        private readonly IntPtr _handle;
+
+        /// <summary>
+        /// Initializes an instance of the OpenCallbackActionDescribeImage class, pinning the provided describe image callback for
+        /// use.
+        /// </summary>
+        /// <param name="callback">The parameter represents a callback action for describing images.</param>
+        public OpenCallbackActionDescribeImage(OpenCallback callback)
+        {
+            _handle = callback.Handle;
+            _describeImage = callback.DescribeImage;
+        }
+
+
+        /// <summary>
+        /// Returns the raw describe image object. This property provides access to the underlying image used for describing images.
+        /// </summary>
+        public IGR_Open_Callback_Action_Describe_Image Raw => _describeImage;
+
+        /// <summary>
+        /// Retrieves the pixel data from the source image of the describe image process. This data is represented by the
+        /// IGR_Open_DIB_Info type.
+        /// </summary>
+        /// <remarks>
+        /// The returned structure is a copy, but its pixel_data and palette members point to memory owned by Document
+        /// Filters that is only valid until the callback returns.
+        /// </remarks>
+        public IGR_Open_DIB_Info PixelData()
+        {
+            IntPtr dib = _describeImage.GetSourceImagePixels(_handle);
+            if (dib == IntPtr.Zero)
+                return new IGR_Open_DIB_Info();
+
+            return Marshaler.PtrToStructure<IGR_Open_DIB_Info>(dib);
+        }
+
+        /// <summary>
+        /// Gets the source page index as an integer from the describe image process. This value represents the page number
+        /// associated with the image.
+        /// </summary>
+        public int SourcePageIndex => (int)_describeImage.source_page_index;
+
+        /// <summary>
+        /// Gets the source rectangle from the describe image process. It returns an IGR_Rect representing the dimensions and
+        /// position.
+        /// </summary>
+        public IGR_Rect SourceRect => _describeImage.source_rect;
+
+        /// <summary>
+        /// Retrieves the source name.
+        /// </summary>
+        public string SourceName => _describeImage.source_name;
+
+        /// <summary>
+        /// Retrieves the type of the image being described. This value is represented as an integer.
+        /// </summary>
+        public int Type => (int)_describeImage.type;
+
+        /// <summary>
+        /// Retrieves the existing alt text associated with the image.
+        /// </summary>
+        public string ExistingAltText => _describeImage.existing_alt_text;
+
+        /// <summary>
+        /// Saves the image to be described to a file.
+        /// </summary>
+        public void SaveImage(string filename, string mimeType)
+        {
+            _describeImage.SaveImage(_handle, filename, mimeType);
+        }
+
+        /// <summary>
+        /// Adds description text to an image using specified parameters.
+        /// </summary>
+        /// <param name="text">The string of text to replace or be appended to the image.</param>
+        /// <param name="flags">Options that modify the behavior of the text addition process.</param>
+        public void AddText(string text, uint flags = 0)
+        {
+            _describeImage.AddText(_handle, text, flags);
         }
     }
 }

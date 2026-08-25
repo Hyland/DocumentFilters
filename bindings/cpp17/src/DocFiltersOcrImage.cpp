@@ -54,10 +54,12 @@ namespace Hyland
 		{
 			if (HAS_METHOD(m_dest, SaveImage))
 			{
-				const auto&& u16_filename = w_to_u16(filename);
-				const auto&& u16_mimeType = w_to_u16(mimeType);
-				m_dest->SaveImage(m_dest, reinterpret_cast<const IGR_UCS2*>(u16_filename.c_str()),
-				                  reinterpret_cast<const IGR_UCS2*>(u16_mimeType.c_str()));
+				const auto u16_filename = w_to_u16(filename);
+				const auto u16_mimeType = w_to_u16(mimeType);
+				auto rc = m_dest->SaveImage(m_dest, reinterpret_cast<const IGR_UCS2*>(u16_filename.c_str()),
+				                            reinterpret_cast<const IGR_UCS2*>(u16_mimeType.c_str()));
+				if (rc != IGR_OK)
+					throw std::runtime_error(std::string("SaveImage failed (rc=") + std::to_string(static_cast<int>(rc)) + ")");
 			}
 			else
 				throw std::runtime_error("SaveImage method not available");
@@ -93,9 +95,11 @@ namespace Hyland
 		{
 			if (HAS_METHOD(m_dest, AddText))
 			{
-				const auto&& u16_text = w_to_u16(text);
+				const auto u16_text = w_to_u16(text);
 
-				m_dest->AddText(m_dest, reinterpret_cast<const IGR_UCS2*>(u16_text.c_str()), &quad, flags, &style.raw());
+				auto rc = m_dest->AddText(m_dest, reinterpret_cast<const IGR_UCS2*>(u16_text.c_str()), &quad, flags, &style.raw());
+				if (rc != IGR_OK)
+					throw std::runtime_error(std::string("AddText failed (rc=") + std::to_string(static_cast<int>(rc)) + ")");
 			}
 			else
 				throw std::runtime_error("AddText method not available");

@@ -1,0 +1,72 @@
+/*
+   (c) 2024 Hyland Software, Inc. and its affiliates. All rights reserved.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using Hyland.DocumentFilters;
+using McMaster.Extensions.CommandLineUtils;
+using System;
+using System.Text;
+
+namespace DocFilters
+{
+    class Program
+    {
+        const int MaxCharsPerGetText = 4096;
+        private readonly DocumentFilters m_docfilters = new();
+
+        [Argument(0)]
+        public string file { get; set; } = "";
+
+        [Option("-o|--output", "the file to save the output, defaults to .\\{filename}.txt", CommandOptionType.SingleValue)]
+        public string destination { get; set; } = "";
+
+        private void ProcessFile(string filename)
+        {
+            if (string.IsNullOrEmpty(destination))
+                destination = Path.ChangeExtension(filename, ".md");
+
+            Console.Error.WriteLine("Processing " + filename + " to " + destination);
+            try
+            {
+                using Extractor doc = m_docfilters.GetExtractor(filename);
+
+                doc.DescribeImageCallback = (OpenCallbackActionDescribeImage image) =>
+                {
+                    if (image.Type != ISYS11dfConstants.IGR_DESCRIBE_IMAGE_TYPE_PICTURE)
+                        return false;
+                    image.AddText("FAKE SAMPLE DESCRIBE IMAGE RESULT", ISYS11dfConstants.IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_REPLACE);
+                    return true;
+                };
+
+                doc.Open(OpenMode.Paginated, OpenType.BodyAndMeta, "DESCRIBE_IMAGE=ON");
+
+                using Canvas canvas = m_docfilters.MakeOutputCanvas(destination, CanvasType.MARKDOWN, "");
+                canvas.RenderPages(doc);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error Processing " + filename);
+                Console.Error.WriteLine("   - " + e.ToString());
+            }
+        }
+        public void OnExecute()
+        {
+            m_docfilters.Initialize(DocumentFiltersLicense.Get(), ".");
+            if (!string.IsNullOrEmpty(file))
+                ProcessFile(file);
+        }
+        public static int Main(string[] args)
+                => CommandLineApplication.Execute<Program>(args);
+    }
+}

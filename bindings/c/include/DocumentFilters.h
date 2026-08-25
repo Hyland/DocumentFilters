@@ -1039,6 +1039,8 @@ typedef uint32_t IGR_ULONG;
 /// @brief Callback action for OCR image processing.
 #define IGR_OPEN_CALLBACK_ACTION_OCR_IMAGE                 7
 
+/// @brief Callback action for image description processing.
+#define IGR_OPEN_CALLBACK_ACTION_DESCRIBE_IMAGE            8
 
 // ****************************************************************************
 // * IGR_OPEN_FLAGS type and constants
@@ -1361,6 +1363,36 @@ typedef uint32_t IGR_ULONG;
 
 /// @brief Flag to stretch text to fit within the rectangle bounds.
 #define IGR_TEXTRECT_FLAG_STRETCHTOFIT                     0x02
+
+// ****************************************************************************
+// * IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS type and constants
+
+/// @brief Type definition for describe image AddText flags.
+#define IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_TYPE              IGR_ULONG
+
+/// @brief Append the provided text to existing alt text.
+#define IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_APPEND            0x00
+
+/// @brief Replace existing alt text with the provided text.
+#define IGR_DESCRIBE_IMAGE_ADDTEXT_FLAGS_REPLACE           0x01
+
+// ****************************************************************************
+// * IGR_DESCRIBE_IMAGE image type
+
+/// @brief Type definition of images for describe image feature.
+#define IGR_DESCRIBE_IMAGE_TYPE                            IGR_LONG
+
+/// @brief Unknown image type.
+#define IGR_DESCRIBE_IMAGE_TYPE_UNKNOWN                    0
+
+/// @brief Picture image type (e.g., photograph or raster image).
+#define IGR_DESCRIBE_IMAGE_TYPE_PICTURE                    1
+
+/// @brief Drawing image type (e.g., shape, SmartArt, or vector graphic).
+#define IGR_DESCRIBE_IMAGE_TYPE_DRAWING                    2
+
+/// @brief Chart image type (e.g., embedded Excel chart).
+#define IGR_DESCRIBE_IMAGE_TYPE_CHART                      3
 
 
 	// ****************************************************************************
@@ -2176,6 +2208,47 @@ typedef uint32_t IGR_ULONG;
 
 		/// @brief Function to reorient processed image.
 		IGR_RETURN_CODE(IGR_EXPORT* Reorient)(const struct IGR_Open_Callback_Action_OCR_Image* action, IGR_FLOAT degrees);
+	};
+
+	/// @struct IGR_Open_Callback_Action_Describe_Image
+	/// @brief Structure passed as payload for IGR_OPEN_CALLBACK when processing
+	/// images.
+	struct IGR_Open_Callback_Action_Describe_Image
+	{
+		/// @brief Size of this structure, must be populated by caller.
+		IGR_ULONG struct_size;
+
+		/// @brief Reserved for internal use.
+		void* reserved;
+
+		/// @brief Getter for the image data to be processed.
+		/// @details The returned structure, along with its @c pixel_data and @c palette buffers, is owned by Document Filters and remains
+		/// valid only until the callback returns. Copy any data that is needed beyond that point. Returns NULL if the image data could
+		/// not be prepared.
+		const struct IGR_Open_DIB_Info*(IGR_EXPORT* GetSourceImagePixels)(const struct IGR_Open_Callback_Action_Describe_Image* action);
+
+		/// @brief Page index containing the image.
+		IGR_ULONG source_page_index;
+
+		/// @brief Rectangle location of image in source document.
+		struct IGR_Rect source_rect;
+
+		/// @brief Type of image
+		IGR_DESCRIBE_IMAGE_TYPE source_type;
+
+		/// @brief Name of source image if known.
+		IGR_UCS2 source_name[128];
+
+		/// @brief Existing alt text if any.
+		IGR_UCS2 existing_alt_text[4096];
+
+		/// @brief Function to save image to file with specified MIME type.
+		IGR_RETURN_CODE(IGR_EXPORT* SaveImage)
+		(const struct IGR_Open_Callback_Action_Describe_Image* action, const IGR_UCS2* filename, const IGR_UCS2* mimetype);
+
+		/// @brief Function to add text to output.
+		IGR_RETURN_CODE(IGR_EXPORT* AddText)
+		(const struct IGR_Open_Callback_Action_Describe_Image* action, const IGR_UCS2* text, const IGR_ULONG flags);
 	};
 
 	/// @struct IGR_Page_Element
