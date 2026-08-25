@@ -656,6 +656,26 @@ namespace Hyland.DocumentFilters
             return buffer.ToString().Substring(0, retval);
         }
 
+#if NETSTANDARD
+        /// <summary>
+        /// Extracts text into a caller-provided Span, giving the caller control over memory allocation.
+        /// </summary>
+        /// <param name="destination">The span to receive extracted characters.</param>
+        /// <returns>The number of characters written to the span.</returns>
+        public unsafe int GetText(Span<char> destination)
+        {
+            Error_Control_Block ecb = new Error_Control_Block();
+            int count = destination.Length;
+
+            fixed (char* ptr = destination)
+            {
+                Check(ISYS11df.IGR_Get_Text(NeedHandle(), new IntPtr(ptr), ref count, ref ecb), ecb);
+            }
+            _eof = count == 0;
+            return count;
+        }
+#endif
+
         /// <summary>
         /// The SaveTo method extracts the entire text content of the document in a single call and writes it to the destination stream using the specified encoding.
         /// </summary>

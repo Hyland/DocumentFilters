@@ -171,5 +171,10 @@ namespace Hyland.DocumentFilters
         /// </summary>
         public System.DateTime FileDate => getFileTime();
 
+        /// <summary>
+        /// Returns the binary content of the sub-document as a readable Stream.
+        /// </summary>
+        public System.IO.Stream ToStream() => new StreamBridge(NeedStream());
+
     }
 }
