@@ -659,7 +659,7 @@ namespace Hyland.DocumentFilters
 
             Check(ISYS11df.IGR_Get_Text(NeedHandle(), buffer, ref retval, ref localEcb), localEcb);
             _eof = retval == 0;
-            return buffer.ToString().Substring(0, retval);
+            return buffer.ToString(0, retval);
         }
 
 #if NETSTANDARD
