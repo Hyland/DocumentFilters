@@ -670,6 +670,9 @@ namespace Hyland.DocumentFilters
         /// <returns>The number of characters written to the span.</returns>
         public unsafe int GetText(Span<char> destination)
         {
+            if (destination.Length == 0)
+                return 0;
+
             Error_Control_Block ecb = new Error_Control_Block();
             int count = destination.Length;
 
