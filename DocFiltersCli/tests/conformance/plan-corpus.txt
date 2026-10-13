@@ -1,0 +1,1390 @@
+# ---------------------------------------------------------------------------
+#  docfilters CLI — plan conformance corpus
+#
+#  Shared by the C#, Python, Java and C++17 implementations. Each runs the
+#  arguments through stages 1 to 3 — parse, bind, plan — with the input walk
+#  feeding the planner, and compares the canonical plan text. No document is
+#  opened, so no license and no native library are needed.
+#
+#  Every case here encodes a decision from the CLI design that the four
+#  implementations could otherwise diverge on.
+#
+# ---------------------------------------------------------------------------
+#  WHAT A CASE IS GIVEN
+#
+#  A case names the command line after $, then the filesystem it runs against
+#  after <, then what the run must produce after =. The suite loads the < lines
+#  into an in-memory IFileSystem before the command line runs:
+#
+#    < tree    <path> <path> …     files, parents created implicitly;
+#                                  a trailing / makes an empty directory
+#    < link    <path> <target>     a directory symlink, for -L/--follow
+#    < hidden  <path>              marks an existing entry hidden
+#
+#  Tests never touch the real filesystem, and that is load-bearing rather than
+#  hygiene. A real directory listing has no defined order and differs between
+#  ext4, NTFS and APFS, so a corpus backed by real files could not be
+#  byte-identical across four languages and three platforms. The fake also
+#  models symlinks and hidden entries as plain sets, which is what lets
+#  --follow and --include-hidden be contract at all: creating a symlink on
+#  Windows needs a privilege most checkouts do not have, and "hidden" is a
+#  dot-prefix on POSIX and a file attribute on Windows.
+#
+#  The fake's own semantics are therefore part of this contract, specified by
+#  InMemoryFileSystemTests. Every port translates those alongside these cases;
+#  they are a prerequisite, not optional scaffolding.
+#
+#  A case that walks several files passes --sort. Directory order without it is
+#  unspecified by design — that is what --sort exists to fix — and a contract
+#  cannot assert an order that is undefined.
+#
+#  A case whose error is raised before the walk needs no tree: an unknown
+#  format, a bad value, a missing value and every validator rule fail without
+#  one. E_NO_INPUTS, E_OUTFILE_MULTI_INPUT, E_OUTPUT_COLLISION and
+#  E_OUTPUT_EXISTS are raised by the planner, after the walk, so those cases
+#  declare a tree.
+#
+# ---------------------------------------------------------------------------
+#  THE EMISSION RULE
+#
+#  The plan is compared as a whole document, in order, so which lines appear
+#  has to be a property of the command rather than of the arguments:
+#
+#      A command emits its full line set, always, in the fixed order below,
+#      with defaults written out explicitly. A line is never omitted because
+#      its value happens to be the default.
+#
+#  Order and line set per command:
+#
+#    convert   command to inputs walk match types subfiles on-error pages
+#              cardinality target*|pattern* exit
+#    extract   command inputs walk match types subfiles on-error include
+#              exclude images make-dirs sub-id cardinality exit
+#    list      command inputs walk match types subfiles on-error json
+#              cardinality exit
+#    identify  command inputs walk match types on-error json capabilities exit
+#    meta      command inputs walk match types on-error json cardinality exit
+#    formats   command json filter exit
+#    options   command json filter applies-to exit
+#
+#  walk, match, types, subfiles and on-error are always contiguous and in that
+#  order, for every command that has them: they are exactly the fields
+#  SharedOptions.ToCanonicalString renders as one block, so a command's own
+#  fields (convert's pages; extract's include/exclude/images/make-dirs/sub-id)
+#  always come after that whole block rather than inside it. This is a
+#  correction from an earlier draft, which put pages and extract's own fields
+#  before on-error and so split the shared block in two for those commands.
+#
+#  A command emits a line only for a concept it has. identify declares no
+#  output group, so it has no cardinality; formats and options read no inputs,
+#  so they have neither. meta and identify have no subfile group.
+#
+#  = inputs lists what the walk selected, in processing order — not the paths
+#  as typed. A case naming a directory states the files that come out of it, so
+#  --max-depth, --glob, --regex, --follow and --include-hidden are asserted
+#  here rather than only in one language's own suite.
+#
+#  Default renderings:
+#
+#    = walk          depth=unlimited follow=no sort=no hidden=no
+#    = match         none
+#    = types         include=none exclude=none
+#    = subfiles      disabled
+#    = pages         all
+#    = on-error      skip
+#
+#  target and pattern are emitted only by convert, one per input in input
+#  order: target for a resolved path, pattern for a per-page format whose
+#  filenames depend on the document's page count. extract, list and meta
+#  produce names that only exist once a document is open — subfile names come
+#  from the container — so they state their cardinality and stop there.
+#
+# ---------------------------------------------------------------------------
+#  CASE FOLDING
+#
+#  An argument whose valid values this tool enumerates matches them after an
+#  ASCII-only case fold, and renders the folded value in the plan:
+#
+#      --to  --on-error  --applies-to
+#      --log-level  --debug-log-level
+#
+#  Everything else is used exactly as typed: paths, globs, regular expressions,
+#  --out-name templates, --filter text, passwords, --codepage, and the --options
+#  string, all of which either name something outside this tool or are matched
+#  by something outside it.
+#
+#  ASCII-only is the load-bearing half. A locale-aware fold turns TIFF into
+#  'tiff' with a dotless i under a Turkish locale, in C#, Java and Python
+#  alike, so the fold maps A-Z to a-z and touches nothing else. std::tolower is
+#  itself locale-sensitive.
+#
+# ---------------------------------------------------------------------------
+#  ERROR MESSAGES
+#
+#  stderr is contract, so every failing case states its message. Two shapes
+#  carry every usage error, both plain concatenation so that four languages
+#  produce the same bytes:
+#
+#      <argument> and <argument> cannot be used together
+#      <argument> does not accept the value '<value>'
+#
+#  An argument is always named by its long form, whichever form was typed, and
+#  a contradictory pair is always named in argument-table order — never in argv
+#  order, which D8 established is not portable.
+#
+#  E_INIT_FAILED, E_LIMIT_EXCEEDED and E_DOCUMENT_FAILED need a live engine —
+#  the library must fail to initialise, a document must fail to open, or one
+#  must outrun --timeout — so no case here can provoke them. They are named in
+#  ErrorCodeTests instead, and exercised by the CLI tests and the end-to-end
+#  script. Every other code is exercised here.
+# ---------------------------------------------------------------------------
+
+# === output cardinality ====================================================
+
+# --out-dir gives each input its own output.
+
+$ convert --to pdf --out-dir out a.docx b.docx
+< tree          a.docx b.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx, b.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.pdf
+= target        out/b.pdf
+= exit          0
+
+# One input, one --out-file.
+
+$ convert --to pdf --out-file book.pdf a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   single-target
+= target        book.pdf
+= exit          0
+
+# Many inputs merged into one document.
+
+$ convert --to pdf --combine --out-file book.pdf a.docx b.docx c.docx
+< tree          a.docx b.docx c.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx, b.docx, c.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   combined
+= target        book.pdf
+= exit          0
+
+# The hard error the design document is explicit about: never a guess. Raised
+# by the planner, so the inputs have to exist for it to be reached at all.
+
+$ convert --to pdf --out-file one.pdf a.docx b.docx
+< tree          a.docx b.docx
+= error         E_OUTFILE_MULTI_INPUT
+= message       --out-file takes a single input; use --combine to merge several into one document
+= exit          4
+
+# The same command line with a per-page format reports the format problem, not
+# the input count. Two rules match here and the stage each runs in decides
+# which is reported: the validator runs before the walk, and it can see that
+# 'png' cannot go to a single --out-file without knowing how many inputs there
+# are. That is also the more useful of the two, because removing an input would
+# not fix it.
+
+$ convert --to png --out-file one.png a.docx b.docx
+< tree          a.docx b.docx
+= error         E_OUTFILE_NEEDS_SINGLE_FILE
+= message       --out-file can only name a format that writes one file; 'png' writes one per page
+= exit          2
+
+# Bare -o is --out-dir, always, and is never format-sensitive.
+
+$ convert --to pdf -o out a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.pdf
+= exit          0
+
+# Naming no input at all.
+
+$ convert --to pdf --out-dir out
+= error         E_NO_INPUTS
+= message       no inputs given; name a file or a directory to process
+= exit          3
+
+# A walk that selects nothing is the same failure: the tool was asked to do
+# something and found nothing to do.
+
+$ convert --to pdf --out-dir out --sort -g *.xlsx corpus
+< tree          corpus/a.docx corpus/b.pdf
+= error         E_NO_INPUTS
+= message       no inputs matched; the walk and filters selected nothing
+= exit          3
+
+# === existing output =======================================================
+
+# A dry run that would clobber something says so before anything is written.
+
+$ convert --to pdf --out-dir out a.docx
+< tree          a.docx out/a.pdf
+= error         E_OUTPUT_EXISTS
+= message       out/a.pdf already exists; pass --overwrite to replace it
+= exit          4
+
+$ convert --to pdf --out-dir out --overwrite a.docx
+< tree          a.docx out/a.pdf
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.pdf
+= exit          0
+
+# === page fan-out is a separate axis from cardinality ======================
+
+# Even an explicit page range defers: it is clamped to the document's real page
+# count, so the filenames are only knowable once the document is open.
+
+$ convert --to png --out-dir out --pages 1-2 a.docx
+< tree          a.docx
+= command       convert
+= to            png canvas per-page hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         1,2
+= cardinality   per-input
+= pattern       out/{stem}-{page:04}.{ext}
+= exit          0
+
+# Without --pages the filenames depend on the page count, so they are deferred.
+
+$ convert --to png --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            png canvas per-page hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= pattern       out/{stem}-{page:04}.{ext}
+= exit          0
+
+# --combine needs a format that can hold several documents. Two formats fail
+# this for two different reasons, and the message says which — the code is the
+# same because the user's problem is the same.
+
+$ convert --to png --combine --out-file sheet.png a.docx b.docx
+= error         E_COMBINE_UNSUPPORTED
+= message       --combine needs a format that writes one file; 'png' writes one per page
+= exit          2
+
+# docpack writes a single file, like pdf, so a rule keyed off single-file alone
+# would let this through and fail at execution: Extractor.MakeDocPack takes one
+# extractor, so a pack holds one document.
+
+$ convert --to docpack --combine --out-file all.docpack a.docx b.docx
+= error         E_COMBINE_UNSUPPORTED
+= message       --combine cannot merge documents into 'docpack'; each document makes its own pack
+= exit          2
+
+# === attached values =======================================================
+#
+#  A switch takes no value. Accepting an attached one enabled the flag and left
+#  the value behind as a positional, so --overwrite=false turned overwriting ON
+#  and added 'false' to the input list -- the opposite of what was typed, and
+#  reported as a missing file rather than as bad usage.
+
+$ convert --to text --out-dir out --overwrite=false a.docx
+= error         E_BAD_VALUE
+= message       --overwrite takes no value
+= exit          2
+
+$ convert --to text --out-dir out --combine=yes a.docx
+= error         E_BAD_VALUE
+= message       --combine takes no value
+= exit          2
+
+# === help topics ===========================================================
+#
+#  'help' and 'version' are verbs but not commands: they process no documents and
+#  accept no shared options, so they have no argument surface to print. Asking
+#  for one used to reach the describer anyway and terminate the process -- an
+#  unhandled ArgumentException in C#, an uncaught std::invalid_argument in C++.
+#  Rejecting at binding is what makes it an ordinary usage error in both.
+
+$ help help
+= error         E_BAD_VALUE
+= message       'help' has no arguments of its own; run 'docfilters help' to list the commands
+= exit          2
+
+$ help version
+= error         E_BAD_VALUE
+= message       'version' has no arguments of its own; run 'docfilters help' to list the commands
+= exit          2
+
+# === output naming =========================================================
+
+$ convert --to text --out-dir out --out-name {stem}-{srcext}.{ext} report.docx
+< tree          report.docx
+= command       convert
+= to            text text single-file
+= inputs        report.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/report-docx.txt
+= exit          0
+
+# An output that is also an input. --overwrite says an existing file may be
+# replaced and an input is an existing file, so nothing else refuses this; the
+# combined target is created, and truncated, before the first document is opened.
+
+$ convert --to text --out-dir out out/a.txt
+< tree          out/a.txt
+= error         E_OUTPUT_IS_INPUT
+= message       out/a.txt is also an input; use --out-dir or --out-name to write somewhere else
+= exit          4
+
+# The same for a combined run, where the input is picked up by the walk: this is
+# the second run over a directory holding the first run's output.
+
+$ convert --to pdf --combine --out-file out/book.pdf --sort out
+< tree          out/a.docx out/book.pdf
+= error         E_OUTPUT_IS_INPUT
+= message       out/book.pdf is also an input; use --out-dir or --out-name to write somewhere else
+= exit          4
+
+# Two inputs whose outputs would land on the same path.
+
+$ convert --to text --out-dir out a/report.docx b/report.docx
+< tree          a/report.docx b/report.docx
+= error         E_OUTPUT_COLLISION
+= message       two inputs would write to the same output; use --out-name to distinguish them
+= exit          4
+
+# The same pair differing only in case, on a filesystem that tells names apart
+# that way: two files, two outputs, no collision. Whether these collide is a
+# property of the target filesystem, not of the host or of a fixed rule, and the
+# corpus filesystem is case-sensitive -- so this case reads the same on every
+# platform. The other answer, where the filesystem folds case and these are one
+# file, is asserted by each language's own OutputPlanner tests, which can say
+# what their filesystem does.
+
+$ convert --to text --sort --out-dir out a/Report.docx b/report.docx
+< tree          a/Report.docx b/report.docx
+= command       convert
+= to            text text single-file
+= inputs        a/Report.docx, b/report.docx
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/Report.txt
+= target        out/report.txt
+= exit          0
+
+# The same two inputs, disambiguated by the template.
+
+$ convert --to text --out-dir out --out-name {stem}-{srcext}.{ext} report.docx report.pdf
+< tree          report.docx report.pdf
+= command       convert
+= to            text text single-file
+= inputs        report.docx, report.pdf
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/report-docx.txt
+= target        out/report-pdf.txt
+= exit          0
+
+# --out-name is meaningless without a directory to name a file inside.
+
+$ convert --to text --out-name {stem}.{ext} a.docx
+= error         E_OUTNAME_NEEDS_OUTDIR
+= message       --out-name is a template for --out-dir and has no meaning without it
+= exit          2
+
+$ convert --to text --out-file a.txt --out-dir out a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --out-dir and --out-file cannot be used together
+= exit          2
+
+# A malformed template fails when the argument is read, not when the first name
+# is rendered. out-names.txt covers the template language itself; this covers
+# the wiring, which that file cannot see: a port could parse templates
+# perfectly and still never call the parser from --out-name.
+
+$ convert --to text --out-dir out --out-name {unknown} a.docx
+= error         E_BAD_TEMPLATE
+= message       --out-name does not accept the value '{unknown}'
+= exit          2
+
+# Escaping the output directory is rejected the same way, and for the same
+# reason: it comes from the template's own literal text, so no rendered result
+# would reveal it.
+
+$ convert --to text --out-dir out --out-name ../{stem}.{ext} a.docx
+= error         E_BAD_TEMPLATE
+= message       --out-name does not accept the value '../{stem}.{ext}'
+= exit          2
+
+# A per-page format needs {page} in the template, or every page of a document
+# resolves to the same filename.
+
+$ convert --to png --out-dir out --out-name {stem}.{ext} a.docx
+= error         E_TEMPLATE_NEEDS_PAGE
+= message       --out-name must contain {page} when the format writes one file per page
+= exit          2
+
+# A structure report needs a canvas format. One document open cannot serve both
+# a report and a text conversion: page structures only exist on a paginated
+# handle, text extraction only works on a text one, so either half fails
+# whichever format bit is chosen. Refused before anything opens.
+#
+# The named report is the first requested in argument-table order, so that the
+# same pair of flags produces the same message however they were typed.
+
+$ convert --to text --out-dir out --bookmarks a.docx
+= error         E_REPORT_NEEDS_HIDEF
+= message       --bookmarks needs a high-definition format; 'text' is text-mode only
+= exit          2
+
+$ convert --to md-text --out-dir out --bookmarks --fonts a.docx
+= error         E_REPORT_NEEDS_HIDEF
+= message       --fonts needs a high-definition format; 'md-text' is text-mode only
+= exit          2
+
+# docpack is refused too, and for its own reason: it opens with no format bit at
+# all, so it has no pages to report on either.
+
+$ convert --to docpack --out-dir out --dimensions a.docx
+= error         E_REPORT_NEEDS_HIDEF
+= message       --dimensions needs a high-definition format; 'docpack' writes a document pack, not pages
+= exit          2
+
+# === stdout ================================================================
+
+$ convert --to pdf --stdout a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   stream
+= exit          0
+
+# --out-file - is the same thing.
+
+$ convert --to pdf --out-file - a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   stream
+= exit          0
+
+# Output cannot go to a file and to stdout at once. --out-file - is the spelling
+# that means stdout, so it is not a conflict; a real path is.
+
+$ convert --to pdf --stdout --out-file book.pdf a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --out-file and --stdout cannot be used together
+= exit          2
+
+# --combine has nothing to combine into when the output is a stream. Execution
+# combines only into a target, so this used to stream each document on its own,
+# one complete PDF after another, and exit 0 saying it had merged them.
+
+$ convert --to pdf --combine --stdout a.docx b.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --combine and --stdout cannot be used together
+= exit          2
+
+# --out-file - is the same thing, so it is refused the same way.
+
+$ convert --to pdf --combine --out-file - a.docx b.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --combine and --stdout cannot be used together
+= exit          2
+
+# A per-page format cannot be streamed.
+
+$ convert --to png --stdout a.docx
+= error         E_STDOUT_NEEDS_SINGLE_FILE
+= message       --stdout can only stream a format that writes one file; 'png' writes one per page
+= exit          2
+
+# Nor can it be named by a single --out-file, for the same reason: one name
+# cannot hold N pages. This is the validator's rule, so it does not need the
+# input count — which is what makes it reportable at all here, since the
+# planner's E_OUTFILE_MULTI_INPUT fires only from the second input onwards.
+# The multi-input spelling of the same conflict is under 'output cardinality'.
+
+$ convert --to png --out-file one.png a.docx
+= error         E_OUTFILE_NEEDS_SINGLE_FILE
+= message       --out-file can only name a format that writes one file; 'png' writes one per page
+= exit          2
+
+# === format tokens =========================================================
+
+# md is high definition, md-text comes straight from the extractor.
+
+$ convert --to md --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            md canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.md
+= exit          0
+
+$ convert --to md-text --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            md-text text single-file
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.md
+= exit          0
+
+$ convert --to html --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            html text single-file
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.html
+= exit          0
+
+$ convert --to html5 --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            html5 canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.html
+= exit          0
+
+# mdast is the JSON canvas under a different schema: same device, same
+# extension, told apart only by the option the format contributes. The plan
+# shows the token so a port that resolved it to plain json fails here rather
+# than at the first document.
+
+$ convert --to mdast --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            mdast canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.json
+= exit          0
+
+# web-safe is the one format whose extension the engine picks, from the bit
+# depth it settles on once the page is rendered. The plan cannot know it, so it
+# names the file '.unknown' and execution renames it — which the plan looks no
+# different for, since a per-page format defers its filenames either way.
+
+$ convert --to web-safe --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            web-safe canvas per-page hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= pattern       out/{stem}-{page:04}.{ext}
+= exit          0
+
+# Values drawn from a vocabulary this tool publishes are matched after an
+# ASCII-only case fold — see the header. A format token is an identifier this
+# tool defines, not text in the user's language, so folding it with the ambient
+# locale would turn TIFF into 'tıff' under a Turkish one, in C#, Java and
+# Python alike.
+
+$ convert --to PDF --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.pdf
+= exit          0
+
+$ convert --to TIFF --out-dir out a.docx
+< tree          a.docx
+= command       convert
+= to            tiff canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.tif
+= exit          0
+
+$ convert --to pdfx --out-dir out a.docx
+= error         E_UNKNOWN_FORMAT
+= message       unknown format 'pdfx'; run 'docfilters formats' to list what this build can write
+= exit          2
+
+# === the walk ==============================================================
+#
+# Every case below walks a real (in-memory) tree, so --max-depth, --glob,
+# --regex and the type filters are asserted against what discovery actually
+# selected rather than echoed back from the arguments.
+#
+# All of them pass --sort: without it the order of a directory listing is
+# deliberately unspecified, and a whole-document comparison cannot assert an
+# unspecified order.
+
+$ convert --to text --out-dir out --sort corpus
+< tree          corpus/a.docx corpus/sub/b.docx corpus/sub/deep/c.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx, corpus/sub/b.docx, corpus/sub/deep/c.docx
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= target        out/sub/b.txt
+= target        out/sub/deep/c.txt
+= exit          0
+
+# --no-recurse means depth 1: the top of the tree and nothing under it.
+
+$ convert --to text --out-dir out --sort --no-recurse corpus
+< tree          corpus/a.docx corpus/sub/b.docx corpus/sub/deep/c.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx
+= walk          depth=1 follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0
+
+$ convert --to text --out-dir out --sort --max-depth 2 corpus
+< tree          corpus/a.docx corpus/sub/b.docx corpus/sub/deep/c.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx, corpus/sub/b.docx
+= walk          depth=2 follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= target        out/sub/b.txt
+= exit          0
+
+# A hidden entry is skipped, and --include-hidden brings it back. Modelled as a
+# flag on the entry rather than a dot-prefix, because the two platforms
+# disagree about what "hidden" is spelled like.
+
+$ convert --to text --out-dir out --sort corpus
+< tree          corpus/a.docx corpus/.cache/b.docx
+< hidden        corpus/.cache
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0
+
+$ convert --to text --out-dir out --sort --include-hidden corpus
+< tree          corpus/a.docx corpus/.cache/b.docx
+< hidden        corpus/.cache
+= command       convert
+= to            text text single-file
+= inputs        corpus/.cache/b.docx, corpus/a.docx
+= walk          depth=unlimited follow=no sort=yes hidden=yes
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/.cache/b.txt
+= target        out/a.txt
+= exit          0
+
+# A symlinked directory is not entered without -L.
+
+$ convert --to text --out-dir out --sort corpus
+< tree          corpus/a.docx other/b.docx
+< link          corpus/elsewhere other
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0
+
+$ convert --to text --out-dir out --sort -L corpus
+< tree          corpus/a.docx other/b.docx
+< link          corpus/elsewhere other
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx, corpus/elsewhere/b.docx
+= walk          depth=unlimited follow=yes sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= target        out/elsewhere/b.txt
+= exit          0
+
+# A link to one of its own ancestors yields an endless supply of distinct path
+# strings, so a visited-paths set never closes the cycle. --follow tracks
+# directory identity instead (D22). Without that, this case does not terminate.
+
+$ convert --to text --out-dir out --sort -L corpus
+< tree          corpus/a.docx
+< link          corpus/loop corpus
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx
+= walk          depth=unlimited follow=yes sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0
+
+$ convert --to text --out-dir out --sort --no-recurse --max-depth 5 corpus
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --max-depth and --no-recurse cannot be used together
+= exit          2
+
+# Directory depth and subfile depth are separate concerns.
+
+$ convert --to text --out-dir out --sort --max-depth 2 --subfile-depth 3 -s corpus
+< tree          corpus/a.docx corpus/sub/b.docx corpus/sub/deep/c.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx, corpus/sub/b.docx
+= walk          depth=2 follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      enabled depth=3
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= target        out/sub/b.txt
+= exit          0
+
+# === selection =============================================================
+
+$ convert --to text --out-dir out --sort -g **/*.pdf corpus
+< tree          corpus/a.docx corpus/b.pdf corpus/draft/c.pdf
+= command       convert
+= to            text text single-file
+= inputs        corpus/b.pdf, corpus/draft/c.pdf
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         glob **/*.pdf
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/b.txt
+= target        out/draft/c.txt
+= exit          0
+
+# A leading ! excludes, and later patterns refine earlier ones.
+
+$ convert --to text --out-dir out --sort -g **/*.pdf -g !**/draft/* corpus
+< tree          corpus/a.docx corpus/b.pdf corpus/draft/c.pdf
+= command       convert
+= to            text text single-file
+= inputs        corpus/b.pdf
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         glob **/*.pdf, !**/draft/*
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/b.txt
+= exit          0
+
+$ convert --to text --out-dir out --sort --regex ^report-\d{4}\.pdf$ corpus
+< tree          corpus/report-2026.pdf corpus/report-draft.pdf corpus/a.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/report-2026.pdf
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         regex ^report-\d{4}\.pdf$
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/report-2026.txt
+= exit          0
+
+$ convert --to text --out-dir out --sort --include-types PDF;DOCX --exclude-types ZIP corpus
+< tree          corpus/a.docx corpus/b.pdf
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx, corpus/b.pdf
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=PDF,DOCX exclude=ZIP
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= target        out/b.txt
+= exit          0
+
+# Glob and regex are two ways of saying the same thing; giving both would make
+# the selection depend on argument order.
+
+$ convert --to text --out-dir out -g **/*.pdf --regex .*\.docx$ corpus
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --glob and --regex cannot be used together
+= exit          2
+
+# === batch behaviour =======================================================
+
+$ convert --to text --out-dir out --sort --fail-fast corpus
+< tree          corpus/a.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      stop
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0
+
+$ convert --to text --out-dir out --sort --on-error stop corpus
+< tree          corpus/a.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      stop
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0
+
+$ convert --to text --out-dir out --fail-fast --on-error skip corpus
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --on-error skip and --fail-fast cannot be used together
+= exit          2
+
+$ convert --to text --out-dir out --on-error continue corpus
+= error         E_BAD_VALUE
+= message       --on-error does not accept the value 'continue'
+= exit          2
+
+# --on-error draws from a vocabulary this tool publishes, so it folds case the
+# same way --to does. One rule for every such argument; the alternative is four
+# implementations each guessing which arguments are the case-sensitive ones.
+
+$ convert --to text --out-dir out --sort --on-error STOP corpus
+< tree          corpus/a.docx
+= command       convert
+= to            text text single-file
+= inputs        corpus/a.docx
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      stop
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0
+
+# === page ranges ===========================================================
+
+$ convert --to pdf --out-dir out --pages 1,3-5,8 a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         1,3-5,8
+= cardinality   per-input
+= target        out/a.pdf
+= exit          0
+
+# Canonical form: pages are sorted, de-duplicated, and an adjacent run of three
+# or more collapses into a range; a run of two stays as two comma-separated
+# pages ("1,2", not "1-2") since a span buys nothing over spelling both out.
+# Four implementations cannot each invent their own spelling of the same set.
+
+$ convert --to pdf --out-dir out --pages 3,1,1-2 a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         1-3
+= cardinality   per-input
+= target        out/a.pdf
+= exit          0
+
+$ convert --to pdf --out-dir out --pages 5-3 a.docx
+= error         E_BAD_PAGE_RANGE
+= message       --pages must be a list of pages or ranges, such as 1,3-5,8
+= exit          2
+
+$ convert --to pdf --out-dir out --pages 0 a.docx
+= error         E_BAD_PAGE_RANGE
+= message       --pages must be a list of pages or ranges, such as 1,3-5,8
+= exit          2
+
+# === fingerprint ============================================================
+#
+# --fingerprint renders a page only to read a fingerprint attribute off it —
+# confirmed against doc2text's own --fingerprint (main.cpp), which forces a
+# throwaway image render and discards it through a temporary stream rather than
+# the requested target. The render is never kept here either, so every argument
+# whose entire purpose is to name or expose that output is a contradiction
+# instead of a silent no-op. --redact, --form and --watermark are unaffected:
+# they decorate the same throwaway render, so there is nothing for them to
+# contradict.
+
+$ convert --to pdf --fingerprint --stdout a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --fingerprint and --stdout cannot be used together
+= exit          2
+
+$ convert --to pdf --fingerprint --view a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --fingerprint and --view cannot be used together
+= exit          2
+
+$ convert --to pdf --fingerprint --combine --out-file book.pdf a.docx b.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --fingerprint and --combine cannot be used together
+= exit          2
+
+$ convert --to pdf --fingerprint --out-file book.pdf a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --fingerprint and --out-file cannot be used together
+= exit          2
+
+$ convert --to pdf --fingerprint --out-dir out a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --fingerprint and --out-dir cannot be used together
+= exit          2
+
+# === other commands ========================================================
+
+# identify declares no output group, so it states no cardinality: it owns no
+# output target to describe.
+
+$ identify --json a.bin b.bin
+< tree          a.bin b.bin
+= command       identify
+= inputs        a.bin, b.bin
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= on-error      skip
+= json          yes
+= capabilities  no
+= exit          0
+
+$ identify --capabilities a.bin
+< tree          a.bin
+= command       identify
+= inputs        a.bin
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= on-error      skip
+= json          no
+= capabilities  yes
+= exit          0
+
+$ list -s bundle.pst
+< tree          bundle.pst
+= command       list
+= inputs        bundle.pst
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      enabled depth=unlimited
+= on-error      skip
+= json          no
+= cardinality   per-input
+= exit          0
+
+$ meta --json report.pdf
+< tree          report.pdf
+= command       meta
+= inputs        report.pdf
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= on-error      skip
+= json          yes
+= cardinality   per-input
+= exit          0
+
+# extract defaults to --make-dirs, and its output names come from the
+# container, so it states its cardinality without resolving a target.
+
+$ extract --out-dir dump --sort archives
+< tree          archives/x.zip
+= command       extract
+= inputs        archives/x.zip
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= include       none
+= exclude       none
+= images        no
+= make-dirs     yes
+= sub-id        no
+= cardinality   per-input
+= exit          0
+
+$ extract --flat --out-dir dump --sort archives
+< tree          archives/x.zip
+= command       extract
+= inputs        archives/x.zip
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= include       none
+= exclude       none
+= images        no
+= make-dirs     no
+= sub-id        no
+= cardinality   per-input
+= exit          0
+
+# --include and --exclude are globs over the subfile name, the same pattern
+# language as -g/--glob and repeatable like it. A different axis from it: -g
+# chooses files on disk, these choose subfiles inside a container. Unlike -g and
+# --regex the two are complementary, so both may be given.
+
+$ extract -i --sub-id --include *.docx --include *.xlsx --exclude draft-* --out-dir dump --sort archives
+< tree          archives/x.zip
+= command       extract
+= inputs        archives/x.zip
+= walk          depth=unlimited follow=no sort=yes hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= include       *.docx, *.xlsx
+= exclude       draft-*
+= images        yes
+= make-dirs     yes
+= sub-id        yes
+= cardinality   per-input
+= exit          0
+
+$ extract --make-dirs --flat --out-dir dump archives
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --make-dirs and --flat cannot be used together
+= exit          2
+
+# formats and options read no inputs and write no files, so they have neither
+# a walk nor a cardinality.
+
+$ formats --json
+= command       formats
+= json          yes
+= filter        none
+= exit          0
+
+$ formats --filter word
+= command       formats
+= json          no
+= filter        word
+= exit          0
+
+$ options --applies-to document
+= command       options
+= json          no
+= filter        none
+= applies-to    document
+= exit          0
+
+# === usage errors ==========================================================
+
+$ nonsense a.docx
+= error         E_UNKNOWN_COMMAND
+= message       unknown command 'nonsense'; run 'docfilters help' to list them
+= exit          2
+
+# --to has no parser-level "required" concept to lean on — ArgumentArity only
+# ever says whether a token takes a value, not whether the argument must
+# appear — so a missing --to is caught by hand, before any other convert rule
+# that assumes a format is in hand.
+
+$ convert --out-dir out a.docx
+= error         E_MISSING_ARGUMENT
+= message       --to is required
+= exit          2
+
+$ convert --to pdf --nonsense --out-dir out a.docx
+= error         E_UNKNOWN_ARGUMENT
+= message       unknown argument '--nonsense'; run 'docfilters help convert' to list them
+= exit          2
+
+# An argument that takes a value and is given none. The next token starts with
+# a dash, so it is another argument rather than this one's value — argparse and
+# CLI11 both refuse it outright, and McMaster must be configured to agree
+# rather than swallowing --out-dir and then complaining about an unknown
+# format.
+
+$ convert --to --out-dir out a.docx
+= error         E_MISSING_VALUE
+= message       --to requires a value
+= exit          2
+
+$ convert --to pdf --out-dir
+= error         E_MISSING_VALUE
+= message       --out-dir requires a value
+= exit          2
+
+$ convert --to pdf --max-depth abc --out-dir out corpus
+= error         E_BAD_VALUE
+= message       --max-depth does not accept the value 'abc'
+= exit          2
+
+# Prefix abbreviation must not resolve: argparse allows it by default and the
+# other three do not, so it is disabled everywhere.
+
+$ convert --to pdf --out-d out a.docx
+= error         E_UNKNOWN_ARGUMENT
+= message       unknown argument '--out-d'; run 'docfilters help convert' to list them
+= exit          2
+
+# === the dry run itself ====================================================
+#
+# --dry-run is how every case above is executed, so it needs a case of its own:
+# without one, the switch could be missing entirely and the corpus would still
+# pass by calling the planner directly.
+
+$ convert --to pdf --out-dir out --dry-run a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.pdf
+= exit          0
+
+# --print-plan is the design document's name for it, kept as an alias.
+
+$ convert --to pdf --out-dir out --print-plan a.docx
+< tree          a.docx
+= command       convert
+= to            pdf canvas single-file hidef
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.pdf
+= exit          0
+
+# === alias pairs that carry a value ========================================
+#
+# --log-level and --debug-log-level are one setting under two names. Agreeing
+# is redundant; disagreeing is a contradiction, and detectable only because
+# each alias records its own value.
+
+$ convert --to text --out-dir out --log-level trace --debug-log-level info a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --log-level trace and --debug-log-level info cannot be used together
+= exit          2
+
+# Folding applies before the aliases are compared, so these agree rather than
+# contradicting.
+
+$ convert --to text --out-dir out --log-level TRACE --debug-log-level Info a.docx
+= error         E_MUTUALLY_EXCLUSIVE
+= message       --log-level trace and --debug-log-level info cannot be used together
+= exit          2
+
+$ convert --to text --out-dir out --log-level TRACE --debug-log-level trace a.docx
+< tree          a.docx
+= command       convert
+= to            text text single-file
+= inputs        a.docx
+= walk          depth=unlimited follow=no sort=no hidden=no
+= match         none
+= types         include=none exclude=none
+= subfiles      disabled
+= on-error      skip
+= pages         all
+= cardinality   per-input
+= target        out/a.txt
+= exit          0

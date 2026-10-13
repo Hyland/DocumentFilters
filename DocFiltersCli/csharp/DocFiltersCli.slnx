@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../tests/csharp/DocFiltersCli.Tests.csproj" />
+  <Project Path="DocFiltersCli.csproj" />
+</Solution>

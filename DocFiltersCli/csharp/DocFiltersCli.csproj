@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>docfilters</AssemblyName>
+    <RootNamespace>Hyland.DocumentFilters.Cli</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- The scaffold is deliberately full of unimplemented members; don't fail the
+         build on the "unused parameter" style warnings that produces. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Brings in Document Filters and McMaster.Extensions.CommandLineUtils, exactly
+         as every other C# sample gets them. No new dependencies are introduced. -->
+    <ProjectReference Include="..\..\samples\csharp\DfSamplesCommon\DfSamplesCommon.csproj" />
+  </ItemGroup>
+
+</Project>

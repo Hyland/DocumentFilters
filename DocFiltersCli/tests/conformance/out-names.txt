@@ -1,0 +1,126 @@
+# ---------------------------------------------------------------------------
+#  docfilters CLI — --out-name template rendering
+#
+#  Shared by the C#, Python, Java and C++17 implementations.
+#
+#    $ <template>
+#    = uses-page  yes | no      does the template vary per page
+#    = render     <source> <ext> <page> => <expected filename>
+#    = error      <code>        the template must be rejected at parse time
+#
+#  Placeholders:
+#    {stem}    input filename without directory or extension
+#    {page}    one-based page number; {page:04} pads to four digits
+#    {srcext}  the input's own extension, no dot
+#    {ext}     the output format's extension, no dot
+#
+#  Only the tabular cases live here. Behaviour that is an assertion rather than
+#  an expected value — that rendering can never emit a path separator, and what
+#  the defaults are — stays in the C# test file, because forcing it into rows
+#  would need a small language of its own.
+# ---------------------------------------------------------------------------
+
+# === the example from the design document ==================================
+
+$ {stem}-{page:04}.{ext}
+= uses-page     yes
+= render        corpus/report.docx png 7 => report-0007.png
+= render        report.docx png 1 => report-0001.png
+= render        a/b/c/report.docx png 1234 => report-1234.png
+
+# === stem ==================================================================
+
+$ {stem}.{ext}
+= uses-page     no
+= render        report.docx pdf 1 => report.pdf
+= render        a/b/c/report.docx pdf 1 => report.pdf
+= render        README txt 1 => README.txt
+# A dotted name keeps everything before the last dot.
+= render        report.final.docx pdf 1 => report.final.pdf
+
+# === srcext ================================================================
+
+$ {stem}.{srcext}.{ext}
+= uses-page     no
+= render        report.docx txt 1 => report.docx.txt
+= render        a/b/report.pdf txt 1 => report.pdf.txt
+# No extension on the input leaves srcext empty rather than failing.
+= render        README txt 1 => README..txt
+
+# === page padding ==========================================================
+
+$ {stem}-{page}.{ext}
+= uses-page     yes
+= render        report.docx png 7 => report-7.png
+= render        report.docx png 1234 => report-1234.png
+
+$ {stem}-{page:03}.{ext}
+= uses-page     yes
+= render        report.docx png 42 => report-042.png
+= render        report.docx png 1 => report-001.png
+# Padding is a minimum width, never a maximum: a long document must still
+# produce distinct filenames.
+= render        report.docx png 1234 => report-1234.png
+
+# === literal text around placeholders ======================================
+
+$ out_{stem}_final.{ext}
+= uses-page     no
+= render        report.docx pdf 1 => out_report_final.pdf
+
+$ {stem}
+= uses-page     no
+= render        report.docx pdf 1 => report
+
+# Repeating a placeholder is odd but not an error.
+$ {stem}-{stem}.{ext}
+= uses-page     no
+= render        report.docx pdf 1 => report-report.pdf
+
+# === templates that must be rejected at parse time =========================
+
+$ {unknown}
+= error         E_BAD_TEMPLATE
+
+$ {stem
+= error         E_BAD_TEMPLATE
+
+$ stem}
+= error         E_BAD_TEMPLATE
+
+$ {page:xx}
+= error         E_BAD_TEMPLATE
+
+$ {page:}
+= error         E_BAD_TEMPLATE
+
+$ {}
+= error         E_BAD_TEMPLATE
+
+# Nested braces are not a thing.
+$ {ste{m}}
+= error         E_BAD_TEMPLATE
+
+# === templates that escape the output directory ============================
+#
+# The template names a file inside --out-dir, so separators and .. are rejected
+# at parse time. Checking only the rendered result would miss these: they come
+# from the template's own literal text, not from the input path.
+
+$ ../{stem}.{ext}
+= error         E_BAD_TEMPLATE
+
+$ ../../outside/{stem}.{ext}
+= error         E_BAD_TEMPLATE
+
+$ sub/{stem}.{ext}
+= error         E_BAD_TEMPLATE
+
+$ {stem}/../{stem}.{ext}
+= error         E_BAD_TEMPLATE
+
+$ C:\{stem}.{ext}
+= error         E_BAD_TEMPLATE
+
+$ /{stem}.{ext}
+= error         E_BAD_TEMPLATE

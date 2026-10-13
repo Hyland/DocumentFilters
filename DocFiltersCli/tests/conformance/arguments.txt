@@ -1,0 +1,389 @@
+# ---------------------------------------------------------------------------
+#  docfilters CLI — the argument surface
+#
+#  Shared by the C#, Python, Java and C++17 implementations. This file is the
+#  authority on which arguments exist on which command, written from the CLI design
+#  document rather than dumped from any implementation.
+#
+#  That direction matters: a file generated from the C# build can only prove the
+#  other three agree with C#. This one proves all four agree with the spec, so a
+#  argument nobody implemented still fails.
+#
+#    = argument  <template>  <arity>
+#
+#    template  as written on the command line; short and long forms separated
+#              by | exactly as the design document lists them
+#    arity     none      a switch, takes no value
+#              single    takes one value; a later occurrence replaces an earlier
+#              multiple  repeatable; every occurrence is kept
+#
+#  --help and -h are deliberately absent: every parsing library provides them,
+#  each formats them differently, and help text is not part of the contract.
+# ---------------------------------------------------------------------------
+
+$ convert
+# command specific
+= argument  --to                        single
+= argument  --combine                   none
+= argument  --canvas-options            single
+= argument  --render-options            single
+= argument  --no-images                 none
+= argument  --include-control-codes     none
+= argument  --fingerprint               none
+= argument  --watermark                 single
+= argument  --redact                    multiple
+= argument  --form                      multiple
+= argument  --view                      none
+# structure reports, emitted during conversion
+= argument  --fonts                     none
+= argument  --font-mappings             none
+= argument  --page-fonts                none
+= argument  --page-font-mappings        none
+= argument  --dimensions                none
+= argument  --page-elements             none
+= argument  --form-elements             none
+= argument  --hyperlinks                none
+= argument  --bookmarks                 none
+= argument  --annotations               none
+# shared: output
+= argument  -o|--out-dir                single
+= argument  --out-file                  single
+= argument  --out-name                  single
+= argument  --stdout                    none
+= argument  --overwrite                 none
+# shared: pages
+= argument  --pages                     single
+# shared: subfiles
+= argument  -s|--subfiles               none
+= argument  --subfile-depth             single
+# shared: name selection
+= argument  -g|--glob                   multiple
+= argument  --regex                     multiple
+# shared: type filters
+= argument  --include-types             single
+= argument  --exclude-types             single
+# shared: walk
+= argument  --files-from                single
+= argument  --max-depth                 single
+= argument  --no-recurse                none
+= argument  -L|--follow                 none
+= argument  --sort                      none
+= argument  --include-hidden            none
+# shared: passwords
+= argument  -p|--password               multiple
+= argument  --password-file             single
+= argument  --password-prompt           none
+# shared: processing
+= argument  --options                   single
+= argument  --codepage                  single
+= argument  --temp-dir                  single
+# shared: batch
+= argument  --on-error                  single
+= argument  --fail-fast                 none
+# shared: console
+= argument  --color                     none
+= argument  --verbose                   none
+= argument  --silent                    none
+= argument  --dry-run                   none
+= argument  --print-plan                none
+= argument  --print-contract            none
+# shared: diagnostics
+= argument  --time                      none
+= argument  --logtime                   none
+= argument  --logmem                    none
+= argument  --progress                  none
+= argument  --pause                     none
+= argument  --max-memory                single
+= argument  --max-time                  single
+= argument  --timeout                   single
+= argument  -x                          none
+= argument  --xx                        none
+= argument  --log-level                 single
+= argument  --debug-log-level           single
+= argument  --log-modules               single
+= argument  --debug-log-modules         single
+= argument  --debug-use-memory-stream   none
+= argument  --debug-measure-io          none
+= argument  --debug-truncate            single
+# shared: engine location
+= argument  --license-key               single
+= argument  --library                   single
+
+$ extract
+# command specific
+= argument  -i|--images                 none
+= argument  --include                   multiple
+= argument  --exclude                   multiple
+= argument  --make-dirs                 none
+= argument  --flat                      none
+= argument  --sub-id                    none
+# shared: output
+= argument  -o|--out-dir                single
+= argument  --out-file                  single
+= argument  --out-name                  single
+= argument  --stdout                    none
+= argument  --overwrite                 none
+# shared: subfiles
+= argument  -s|--subfiles               none
+= argument  --subfile-depth             single
+# shared: name selection
+= argument  -g|--glob                   multiple
+= argument  --regex                     multiple
+# shared: type filters
+= argument  --include-types             single
+= argument  --exclude-types             single
+# shared: walk
+= argument  --files-from                single
+= argument  --max-depth                 single
+= argument  --no-recurse                none
+= argument  -L|--follow                 none
+= argument  --sort                      none
+= argument  --include-hidden            none
+# shared: passwords
+= argument  -p|--password               multiple
+= argument  --password-file             single
+= argument  --password-prompt           none
+# shared: processing
+= argument  --options                   single
+= argument  --codepage                  single
+= argument  --temp-dir                  single
+# shared: batch
+= argument  --on-error                  single
+= argument  --fail-fast                 none
+# shared: console
+= argument  --color                     none
+= argument  --verbose                   none
+= argument  --silent                    none
+= argument  --dry-run                   none
+= argument  --print-plan                none
+= argument  --print-contract            none
+# shared: diagnostics
+= argument  --time                      none
+= argument  --logtime                   none
+= argument  --logmem                    none
+= argument  --progress                  none
+= argument  --pause                     none
+= argument  --max-memory                single
+= argument  --max-time                  single
+= argument  --timeout                   single
+= argument  -x                          none
+= argument  --xx                        none
+= argument  --log-level                 single
+= argument  --debug-log-level           single
+= argument  --log-modules               single
+= argument  --debug-log-modules         single
+= argument  --debug-use-memory-stream   none
+= argument  --debug-measure-io          none
+= argument  --debug-truncate            single
+# shared: engine location
+= argument  --license-key               single
+= argument  --library                   single
+
+$ list
+= argument  --json                      none
+# shared: output
+= argument  -o|--out-dir                single
+= argument  --out-file                  single
+= argument  --out-name                  single
+= argument  --stdout                    none
+= argument  --overwrite                 none
+# shared: subfiles
+= argument  -s|--subfiles               none
+= argument  --subfile-depth             single
+# shared: name selection
+= argument  -g|--glob                   multiple
+= argument  --regex                     multiple
+# shared: type filters
+= argument  --include-types             single
+= argument  --exclude-types             single
+# shared: walk
+= argument  --files-from                single
+= argument  --max-depth                 single
+= argument  --no-recurse                none
+= argument  -L|--follow                 none
+= argument  --sort                      none
+= argument  --include-hidden            none
+# shared: passwords
+= argument  -p|--password               multiple
+= argument  --password-file             single
+= argument  --password-prompt           none
+# shared: processing
+= argument  --options                   single
+= argument  --codepage                  single
+= argument  --temp-dir                  single
+# shared: batch
+= argument  --on-error                  single
+= argument  --fail-fast                 none
+# shared: console
+= argument  --color                     none
+= argument  --verbose                   none
+= argument  --silent                    none
+= argument  --dry-run                   none
+= argument  --print-plan                none
+= argument  --print-contract            none
+# shared: diagnostics
+= argument  --time                      none
+= argument  --logtime                   none
+= argument  --logmem                    none
+= argument  --progress                  none
+= argument  --pause                     none
+= argument  --max-memory                single
+= argument  --max-time                  single
+= argument  --timeout                   single
+= argument  -x                          none
+= argument  --xx                        none
+= argument  --log-level                 single
+= argument  --debug-log-level           single
+= argument  --log-modules               single
+= argument  --debug-log-modules         single
+= argument  --debug-use-memory-stream   none
+= argument  --debug-measure-io          none
+= argument  --debug-truncate            single
+# shared: engine location
+= argument  --license-key               single
+= argument  --library                   single
+
+# identify produces no output files, so it has no output group at all.
+$ identify
+= argument  --json                      none
+= argument  --capabilities              none
+# shared: name selection
+= argument  -g|--glob                   multiple
+= argument  --regex                     multiple
+# shared: type filters
+= argument  --include-types             single
+= argument  --exclude-types             single
+# shared: walk
+= argument  --files-from                single
+= argument  --max-depth                 single
+= argument  --no-recurse                none
+= argument  -L|--follow                 none
+= argument  --sort                      none
+= argument  --include-hidden            none
+# shared: passwords
+= argument  -p|--password               multiple
+= argument  --password-file             single
+= argument  --password-prompt           none
+# shared: processing
+= argument  --options                   single
+= argument  --codepage                  single
+= argument  --temp-dir                  single
+# shared: batch
+= argument  --on-error                  single
+= argument  --fail-fast                 none
+# shared: console
+= argument  --color                     none
+= argument  --verbose                   none
+= argument  --silent                    none
+= argument  --dry-run                   none
+= argument  --print-plan                none
+= argument  --print-contract            none
+# shared: diagnostics
+= argument  --time                      none
+= argument  --logtime                   none
+= argument  --logmem                    none
+= argument  --progress                  none
+= argument  --pause                     none
+= argument  --max-memory                single
+= argument  --max-time                  single
+= argument  --timeout                   single
+= argument  -x                          none
+= argument  --xx                        none
+= argument  --log-level                 single
+= argument  --debug-log-level           single
+= argument  --log-modules               single
+= argument  --debug-log-modules         single
+= argument  --debug-use-memory-stream   none
+= argument  --debug-measure-io          none
+= argument  --debug-truncate            single
+# shared: engine location
+= argument  --license-key               single
+= argument  --library                   single
+
+$ meta
+= argument  --json                      none
+# shared: output
+= argument  -o|--out-dir                single
+= argument  --out-file                  single
+= argument  --out-name                  single
+= argument  --stdout                    none
+= argument  --overwrite                 none
+# shared: name selection
+= argument  -g|--glob                   multiple
+= argument  --regex                     multiple
+# shared: type filters
+= argument  --include-types             single
+= argument  --exclude-types             single
+# shared: walk
+= argument  --files-from                single
+= argument  --max-depth                 single
+= argument  --no-recurse                none
+= argument  -L|--follow                 none
+= argument  --sort                      none
+= argument  --include-hidden            none
+# shared: passwords
+= argument  -p|--password               multiple
+= argument  --password-file             single
+= argument  --password-prompt           none
+# shared: processing
+= argument  --options                   single
+= argument  --codepage                  single
+= argument  --temp-dir                  single
+# shared: batch
+= argument  --on-error                  single
+= argument  --fail-fast                 none
+# shared: console
+= argument  --color                     none
+= argument  --verbose                   none
+= argument  --silent                    none
+= argument  --dry-run                   none
+= argument  --print-plan                none
+= argument  --print-contract            none
+# shared: diagnostics
+= argument  --time                      none
+= argument  --logtime                   none
+= argument  --logmem                    none
+= argument  --progress                  none
+= argument  --pause                     none
+= argument  --max-memory                single
+= argument  --max-time                  single
+= argument  --timeout                   single
+= argument  -x                          none
+= argument  --xx                        none
+= argument  --log-level                 single
+= argument  --debug-log-level           single
+= argument  --log-modules               single
+= argument  --debug-log-modules         single
+= argument  --debug-use-memory-stream   none
+= argument  --debug-measure-io          none
+= argument  --debug-truncate            single
+# shared: engine location
+= argument  --license-key               single
+= argument  --library                   single
+
+# formats and options take no input files, so they take no walk, selection,
+# subfile, password or output arguments either.
+$ formats
+= argument  --json                      none
+= argument  --filter                    single
+= argument  --color                     none
+= argument  --verbose                   none
+= argument  --silent                    none
+= argument  --dry-run                   none
+= argument  --print-plan                none
+= argument  --print-contract            none
+= argument  --license-key               single
+= argument  --library                   single
+
+$ options
+= argument  --json                      none
+= argument  --filter                    single
+= argument  --applies-to                single
+= argument  --color                     none
+= argument  --verbose                   none
+= argument  --silent                    none
+= argument  --dry-run                   none
+= argument  --print-plan                none
+= argument  --print-contract            none
+= argument  --license-key               single
+= argument  --library                   single

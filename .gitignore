@@ -10,3 +10,11 @@
 **/.sarif
 **/build/*
 .vs
+
+*.orig
+/DocFiltersCli/csharp/Properties/launchSettings.json
+__pycache__/
+.claude/
+
+out/
+build-wsl/

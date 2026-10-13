@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>Hyland.DocumentFilters.Cli.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    Test-only packages. These are NOT a relaxation of the sample's "no new
+    dependencies" rule: nothing here ships in the tool, and a customer running
+    the sample never restores them.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\csharp\DocFiltersCli.csproj" />
+  </ItemGroup>
+
+  <!--
+    The conformance fixtures are shared with the Python, Java and C++17 test
+    suites. They live one level up so that no language owns them.
+  -->
+  <ItemGroup>
+    <None Include="..\conformance\**\*" LinkBase="conformance" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
