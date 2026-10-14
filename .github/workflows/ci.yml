@@ -88,11 +88,11 @@ jobs:
       csharp: ${{ steps.decide.outputs.csharp }}
       os_matrix: ${{ steps.decide.outputs.os_matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      # TODO(phase 6): pin third-party actions by commit SHA before this
-      # repository goes public.
-      - uses: dorny/paths-filter@v3
+      # Every action in this file is pinned to a full commit SHA, as the
+      # organisation requires; the trailing comment names the release it is.
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
         id: filter
         if: github.event_name == 'pull_request'
         with:
@@ -139,19 +139,19 @@ jobs:
       matrix:
         os: ${{ fromJSON(needs.changes.outputs.os_matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       # Both versions on purpose. The projects target net8.0 today and move to
       # net10.0 when DfSamplesCommon is multi-targeted; installing both means
       # that change does not also have to be a CI change.
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: |
             8.0.x
             10.0.x
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.nuget/packages
           # Scoped to the three projects that actually feed this build, not
@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: test-results-csharp-${{ matrix.os }}
           path: ${{ runner.temp }}/test-results
@@ -214,7 +214,7 @@ jobs:
     outputs:
       version: ${{ steps.check.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Check version and tag
         id: check
@@ -247,9 +247,9 @@ jobs:
       matrix:
         os: ${{ fromJSON(needs.changes.outputs.os_matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: 8.0.x
 
@@ -273,7 +273,7 @@ jobs:
             zip -r "$GITHUB_WORKSPACE/dist/$name.zip" .
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-${{ runner.os }}
           path: dist/*.zip
@@ -287,7 +287,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: release-*
           path: dist
