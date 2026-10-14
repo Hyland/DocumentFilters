@@ -1,0 +1,356 @@
+# ---------------------------------------------------------------------------
+#  docfilters CLI — the --to format catalogue
+#
+#  Shared by the C#, Python, Java and C++17 implementations. This table is the
+#  specification for FormatCatalog: every implementation must resolve exactly
+#  these tokens, to exactly these properties.
+#
+#    kind         text | canvas | docpack
+#                   text    — streamed from the extractor, no canvas
+#                   canvas  — rendered page by page onto an output canvas
+#                   docpack — Extractor.MakeDocPack, neither of the above
+#    single-file  yes = one artifact however many pages
+#                 no  = one file per page, which makes --out-file and --stdout
+#                       illegal and forces {page} into the default template
+#    combine      whether several inputs may merge into one output (--combine).
+#                 A separate question from single-file: docpack writes one file
+#                 per document but cannot hold two documents, because
+#                 Extractor.MakeDocPack takes one extractor
+#    hidef        whether the format can carry high-definition paginated
+#                 output. A property of the format, not of any one document:
+#                 it describes what the target can hold, which is why it
+#                 appears in a plan's "to" line
+#    ext          filename extension, no leading dot, used by {ext}
+#    options      canvas options the format itself contributes, appended after
+#                 whatever --canvas-options supplies; 'none' for most.
+#                 The order is behaviour, not formatting: the engine resolves a
+#                 repeated key to its FIRST occurrence, so putting the user's
+#                 options in front is what lets them override any of these. A
+#                 port that prepends instead will silently ignore
+#                 --canvas-options for every key named here.
+#
+#  Several entries are not a straight mapping onto one engine enum value, which
+#  is the whole reason this table exists:
+#    md vs md-text     high-definition markdown vs text-mode markdown
+#    html vs html5     flow HTML vs paginated high-definition HTML
+#    json vs mdast     the same canvas under two schemas
+#    docpack           a third rendering path entirely
+#    web-safe          the only format whose extension the engine chooses
+#
+#  Tokens are matched after an ASCII-only case fold, so PDF, Pdf and pdf all
+#  resolve to the same entry. ASCII-only matters: a locale-aware fold turns TIFF
+#  into 'tiff' with a dotless i under a Turkish locale in C#, Java and Python
+#  alike, and std::tolower is locale-sensitive too. Fold A-Z to a-z and touch
+#  nothing else.
+# ---------------------------------------------------------------------------
+
+# === text mode: straight from the extractor ================================
+
+$ text
+= kind          text
+= single-file   yes
+= combine       yes
+= hidef         no
+= ext           txt
+= options       none
+
+$ md-text
+= kind          text
+= single-file   yes
+= combine       yes
+= hidef         no
+= ext           md
+= options       none
+
+$ html
+= kind          text
+= single-file   yes
+= combine       yes
+= hidef         no
+= ext           html
+= options       none
+
+# === canvas, single file ===================================================
+
+$ md
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           md
+= options       none
+
+# html5 and svg both rasterise each page into a sibling image file and lay a
+# transparent text layer over it. This tool writes only the markup, so without
+# the inlining option every page renders blank — the text is there, at alpha 0,
+# over a background image that was never written. Turning it on embeds the
+# raster as a data: URI and the output is one self-contained file. doc2text
+# forces the same two options for the same reason (main.cpp).
+
+$ html5
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           html
+= options       HTML_INLINE_IMAGES=ON;
+
+$ json
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           json
+= options       none
+
+# mdast is the JSON canvas under a different schema, so it shares the device
+# and the extension and is told apart only by the option it contributes. A port
+# that drops the option silently writes plain JSON instead.
+
+$ mdast
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           json
+= options       JSON_OUTPUT_SCHEMA=MDAST;
+
+$ xml
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           xml
+= options       none
+
+$ pdf
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           pdf
+= options       none
+
+$ tiff
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           tif
+= options       none
+
+$ xps
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           xps
+= options       none
+
+$ ps
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           ps
+= options       none
+
+$ dcx
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           dcx
+= options       none
+
+# === canvas, one file per page =============================================
+
+$ png
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           png
+= options       none
+
+$ jpg
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           jpg
+= options       none
+
+$ svg
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           svg
+= options       SVG_INLINE_IMAGES=ON;
+
+$ gif
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           gif
+= options       none
+
+$ bmp
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           bmp
+= options       none
+
+$ eps
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           eps
+= options       none
+
+$ webp
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           webp
+= options       none
+
+$ jpeg2000
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           jp2
+= options       none
+
+$ pcx
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           pcx
+= options       none
+
+$ tga
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           tga
+= options       none
+
+# Brooktrout fax. One file per page despite fax formats usually being
+# multi-page: the engine encodes it per page rather than through one of the
+# accumulating page containers that pdf, tiff, xps and dcx use.
+
+$ brk
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           brk
+= options       none
+
+# The netpbm trio, distinguished only by bit depth.
+
+$ pbm
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           pbm
+= options       none
+
+$ pgm
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           pgm
+= options       none
+
+$ ppm
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           ppm
+= options       none
+
+# The one format whose extension the engine picks: png, gif, jpg or webp
+# depending on the bit depth it settles on, which is not knowable until the page
+# has been rendered. So the plan names the file '.unknown' and execution renames
+# it once the real type is detected. The renamed path goes through the same
+# per-page existence check as any other per-page output, so --overwrite still
+# protects an existing file.
+
+$ web-safe
+= kind          canvas
+= single-file   no
+= combine       no
+= hidef         yes
+= ext           unknown
+= options       none
+
+# === the third path ========================================================
+
+# Extractor.MakeDocPack takes one extractor, so a pack holds one document. That
+# is why 'combine' is its own property: docpack writes a single file, like pdf,
+# but cannot merge several inputs into it.
+
+$ docpack
+= kind          docpack
+= single-file   yes
+= combine       no
+= hidef         yes
+= ext           docpack
+= options       none
+
+# === case folding ==========================================================
+#
+# The same entry under three spellings. Written out rather than left implicit,
+# because a port that compares tokens verbatim passes every case above.
+
+$ PDF
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           pdf
+= options       none
+
+$ Tiff
+= kind          canvas
+= single-file   yes
+= combine       yes
+= hidef         yes
+= ext           tif
+= options       none
+
+$ MD-TEXT
+= kind          text
+= single-file   yes
+= combine       yes
+= hidef         no
+= ext           md
+= options       none
+
+# === tokens that must NOT resolve ==========================================
+
+# A near miss for pdf. PDF/X is a real print standard, so this is a plausible
+# thing for a user to type, and it must be rejected rather than guessed at.
+$ pdxf
+= error         E_UNKNOWN_FORMAT
+
+$ nonsense
+= error         E_UNKNOWN_FORMAT
+
+# Empty is not a synonym for the default.
+$
+= error         E_UNKNOWN_FORMAT
