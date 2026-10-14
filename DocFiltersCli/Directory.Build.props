@@ -1,0 +1,11 @@
+<Project>
+
+  <!-- VERSION.txt is the single source of the CLI's version. Passing
+       -p:Version=x.y.z on the command line (as the release workflow does)
+       takes precedence over it. -->
+  <PropertyGroup>
+    <DocFiltersCliVersionFile>$(MSBuildThisFileDirectory)VERSION.txt</DocFiltersCliVersionFile>
+    <Version Condition="'$(Version)' == '' And Exists('$(DocFiltersCliVersionFile)')">$([System.IO.File]::ReadAllText('$(DocFiltersCliVersionFile)').Trim())</Version>
+  </PropertyGroup>
+
+</Project>

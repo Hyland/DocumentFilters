@@ -30,7 +30,7 @@ on:
         type: boolean
         default: false
       version:
-        description: Release version, e.g. 1.2.3 or 1.2.3-rc.1 (required when releasing; tag becomes v<version>)
+        description: Release version, e.g. 1.2.3 or 1.2.3-rc.1. Leave empty to use DocFiltersCli/VERSION.txt. Tag becomes v<version>
         type: string
         required: false
 
@@ -111,6 +111,9 @@ jobs:
               - '.github/workflows/ci.yml'
               # Selects the engine version this build links against.
               - 'samples/DF_VERSION.txt'
+              # The CLI's own version, read by the build.
+              - 'DocFiltersCli/VERSION.txt'
+              - 'DocFiltersCli/Directory.Build.props'
               - '.github/workflows/ci.yml'
 
       - name: Decide
@@ -211,12 +214,18 @@ jobs:
     outputs:
       version: ${{ steps.check.outputs.version }}
     steps:
+      - uses: actions/checkout@v4
+
       - name: Check version and tag
         id: check
         env:
           VERSION: ${{ inputs.version }}
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Empty input falls back to the version file that the build itself reads.
+          if [ -z "$VERSION" ]; then
+            VERSION="$(tr -d '[:space:]' < DocFiltersCli/VERSION.txt)"
+          fi
           # Accept an optional leading "v"; the tag always has it, the version never does.
           VERSION="${VERSION#v}"
           if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
