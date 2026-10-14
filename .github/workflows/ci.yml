@@ -21,6 +21,18 @@ on:
   pull_request:
   push:
     branches: [main, master, develop]
+  # Manual run. Leave `release` unticked for a plain build-and-test; tick it and
+  # give a version to also package the CLI and publish a GitHub release.
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Publish a GitHub release after the tests pass
+        type: boolean
+        default: false
+      version:
+        description: Release version, e.g. 1.2.3 or 1.2.3-rc.1 (required when releasing; tag becomes v<version>)
+        type: string
+        required: false
 
 # A new push to a PR makes the previous run's answer irrelevant.
 concurrency:
@@ -186,6 +198,108 @@ jobs:
 
 
   # --------------------------------------------------------------------------
+  # Release --- manual runs only, with `release` ticked.
+  #
+  # Validated first so a typo in the version fails in seconds rather than after
+  # the matrix has run. Packaging waits for the C# suite on every platform, so a
+  # release is never cut from a build that did not pass its tests.
+  # --------------------------------------------------------------------------
+  release-check:
+    name: Validate release version
+    if: github.event_name == 'workflow_dispatch' && inputs.release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Check version and tag
+        id: check
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Accept an optional leading "v"; the tag always has it, the version never does.
+          VERSION="${VERSION#v}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$VERSION' is not a valid version. Expected MAJOR.MINOR.PATCH with an optional -prerelease suffix."
+            exit 1
+          fi
+          if gh api "repos/${{ github.repository }}/git/ref/tags/v$VERSION" >/dev/null 2>&1; then
+            echo "::error::Tag v$VERSION already exists."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  package:
+    name: Package (${{ matrix.os }})
+    needs: [changes, csharp, release-check]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ${{ fromJSON(needs.changes.outputs.os_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Framework-dependent, one archive per build platform: the Document Filters
+      # native libraries are resolved per OS at publish time.
+      - name: Publish
+        run: >
+          dotnet publish DocFiltersCli/csharp/DocFiltersCli.csproj
+          --configuration ${{ env.BUILD_CONFIG }}
+          -p:Version=${{ needs.release-check.outputs.version }}
+          --output "${{ runner.temp }}/publish"
+
+      - name: Archive
+        run: |
+          name="docfilters-${{ needs.release-check.outputs.version }}-${{ runner.os }}"
+          mkdir -p dist
+          cd "${{ runner.temp }}/publish"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a -tzip "$GITHUB_WORKSPACE/dist/$name.zip" .
+          else
+            zip -r "$GITHUB_WORKSPACE/dist/$name.zip" .
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ runner.os }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release
+    needs: [release-check, package]
+    runs-on: ubuntu-latest
+    # The only job that writes; everything else stays read-only.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.release-check.outputs.version }}
+        run: |
+          flags=()
+          # A suffix such as -rc.1 marks it as a pre-release.
+          case "$VERSION" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "v$VERSION" dist/*.zip \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "docfilters $VERSION" \
+            --generate-notes \
+            "${flags[@]}"
+
+  # --------------------------------------------------------------------------
   # The gate. This is the only check branch protection should require.
   #
   # `if: always()` so it reports even when something upstream failed or was
@@ -195,7 +309,7 @@ jobs:
   # --------------------------------------------------------------------------
   ci-gate:
     name: CI gate
-    needs: [changes, csharp]
+    needs: [changes, csharp, release-check, package, release]
     if: always()
     runs-on: ubuntu-latest
     steps:
