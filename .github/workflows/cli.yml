@@ -15,7 +15,7 @@
 # steps themselves are irreducibly per-language, which is why this is three
 # small edits rather than one registry row.
 
-name: CI
+name: CLI
 
 on:
   pull_request:
@@ -108,13 +108,13 @@ jobs:
               - 'DocFiltersCli/tests/conformance/**'
               - 'samples/csharp/DfSamplesCommon/**'
               - 'samples/csharp/DocumentFiltersLicense.cs'
-              - '.github/workflows/ci.yml'
+              - '.github/workflows/cli.yml'
               # Selects the engine version this build links against.
               - 'samples/DF_VERSION.txt'
               # The CLI's own version, read by the build.
               - 'DocFiltersCli/VERSION.txt'
               - 'DocFiltersCli/Directory.Build.props'
-              - '.github/workflows/ci.yml'
+              - '.github/workflows/cli.yml'
 
       - name: Decide
         id: decide
