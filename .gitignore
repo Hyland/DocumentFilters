@@ -14,7 +14,10 @@
 *.orig
 /DocFiltersCli/csharp/Properties/launchSettings.json
 __pycache__/
-.claude/
+**/.claude/worktrees/
+**/.claude/*.local.json
+.gradle/
 
 out/
-build-wsl/
+build-*/
+

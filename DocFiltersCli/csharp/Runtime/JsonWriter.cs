@@ -46,6 +46,9 @@ namespace Hyland.DocumentFilters.Cli.Runtime
 	/// <item>keys in insertion order, never sorted</item>
 	/// <item>UTF-8 with no byte order mark, LF line endings</item>
 	/// <item>non-ASCII written literally, not escaped as <c>\uXXXX</c></item>
+	/// <item>an unpaired surrogate escaped as <c>\uXXXX</c> — the single exception to
+	/// the rule above, because an unpaired surrogate is not a character and has no
+	/// UTF-8 encoding to write literally</item>
 	/// <item>a trailing newline at the end of the document</item>
 	/// </list>
 	/// </remarks>
@@ -135,8 +138,13 @@ namespace Hyland.DocumentFilters.Cli.Runtime
 		public static string Escape(string value)
 		{
 			var escaped = new StringBuilder(value.Length);
-			foreach (char c in value)
+
+			// Indexed rather than foreach because the surrogate rule below needs the
+			// neighbouring code unit, and C#'s foreach over a string hands out UTF-16
+			// units with no way to look sideways.
+			for (int i = 0; i < value.Length; i++)
 			{
+				char c = value[i];
 				switch (c)
 				{
 					case '"':
@@ -155,7 +163,15 @@ namespace Hyland.DocumentFilters.Cli.Runtime
 						escaped.Append("\\t");
 						break;
 					default:
-						if (c < 0x20)
+						// An unpaired surrogate joins the control characters in taking the
+						// six-character form. It is not a character, it has no UTF-8
+						// encoding, and writing it literally made the output whatever the
+						// encoder on the way out happened to do with it: measured as U+FFFD
+						// from this implementation, '?' from Java's, and an unhandled
+						// UnicodeEncodeError from Python's. The rule above says non-ASCII is
+						// written literally so that the four produce identical bytes, and
+						// this is the one input where that is impossible to honour.
+						if (c < 0x20 || (char.IsSurrogate(c) && !IsPaired(value, i)))
 							escaped.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture));
 						else
 							escaped.Append(c);
@@ -163,6 +179,23 @@ namespace Hyland.DocumentFilters.Cli.Runtime
 				}
 			}
 			return escaped.ToString();
+		}
+
+		/// <summary>
+		/// True when the surrogate at <paramref name="index"/> is one half of a
+		/// well-formed pair, which is a single character and is written literally like
+		/// any other non-ASCII one.
+		/// </summary>
+		/// <remarks>
+		/// A port whose strings hold code points rather than UTF-16 units has no pairs
+		/// to recognise and needs none of this: there, the test is simply whether the
+		/// code point falls in U+D800..U+DFFF.
+		/// </remarks>
+		private static bool IsPaired(string value, int index)
+		{
+			return char.IsHighSurrogate(value[index])
+				? index + 1 < value.Length && char.IsLowSurrogate(value[index + 1])
+				: index > 0 && char.IsHighSurrogate(value[index - 1]);
 		}
 
 		/// <summary>

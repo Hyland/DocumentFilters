@@ -3313,6 +3313,20 @@ class DocumentFilters(DocumentFiltersBase):
         def GetMimeType(self):
             return self.getFileType(5)
 
+        def MakeDocPack(self, dest, options = ""):
+            if isinstance(dest, str):
+                DocumentFiltersBase._Call(self.API.IGR_Make_DocPack, \
+                    self._needHandle(), \
+                    DocumentFiltersBase._ToUTF16(dest), \
+                    DocumentFiltersBase._ToUTF16(options))
+            elif isinstance(dest, io.IOBase) or isinstance(dest, IGRStream):
+                DocumentFiltersBase._Call(self.API.IGR_Make_DocPack_On, \
+                    self._needHandle(), \
+                    StreamBridge.Make(dest, True), \
+                    DocumentFiltersBase._ToUTF16(options))
+            else:
+                raise IGRException("Cannot MakeDocPack to " + str(type(dest)))
+
         @property
         def FirstSubFile(self): return self.GetFirstSubFile()
 

@@ -1,0 +1,159 @@
+# The four implementations, as data.
+#
+# One entry per language, so that a prompt, a script or a person can ask "where
+# does the Java suite live" or "how is the C++17 port built" without reading a
+# workflow. Adding a language is an entry here plus the files it names.
+#
+# This file is read by people and by prompts. It is NOT the source of
+# .github/workflows/cli.yml's job matrix, and the workflow says why: the build
+# steps are irreducibly per-language --- a dotnet restore, a CMake configure
+# that pins an engine version, a Gradle wrapper, and a port that needs no build
+# at all have nothing in common to factor out. Generating four jobs from this
+# file would mean one job template with four sets of conditionals, which is
+# harder to read than four jobs. So the commands below are documentation of
+# what the workflow does, and a change here does not change CI.
+#
+# Keep them in step by hand. There is no check that they agree, because a check
+# would need to parse the workflow, and that is a worse bet than the one-line
+# review comment this paragraph is standing in for.
+
+reference: csharp
+
+languages:
+  - id: csharp
+    name: C#
+    role: reference
+    source: DocFiltersCli/csharp
+    tests: DocFiltersCli/tests/csharp
+    # Paths outside the port that are inputs to its build. The C# project
+    # reaches into samples/ for the shared sample helpers and the license
+    # stub; all four read VERSION.txt.
+    extra_paths:
+      - samples/csharp/DfSamplesCommon/**
+      - samples/csharp/DocumentFiltersLicense.cs
+      - DocFiltersCli/VERSION.txt
+      - DocFiltersCli/Directory.Build.props
+    build: dotnet build DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj --configuration Release
+    test: dotnet test DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj --configuration Release --no-build
+    list_tests: dotnet test DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj --configuration Release --no-build --list-tests
+    # What tests/e2e/end2end.py --cli takes, and what the parity job records.
+    cli: DocFiltersCli/csharp/bin/Release/net8.0/docfilters
+    test_framework: xUnit
+    traps: DocFiltersCli/design/porting/traps-csharp.md
+    notes: >-
+      The reference. Its traps file is inverted: it describes what the
+      reference's own constructs mean, for the ports to reproduce, rather than
+      how a language differs from it. Nothing else may change behaviour before
+      this does.
+
+  - id: cpp17
+    name: C++17
+    role: port
+    source: DocFiltersCli/cpp17
+    tests: DocFiltersCli/tests/cpp17
+    extra_paths:
+      - bindings/c/**
+      - bindings/cpp17/**
+      - CMakeLists.txt
+      - samples/DF_VERSION.txt
+      - DocFiltersCli/VERSION.txt
+    # The test project is the entry point: tests/cpp17/CMakeLists.txt adds
+    # cpp17/ as a subdirectory, so configuring the tests configures the tool.
+    # DOCFILTERS_VERSION is not passed here because that project defaults it
+    # from samples/DF_VERSION.txt --- the engine version is a property of the
+    # tree, not of whoever remembered to type the flag, and resolving it as
+    # "latest" would leave this port on a different engine from the reference
+    # it is compared against. Pass -DDOCFILTERS_VERSION to override it.
+    build: >-
+      cmake --no-warn-unused-cli -S DocFiltersCli/tests/cpp17 -B DocFiltersCli/tests/cpp17/build
+      -DCMAKE_BUILD_TYPE=Release
+      && cmake --build DocFiltersCli/tests/cpp17/build --config Release --parallel
+    test: ctest --test-dir DocFiltersCli/tests/cpp17/build -C Release --output-on-failure
+    # --reporter xml, not the plain listing: Catch2 wraps a long name onto a
+    # second line at the console width and nothing marks the continuation.
+    #
+    # One path on every platform, because the test target now sets an output
+    # directory of its own. It did not always: a multi-config generator
+    # (Visual Studio) puts a binary in `build/Release/` and a single-config
+    # one (Makefiles, Ninja --- what the Linux runners use) puts it in
+    # `build/`, so this line could only ever be right on one of them, and
+    # looking the binary up with a shell made it a command nothing but a shell
+    # could run. `cli` below never had the problem because the tool always set
+    # one; the test binary now joins it in `build/bin/`.
+    list_tests: >-
+      DocFiltersCli/tests/cpp17/build/bin/docfilters_tests
+      --list-tests --reporter xml
+    cli: DocFiltersCli/tests/cpp17/build/bin/docfilters
+    test_framework: Catch2
+    traps: DocFiltersCli/design/porting/traps-cpp17.md
+    notes: >-
+      Even the no-engine unit tests need the Document Filters shared library
+      present, because the tool links the C++17 binding. No license is needed,
+      only the binary, which bindings/c/CMakeLists.txt downloads.
+
+  - id: python
+    name: Python
+    role: port
+    source: DocFiltersCli/python
+    tests: DocFiltersCli/tests/python
+    extra_paths:
+      - DocFiltersCli/VERSION.txt
+    build: ~          # nothing to build
+    # Run from the repository root rather than from the suite's own directory.
+    # run_tests.py resolves the package and the fakes from its own location,
+    # so the working directory was never load-bearing --- and a `cd` in front
+    # made these two unrunnable by anything working from a fixed allowlist of
+    # commands, the sync agent included.
+    test: python DocFiltersCli/tests/python/run_tests.py
+    list_tests: python DocFiltersCli/tests/python/run_tests.py --list-tests
+    # A package directory rather than an executable: end2end.py decides which
+    # kind of implementation it was given from the shape of the value.
+    cli: DocFiltersCli/python
+    test_framework: unittest
+    traps: DocFiltersCli/design/porting/traps-python.md
+    notes: >-
+      Standard library only, so there is nothing to install and nothing to
+      cache. The suite drives a fake engine and never loads the binding; the
+      end-to-end run needs the published binding, which end2end.py takes from
+      bindings/python/src.
+
+  - id: java
+    name: Java
+    role: port
+    source: DocFiltersCli/java
+    tests: DocFiltersCli/tests/java
+    extra_paths:
+      - bindings/java/**
+      - DocFiltersCli/VERSION.txt
+    # settings.gradle.kts includes tests/java as a subproject, so `check`
+    # compiles the tool and runs the suite in one invocation. installDist as
+    # well, because end2end.py starts the port from the installed
+    # distribution's jars.
+    #
+    # `-p` rather than a `cd` into the project: same effect, and it leaves
+    # each of these a single command that starts with the program being run,
+    # which is what anything working from an allowlist --- the sync agent ---
+    # can be given permission for. cli.yml does the same thing with
+    # `working-directory:`.
+    build: DocFiltersCli/java/gradlew -p DocFiltersCli/java --no-daemon --console=plain installDist
+    test: DocFiltersCli/java/gradlew -p DocFiltersCli/java --no-daemon --console=plain check
+    list_tests: DocFiltersCli/java/gradlew -p DocFiltersCli/java -q --no-daemon --console=plain :tests:runTests --args=--list-tests
+    # A Gradle project directory, which no package directory is.
+    cli: DocFiltersCli/java
+    test_framework: none --- a JDK-only runner, tests/java/.../TestRunner.java
+    traps: DocFiltersCli/design/porting/traps-java.md
+    notes: >-
+      Targets Java 8 and is built with --release 8 on a current JDK. The
+      binding loads its natives with System.loadLibrary, which reads
+      java.library.path and the JVM fixes that at start-up, so --library and
+      DF_PATH cannot pick the library from inside the program --- the launcher
+      has to.
+
+# Documents that belong to no language.
+shared:
+  fixtures: DocFiltersCli/tests/conformance
+  end_to_end: DocFiltersCli/tests/e2e/end2end.py
+  parity: DocFiltersCli/tests/parity
+  porting_method: DocFiltersCli/design/porting/workflow.md
+  agent_rules: DocFiltersCli/CLAUDE.md
+  version: DocFiltersCli/VERSION.txt

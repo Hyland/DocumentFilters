@@ -151,6 +151,58 @@ namespace Hyland.DocumentFilters.Cli.Tests.Unit
 		}
 
 		[Fact]
+		public void A_surrogate_pair_is_written_literally()
+		{
+			// U+1F600, which C# holds as two UTF-16 units and the writer must not
+			// mistake for two unpaired surrogates. In a port whose strings hold code
+			// points this is one character and the question does not arise.
+			Assert.Equal("\U0001F600", JsonWriter.Escape("\U0001F600"));
+		}
+
+		[Fact]
+		public void An_unpaired_high_surrogate_is_escaped()
+		{
+			// Reachable from a Windows filename, which NTFS stores as unvalidated
+			// UTF-16, and from a document whose metadata the engine hands back
+			// malformed. Written literally it is not a character and has no UTF-8
+			// encoding, so each implementation's output encoder invented its own
+			// answer: U+FFFD here, '?' in Java, and a fatal UnicodeEncodeError in
+			// Python. Escaped, all four emit the same six ASCII bytes.
+			Assert.Equal("\\ud800", JsonWriter.Escape("\ud800"));
+		}
+
+		[Fact]
+		public void An_unpaired_low_surrogate_is_escaped()
+		{
+			Assert.Equal("\\udfff", JsonWriter.Escape("\udfff"));
+		}
+
+		[Fact]
+		public void An_unpaired_surrogate_beside_a_pair_leaves_the_pair_intact()
+		{
+			// A high surrogate followed by another high surrogate: the first is
+			// unpaired even though its neighbour is itself the start of a valid pair.
+			// A rule that only looked one way, or that consumed two units whenever it
+			// saw a high surrogate, would swallow the emoji.
+			Assert.Equal("\\ud800\U0001F600", JsonWriter.Escape("\ud800\U0001F600"));
+		}
+
+		[Fact]
+		public void An_escaped_document_carries_no_surrogates_of_its_own()
+		{
+			// The property that matters downstream, stated once over the writer rather
+			// than over Escape: whatever goes in, what comes out can be encoded.
+			string json = new JsonWriter()
+				.BeginObject()
+				.Property("title", "a\ud800b")
+				.EndObject()
+				.ToString();
+
+			Assert.Contains("\"title\": \"a\\ud800b\"", json);
+			Assert.DoesNotContain(json, c => char.IsSurrogate(c));
+		}
+
+		[Fact]
 		public void The_document_ends_with_exactly_one_newline()
 		{
 			string json = new JsonWriter().BeginObject().Property("a", 1).EndObject().ToString();

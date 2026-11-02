@@ -6,6 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <AssemblyName>docfilters</AssemblyName>
+    <!--
+      The tool's own version, which `docfilters version` prints and every port
+      prints identically. Deliberately NOT declared here: <Version> comes from
+      ../VERSION.txt via ../Directory.Build.props, the one file every port reads.
+      A <Version> in this file would be evaluated after that import and silently
+      override it. See VersionCommand for why the informational version is the one
+      read back.
+    -->
     <RootNamespace>Hyland.DocumentFilters.Cli</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- The scaffold is deliberately full of unimplemented members; don't fail the

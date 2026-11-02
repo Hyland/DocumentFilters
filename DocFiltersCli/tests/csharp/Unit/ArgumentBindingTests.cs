@@ -818,7 +818,7 @@ namespace Hyland.DocumentFilters.Cli.Tests.Unit
 		}
 
 		[Fact]
-		public void A_argument_from_another_verb_is_rejected()
+		public void An_argument_from_another_verb_is_rejected()
 		{
 			// --combine belongs to convert; extract must not quietly accept it.
 			Assert.Throws<UsageError>(() => Bind("extract", "--combine", "-o", "out", "a.zip"));

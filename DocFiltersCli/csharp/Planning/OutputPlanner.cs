@@ -198,7 +198,7 @@ namespace Hyland.DocumentFilters.Cli.Planning
                 return;
 
             if (fileSystem.FileExists(path))
-				throw new OutputConflictError(ErrorCodes.OutputExists, $"{path} already exists; pass --overwrite to replace it");
+				throw new OutputConflictError(ErrorCodes.OutputExists, $"{path} already exists; use --overwrite to replace it");
 		}
 
 		/// <summary>Chooses the cardinality from the output arguments and the input count.</summary>

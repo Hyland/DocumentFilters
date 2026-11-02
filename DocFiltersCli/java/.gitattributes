@@ -1,0 +1,6 @@
+# The wrapper scripts are run by their own shells, which need their own line
+# endings whatever core.autocrlf the checkout used: bash fails on a CR in
+# gradlew, and cmd.exe misreads gradlew.bat with bare LFs.
+gradlew        text eol=lf
+gradlew.bat    text eol=crlf
+*.jar          binary

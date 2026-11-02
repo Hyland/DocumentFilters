@@ -132,11 +132,23 @@
 #  a contradictory pair is always named in argument-table order — never in argv
 #  order, which D8 established is not portable.
 #
-#  E_INIT_FAILED, E_LIMIT_EXCEEDED and E_DOCUMENT_FAILED need a live engine —
-#  the library must fail to initialise, a document must fail to open, or one
-#  must outrun --timeout — so no case here can provoke them. They are named in
-#  ErrorCodeTests instead, and exercised by the CLI tests and the end-to-end
-#  script. Every other code is exercised here.
+#  Five codes cannot be provoked from argv and a filesystem, so no case here
+#  names them. They are listed in ErrorCodeTests instead, which is the only way
+#  to opt out, and each is exercised where a port can translate it:
+#
+#      E_INIT_FAILED       the library must fail to initialise
+#      E_DOCUMENT_FAILED   a document must fail to open
+#      E_LIMIT_EXCEEDED    a document must outrun --timeout or a --max limit
+#      E_INTERRUPTED       someone must press Ctrl+C
+#      E_UNSAFE_OUTPUT     a container must be open: it is raised when a
+#                          subfile's name resolves through a symbolic link
+#                          below --out-dir, and what a subfile is named is not
+#                          knowable until the container is open -- which is
+#                          exactly what no case here does
+#
+#  The first four are exercised by the CLI tests against the fake engine and by
+#  the end-to-end script against the real one; E_UNSAFE_OUTPUT by a CLI test
+#  that marks a link in the fake filesystem. Every other code is exercised here.
 # ---------------------------------------------------------------------------
 
 # === output cardinality ====================================================
@@ -255,7 +267,7 @@ $ convert --to pdf --out-dir out --sort -g *.xlsx corpus
 $ convert --to pdf --out-dir out a.docx
 < tree          a.docx out/a.pdf
 = error         E_OUTPUT_EXISTS
-= message       out/a.pdf already exists; pass --overwrite to replace it
+= message       out/a.pdf already exists; use --overwrite to replace it
 = exit          4
 
 $ convert --to pdf --out-dir out --overwrite a.docx

@@ -1165,6 +1165,14 @@ class ISYS11dfAPI:
         self.IGR_Get_Format_Attribute.argtypes = [IGR_LONG, IGR_LONG, ctypes.c_char_p, ctypes.POINTER(Error_Control_Block)]
         self.IGR_Get_Format_Attribute.restype = IGR_RETURN_CODE
 
+        self.IGR_Make_DocPack = self._libISYS11df.IGR_Make_DocPack
+        self.IGR_Make_DocPack.argtypes = [IGR_LONG, ctypes.POINTER(None), ctypes.POINTER(None), ctypes.POINTER(Error_Control_Block)]
+        self.IGR_Make_DocPack.restype = IGR_RETURN_CODE
+
+        self.IGR_Make_DocPack_On = self._libISYS11df.IGR_Make_DocPack_On
+        self.IGR_Make_DocPack_On.argtypes = [IGR_LONG, ctypes.POINTER(None), ctypes.POINTER(None), ctypes.POINTER(Error_Control_Block)]
+        self.IGR_Make_DocPack_On.restype = IGR_RETURN_CODE
+
         self.IGR_Get_Option_Attribute = self._libISYS11df.IGR_Get_Option_Attribute
         self.IGR_Get_Option_Attribute.argtypes = [IGR_LONG, IGR_LONG, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(Error_Control_Block)]
         self.IGR_Get_Option_Attribute.restype = IGR_RETURN_CODE

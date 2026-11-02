@@ -14,6 +14,9 @@ csharp/bin/Debug/net8.0/docfilters convert --to pdf --out-dir out/ report.docx
 No license key needed to try it — [Licensing](#licensing) says what evaluation
 allows. Add `--dry-run` to any command to see the plan without writing anything.
 
+The Python port is the same tool with nothing to build:
+[python/README.md](./python/README.md).
+
 ## What it does
 
 ```bash
@@ -77,10 +80,22 @@ without opening a document.
 
 ```
 DocFiltersCli/
+├── CLAUDE.md        the rules for changing any of this — read before editing
+├── languages.yml    where each implementation lives, and how it is built
+├── design/
+│   └── porting/     how a port is made, and what each language gets wrong
 ├── csharp/          the reference implementation
+├── cpp17/           the C++17 port
+├── python/          the Python port — see python/README.md
+├── java/            the Java port
 └── tests/
     ├── conformance/ fixtures shared by every language — no language owns these
     ├── csharp/      the C# test suite
+    ├── cpp17/       the C++17 test suite
+    ├── python/      the Python test suite
+    ├── java/        the Java test suite
+    ├── e2e/         end-to-end tests: a built CLI, the real library, real files
+    └── parity/      the four implementations compared against each other
 ```
 
 Inside `csharp/`, the folders are the pipeline stages:
@@ -120,8 +135,20 @@ For smaller, single-purpose examples, see the [C# samples](../samples/csharp).
 
 ## One CLI, four implementations
 
-The same command line ships in C#, Python, Java and C++17, and must behave
-identically in all four. C# is the reference; the other three are ports. 
+The same command line ships in C#, C++17, Python and Java, and must behave
+identically in all four. C# is the reference; the other three are ports, in
+[`cpp17/`](./cpp17), [`python/`](./python) and [`java/`](./java). The Python
+one has its own README covering how to run it and the places it deliberately
+differs.
+
+How a port is made, and how a change reaches all four, is
+[`design/porting/workflow.md`](./design/porting/workflow.md). Each language has
+a list of the constructs that compile, pass a casual test and behave
+differently from the reference — including
+[one for C# itself](./design/porting/traps-csharp.md), which is read the other
+way round: what the reference's own constructs mean, for the ports to
+reproduce.
+
 Keeping them aligned is not left to discipline. `tests/conformance/` holds four
 fixtures, in one line-oriented format, that every implementation runs as part of
 its own test suite:
@@ -133,17 +160,28 @@ its own test suite:
 | `out-names.txt` | `--out-name` rendering, and templates that must be rejected |
 | `plan-corpus.txt` | argv → resolved plan, and every error, message and exit code |
 
-They are written from the specification rather than generated from any
-implementation — a file dumped from the reference could only prove the others
-agree with it, and would never catch an argument nobody implemented.
+They are written by hand from what the tool is meant to do, rather than
+generated from any implementation — a file dumped from the reference could only
+prove the others agree with it, and would never catch an argument nobody
+implemented.
 
 A change to the CLI is made in the fixtures first. Porting it then has a
 definition of done: *make these cases pass*.
 
+Two more checks apply to a port once it exists, and both caught real differences
+in the C++17 one:
+
+- `--print-contract` prints the whole argument surface as flat text. Diffing two
+  implementations' output compares every argument, short form, arity and
+  description in one step.
+- `tests/e2e/end2end.py --cli <path>` runs the end-to-end suite against any
+  built executable, so a port is exercised against the real engine by the same
+  checks as the reference.
+
 ### What is deliberately not compared
 
-`--help` text, because three parsing libraries format it three ways and none can
-be made to match without replacing the renderer. And `--time` / `--progress`
+`--help` text, because each port's parsing library formats it its own way and
+none can be made to match without replacing the renderer. And `--time` / `--progress`
 output, whose figures differ every run. The tool's own version string is in the
 same category — the engine version it reports is not.
 A `--to docpack` pack is in the same
@@ -160,6 +198,97 @@ dotnet build csharp/DocFiltersCli.csproj
 dotnet test tests/csharp/DocFiltersCli.Tests.csproj
 ```
 
+C++:
+
+```bash
+cmake -S tests/cpp17 -B tests/cpp17/build
+cmake --build tests/cpp17/build --config Debug
+```
+
+C++17, which builds the tool and its suite together — configure once, then
+build. The test project links the tool's library target and adds Catch2 on its
+own, so building `cpp17/` alone never fetches a test framework. Both `cmake` and
+`ctest` must be on `PATH`; see [`cpp17/README.md`](cpp17/README.md) if your
+editor's build tasks fail before reaching CMake:
+
+Run the C++ suite from the build directory. The test binary is built into
+`bin/`, where the native library is copied beside the tool, so it starts
+without anything being put on the loader path first:
+
+```bash
+cd tests/cpp17/build && ./bin/docfilters_tests
+```
+
+`bin/` whichever generator you used: the test target sets its own output
+directory, so the path does not change between Visual Studio and Ninja. The
+tests are also registered with CTest, so `ctest -C Debug` works from the same
+directory.
+
+Python:
+
+The Python port needs no build, and its suite is the standard library's:
+
+```bash
+python tests/python/run_tests.py
+```
+
+All suites run anywhere — no license, no native library, no scratch directory,
+no filter to remember. They are fast enough to run on every save.
+
+That is possible because the engine sits behind `Engine/` and the filesystem
+behind `IFileSystem`, so the tests supply their own. It is not an option to
+point them at the real ones: a corpus backed by real files could not be
+byte-identical across four languages and three platforms, because directory
+listing order differs between ext4, NTFS and APFS.
+
+### End-to-end tests
+
+The suite above proves what the CLI *says* to the engine. It cannot prove what
+the engine hears — a call the engine rejects, an option that never reaches it,
+or a file that is written but blank. That needs the real thing:
+
+```bash
+python tests/e2e/end2end.py                     # no license needed
+python tests/e2e/end2end.py --license-key KEY   # everything
+python tests/e2e/end2end.py --cli python        # the Python port instead
+python tests/e2e/end2end.py --cli java          # the Java port instead
+```
+
+Python 3, standard library only, no test framework. It runs a built CLI as a
+subprocess, so it sees exactly what a user sees: exit codes, stderr and files on
+disk. It finds the most recently built binary on its own; `--cli` overrides.
+`--verbose` prints each command with the key redacted, and `--keep` leaves the
+output directory behind for inspection.
+
+`--cli` names any of the four implementations, and the shape of the value says
+which kind it is: a built executable for C# and C++17, the directory holding
+the package for Python, or the Gradle project directory for Java. The last two
+have no executable of ours to find, so they are named rather than discovered.
+`--cli python` runs the port in [`python/`](./python) through
+`python -m docfilters_cli`; `--cli java` runs the installed distribution from
+[`java/`](./java), so `gradlew installDist` has to have run first. Both take
+the native library out of a build that has one beside it — the same checks, the
+same skips, no exceptions for any of them. There is one script rather than one
+per language because these checks are about what the engine hears, which no
+port is allowed to differ on.
+
+`--skip "<check>=<reason>"` leaves out a check an implementation cannot run at
+all — a call its binding does not reach. The reason is required and is recorded
+in the transcript, so the parity comparison can tell a deliberate skip from a
+check that went missing, and says which it saw. It is a blunt instrument: a
+skip costs everything else that check covered, which is the argument for
+removing one as soon as it can be.
+
+Without a key, the checks that licenseless evaluation forbids are skipped, each
+printing which restriction it ran into, so a keyless run is green when the tool
+is correct. Run it with a key before relying on it as a gate — see
+[Licensing](#licensing).
+
+Several of these checks are regressions rather than smoke, and each says which
+bug it guards. They are worth reading before adding one: every bug they cover
+shipped green, and every one would still pass a check that only asserted "exit 0
+and the file exists".
+
 **No new dependencies.** Each implementation uses only what the published
 samples in its own language already use: for C#, Document Filters and
 `McMaster.Extensions.CommandLineUtils`, both via `DfSamplesCommon`; for C++17,
@@ -172,6 +301,14 @@ itself.
 
 The same rule applied again in [`python/`](./python): the published binding, and
 `argparse` and `unittest` from the standard library. Nothing from PyPI.
+
+And again in [`java/`](./java), which goes further because it has to: the
+published samples in `samples/java` bring in no parsing library, so this port
+has none either and binds its arguments with the same hand-written table the
+others wrap theirs in. Its only dependency is the binding jar already vendored
+at `bindings/java/lib`, and its suite is a ~200-line runner on the JDK alone
+rather than JUnit. The build is Gradle through the wrapper, at the same
+version `samples/java` already pins.
 
 ## Exit codes
 

@@ -1,0 +1,79 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../tests/cpp17",
+			"name": "tests"
+		},
+		{
+			"path": "../tests/conformance"
+		},
+		{
+			"path": "../tests/e2e"
+		},
+		{
+			"path": "../python"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/__pycache__": true,
+			"build/": true,
+			"out/": true,
+			".vs/": true
+		}
+	},
+	"tasks": {
+		"version": "2.0.0",
+		// Every task assumes cmake and ctest are already on PATH (a "Developer
+		// Command Prompt" terminal, or an environment the CMake Tools extension
+		// has configured) --- nothing here hardcodes one machine's install path.
+		"tasks": [
+			{
+				"label": "CMake: Configure docfilters",
+				"type": "process",
+				"command": "cmake",
+				"args": ["-S", "${workspaceFolder:cpp17}", "-B", "${workspaceFolder:cpp17}/build"],
+				"problemMatcher": []
+			},
+			{
+				"label": "CMake: Build docfilters",
+				"detail": "Builds docfilters_lib and the docfilters executable only, no test framework.",
+				"type": "process",
+				"command": "cmake",
+				"args": ["--build", "${workspaceFolder:cpp17}/build", "--config", "Debug"],
+				"dependsOn": ["CMake: Configure docfilters"],
+				"group": "build",
+				"problemMatcher": ["$msCompile"]
+			},
+			{
+				"label": "CMake: Configure tests",
+				"type": "process",
+				"command": "cmake",
+				"args": ["-S", "${workspaceFolder:tests}", "-B", "${workspaceFolder:tests}/build"],
+				"problemMatcher": []
+			},
+			{
+				"label": "CMake: Build tests",
+				"detail": "Links docfilters_lib and adds Catch2; this is what Ctrl+Shift+B runs.",
+				"type": "process",
+				"command": "cmake",
+				"args": ["--build", "${workspaceFolder:tests}/build", "--config", "Debug"],
+				"dependsOn": ["CMake: Configure tests"],
+				"group": { "kind": "build", "isDefault": true },
+				"problemMatcher": ["$msCompile"]
+			},
+			{
+				"label": "CTest: Run tests",
+				"type": "process",
+				"command": "ctest",
+				"args": ["--test-dir", "${workspaceFolder:tests}/build", "-C", "Debug", "--output-on-failure"],
+				"dependsOn": ["CMake: Build tests"],
+				"group": { "kind": "test", "isDefault": true },
+				"problemMatcher": []
+			}
+		]
+	}
+}

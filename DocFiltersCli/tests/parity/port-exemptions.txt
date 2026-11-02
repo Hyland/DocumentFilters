@@ -1,0 +1,17 @@
+# Tests the C# reference has that a port cannot express.
+#
+# One line per exemption:
+#
+#     <language> <test name> # <why it cannot exist there>
+#
+# This is the one place the "every port covers the reference" rule is relaxed,
+# so each line has to earn it. A reason is required, and it has to be about the
+# language or its binding being unable to express the case -- not about nobody
+# having written it yet. A test that is merely absent is a gap, and the check
+# reporting it is doing its job.
+#
+# Kept honest in both directions: if the port turns out to have the test after
+# all, the exemption is reported as stale and fails the check. An entry cannot
+# quietly outlive its reason.
+
+cpp17 A_null_v2_falls_back_to_v1_the_same_way_as_empty # formatFingerprint takes const std::string&, which has no null to distinguish from "". The empty case is covered by "the v1 fingerprint is the fallback"; mirroring this one would mean widening the signature to std::optional purely to host a .NET distinction.
