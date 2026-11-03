@@ -167,6 +167,51 @@ public final class ArgumentBindingTests
 		assertEquals(Arrays.asList("a.docx", "b.docx"), shared.input.paths);
 	}
 
+	// A token that starts with a dash but is not one of this tool's own option
+	// spellings is a path. looksLikeOption is the whole rule. The reference reaches
+	// it through McMaster, which reads these shapes as a cluster of short options,
+	// the end-of-options separator and a long option, and used to throw on them; this
+	// port has no such parser to disagree with, so the test pins the rule rather than
+	// a fix. Reported from the field against 1.0.0-prerelease.1 as `-tsv`.
+	//
+	// Deviation: the reference's [Theory] with five [InlineData] rows is one test
+	// here that loops over the same five tokens, because the JDK-only runner has no
+	// parameterised form. See "The test harness has no theories" in traps-java.md.
+	@Test
+	public void aDashTokenThatIsNotAnOptionSpellingIsAPath()
+	{
+		for (String token : new String[] { "-tsv", "-ab", "--", "---weird", "----" })
+		{
+			SharedOptions shared = bind("convert", "--to", "text", "--out-dir", "out", token).getSharedOptions();
+
+			assertEquals(Collections.singletonList(token), shared.input.paths);
+		}
+	}
+
+	@Test
+	public void aDashShapedPathKeepsItsPositionAmongTheOthers()
+	{
+		// Order is load-bearing: --combine writes the inputs in the order given.
+		// Collecting the odd tokens separately and appending them would pass the
+		// test above and still get this wrong.
+		SharedOptions shared = bind("convert", "--to", "text", "--out-dir", "out",
+			"a.docx", "-tsv", "b.docx").getSharedOptions();
+
+		assertEquals(Arrays.asList("a.docx", "-tsv", "b.docx"), shared.input.paths);
+	}
+
+	@Test
+	public void anOptionValueMayLookLikeAPath()
+	{
+		// The partition walks by arity, not by shape: --out-name takes a value, so
+		// the next token is that value however it is spelled.
+		SharedOptions shared = bind("convert", "--to", "text", "--out-dir", "out",
+			"--out-name", "-{stem}.txt", "a.docx").getSharedOptions();
+
+		assertNotNull(shared.output.nameTemplate);
+		assertEquals(Collections.singletonList("a.docx"), shared.input.paths);
+	}
+
 	@Test
 	public void filesFromWritesItsPath()
 	{
