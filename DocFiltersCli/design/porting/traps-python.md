@@ -220,6 +220,22 @@ in `runtime/system_file_system.py`.
 
 ---
 
+## Tests
+
+### unittest has no `Theory`
+
+**C#** an xUnit `[Theory]` with one `[InlineData]` per case is reported as one
+test per case, under one name. **Python** `unittest` cannot parametrise a
+method, and generating a method per case would give names the C# does not
+have, which `compare_inventory.py` would count as extra and unmatched.
+
+**Rule** One test under the reference's name (local casing), looping over the
+cases inside `with self.subTest(...)`, so each case still fails separately. See
+`test_a_dash_token_that_is_not_an_option_spelling_is_a_path` in
+`tests/python/unit/argument_binding_tests.py`.
+
+---
+
 ## Modules and the native boundary
 
 ### Importing the binding at module scope breaks the pure suite
