@@ -941,9 +941,47 @@ jobs:
           echo "$out"
           echo "$out" | grep -qx "docfilters $VERSION" ||             echo "::warning::'docfilters version' did not print 'docfilters $VERSION'."
 
+      # The archive is named for what it holds, which is one architecture:
+      # bindings/c/CMakeLists.txt picks a single Document Filters build from
+      # CMAKE_SYSTEM_PROCESSOR, so there is no such thing as a "macOS" package
+      # here. Naming these after runner.os shipped an arm64-only build as
+      # docfilters-cpp17-1.0.0-macOS.zip, because macos-latest is Apple
+      # Silicon --- an Intel Mac user downloaded the file named for their
+      # operating system and got a binary that would not start.
+      #
+      # Read off the machine rather than written down beside the matrix, so
+      # that a runner image changing architecture renames the asset instead of
+      # quietly making its name wrong again. That is how the bug above
+      # arrived: the name was right when it was written.
+      #
+      # The vocabulary is .NET's runtime identifiers, because the C# packages
+      # on the same release page already use it, and one page should not spell
+      # the same target two ways.
+      - name: Name the target
+        run: |
+          case "$(uname -m)" in
+            x86_64|amd64)  arch=x64 ;;
+            arm64|aarch64) arch=arm64 ;;
+            *) echo "::error::No runtime identifier for machine '$(uname -m)'."; exit 1 ;;
+          esac
+          case "${{ runner.os }}" in
+            Windows) os=win ;;
+            Linux)   os=linux ;;
+            macOS)   os=osx ;;
+            *) echo "::error::No runtime identifier for runner OS '${{ runner.os }}'."; exit 1 ;;
+          esac
+          # The same test the binding makes when it chooses which engine to
+          # download, so a musl job added later names itself correctly rather
+          # than claiming to be the glibc build.
+          if [ "$os" = linux ] && [ -f /etc/alpine-release ]; then
+            os=linux-musl
+          fi
+          echo "RID=$os-$arch" >> "$GITHUB_ENV"
+          echo "Packaging $os-$arch."
+
       - name: Archive
         run: |
-          name="docfilters-cpp17-$VERSION-${{ runner.os }}"
+          name="docfilters-cpp17-$VERSION-$RID"
           mkdir -p dist
           cd "$BUILD_DIR/bin"
           if [ "${{ runner.os }}" = "Windows" ]; then
@@ -954,7 +992,10 @@ jobs:
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: release-cpp17-${{ runner.os }}
+          # The runtime identifier rather than runner.os here too: two runners
+          # of one operating system and different architectures would collide
+          # on an artifact name, and the matrix is a likely place to grow one.
+          name: release-cpp17-${{ env.RID }}
           path: dist/*.zip
           if-no-files-found: error
 
@@ -987,9 +1028,15 @@ jobs:
 
       # Deterministic, unlike running the tool: the staged package must report
       # the stamped version.
+      #
+      # PYTHONDONTWRITEBYTECODE, because this check is an import and an import
+      # writes __pycache__. Staging prunes those, but this step runs after the
+      # prune and the archive runs after this, so 1.0.0 shipped with one
+      # __init__.cpython-312.pyc in it --- a compiled artefact of whichever
+      # interpreter the runner happened to have, inside a source distribution.
       - name: Check the stamped version
         run: |
-          got=$(PYTHONPATH=stage/DocFiltersCli/python python -c "import docfilters_cli; print(docfilters_cli.__version__)")
+          got=$(PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=stage/DocFiltersCli/python python -c "import docfilters_cli; print(docfilters_cli.__version__)")
           if [ "$got" != "$VERSION" ]; then
             echo "::error::Staged package reports '$got', expected '$VERSION'."
             exit 1
@@ -1009,9 +1056,13 @@ jobs:
 
   # One archive rather than one per platform: the jar is bytecode and the start
   # scripts cover both shells, so the distribution Gradle installs runs
-  # anywhere a JVM does. It carries no Document Filters native library, by the
-  # same reasoning as the C# package -- the binding loads one from
-  # java.library.path, which the user points at their own installation.
+  # anywhere a JVM does. It carries no Document Filters native library, which
+  # is the opposite of what the C# and C++17 packages do --- each of those
+  # pins one platform's engine and is most of 250 MB because of it. The Java
+  # binding loads its native through java.library.path, which the JVM fixes at
+  # start-up, so the user points the launcher at their own installation; an
+  # engine baked in here is the one thing that would stop this archive running
+  # anywhere a JVM does.
   package-java:
     name: Package Java
     needs: [changes, csharp, cpp17, python, java, parity, release-check]
