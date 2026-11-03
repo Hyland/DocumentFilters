@@ -16,6 +16,7 @@ import datetime, re, json, io, ctypes
 from enum import Enum
 from typing import Callable, Union
 from . DocumentFiltersAPI import *
+from . DocumentFiltersFormats import FormatId
 import subprocess
 import traceback
 
@@ -3320,10 +3321,16 @@ class DocumentFilters(DocumentFiltersBase):
                     DocumentFiltersBase._ToUTF16(dest), \
                     DocumentFiltersBase._ToUTF16(options))
             elif isinstance(dest, io.IOBase) or isinstance(dest, IGRStream):
-                DocumentFiltersBase._Call(self.API.IGR_Make_DocPack_On, \
-                    self._needHandle(), \
-                    StreamBridge.Make(dest, True), \
-                    DocumentFiltersBase._ToUTF16(options))
+                # The bridge registers dest with the stream manager; closing it
+                # unregisters it again, and leaves dest itself open.
+                bridge = ctypes.cast(StreamBridge.Make(dest, True), ctypes.POINTER(IGR_Stream))
+                try:
+                    DocumentFiltersBase._Call(self.API.IGR_Make_DocPack_On, \
+                        self._needHandle(), \
+                        bridge, \
+                        DocumentFiltersBase._ToUTF16(options))
+                finally:
+                    bridge.contents.Close(bridge)
             else:
                 raise IGRException("Cannot MakeDocPack to " + str(type(dest)))
 
@@ -3341,6 +3348,11 @@ class DocumentFilters(DocumentFiltersBase):
 
         @property
         def FileType(self): return self.getFileType()
+
+        @property
+        def FormatId(self):
+            """The format of the document as a FormatId. Raises ValueError if it isn't a public format ID."""
+            return FormatId(self.getFileType())
 
         @property
         def Capabilities(self): return self.GetFileCapabilities()

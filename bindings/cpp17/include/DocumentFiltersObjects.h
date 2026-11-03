@@ -16,6 +16,7 @@
 #define INC_HYLAND_DOCUMENTFILTERSOBJECTS_H
 
 #include "DocumentFilters.h"
+#include "DocumentFiltersFormatId.h"
 
 #include <chrono>
 #include <fstream>
@@ -349,10 +350,19 @@ namespace Hyland
 			class const_iterator
 			{
 			public:
+				/// @brief The iterator category tag; models an input iterator.
 				using iterator_category = std::input_iterator_tag;
+
+				/// @brief The type of element produced by dereferencing the iterator.
 				using value_type = T;
+
+				/// @brief The type used to express the distance between two iterators.
 				using difference_type = std::ptrdiff_t;
+
+				/// @brief The pointer type for the iterator's element type.
 				using pointer = T*;
+
+				/// @brief The reference type for the iterator's element type.
 				using reference = T&;
 
 				/// @brief Constructs an iterator.
@@ -372,8 +382,9 @@ namespace Hyland
 				}
 
 				/// @brief Post-increment operator.
+				/// @param unused Unused tag parameter that distinguishes the postfix form from the prefix form.
 				/// @return A copy of the iterator before incrementing.
-				const_iterator operator++(int)
+				const_iterator operator++(int unused)
 				{
 					const_iterator tmp = *this;
 					++*this;
@@ -465,10 +476,19 @@ namespace Hyland
 			class const_iterator
 			{
 			public:
+				/// @brief The iterator category tag; models an input iterator.
 				using iterator_category = std::input_iterator_tag;
+
+				/// @brief The type of element produced by dereferencing the iterator.
 				using value_type = T;
+
+				/// @brief The type used to express the distance between two iterators.
 				using difference_type = std::ptrdiff_t;
+
+				/// @brief The pointer type for the iterator's element type.
 				using pointer = T*;
+
+				/// @brief The reference type for the iterator's element type.
 				using reference = T&;
 
 				/// @brief Constructs an iterator for the enumerable collection.
@@ -499,8 +519,9 @@ namespace Hyland
 				}
 
 				/// @brief Advances the iterator to the next element in the collection (postfix increment).
+				/// @param unused Unused tag parameter that distinguishes the postfix form from the prefix form.
 				/// @return Copy of the iterator before the increment.
-				const_iterator operator++(int)
+				const_iterator operator++(int unused)
 				{
 					const_iterator tmp = *this;
 					++*this;
@@ -529,10 +550,10 @@ namespace Hyland
 				const T* operator->() const { return &m_current; }
 
 			private:
-				const enumerable_t* m_loader;
-				std::shared_ptr<enumerator_t> m_enumerator;
-				T m_current;
-				bool m_end = false;
+				const enumerable_t* m_loader;               ///< Pointer to the enumerable collection.
+				std::shared_ptr<enumerator_t> m_enumerator; ///< The enumerator driving iteration.
+				T m_current;                                ///< The current element.
+				bool m_end = false;                         ///< True once the enumerator has passed the end of the collection.
 			};
 
 			virtual ~enumerable_t() = default;
@@ -666,8 +687,8 @@ namespace Hyland
 			bool operator!=(const rect_t& other) const { return !(*this == other); }
 
 			/// @brief Move the rectangle by the specified offset.
-			/// @param x amount to move in the x direction.
-			/// @param y amount to move in the y direction.
+			/// @param x Amount to move in the x direction.
+			/// @param y Amount to move in the y direction.
 			/// @return Reference to the rectangle.
 			rect_t& offset(int x, int y)
 			{
@@ -720,13 +741,14 @@ namespace Hyland
 		/// @brief Typedef for a rectangle with IGR_FRect type and IGR_FLOAT coordinates.
 		typedef rect_t<IGR_FRect, IGR_FLOAT> RectF;
 
+		/// @brief Typedef for a rectangle with 32-bit signed integer coordinates.
 		using Rect = RectI32;
 
 		/// @brief Represents a date and time.
 		class DateTime
 		{
 		private:
-			std::chrono::system_clock::time_point m_time;
+			std::chrono::system_clock::time_point m_time; ///< The underlying time point.
 
 		public:
 			/// @brief Enum to specify the getType of date.
@@ -756,7 +778,7 @@ namespace Hyland
 			         uint16_t millisecond = 0);
 
 			/// @brief Constructs a DateTime object from individual date and time components with a specified date getType.
-			/// @param getType The date getType (UTC or local).
+			/// @param type The date getType (UTC or local).
 			/// @param year The year.
 			/// @param month The month.
 			/// @param day The day.
@@ -784,7 +806,7 @@ namespace Hyland
 			std::string ToIsoString() const;
 
 			/// @brief Converts the internal date-time representation to a std::tm structure.
-			/// @param as_utc If true, the date-time is converted to UTC. Otherwise, it is converted to local time.
+			/// @param as_utc Converts the date-time to UTC when true; converts it to local time when false.
 			/// @return An optional std::tm structure representing the date-time. If the conversion fails, the optional is empty.
 			std::optional<std::tm> ToTm(bool as_utc) const;
 
@@ -894,11 +916,19 @@ namespace Hyland
 				IGR_RETURN_CODE code() const { return m_code; }
 			};
 
+			/// @brief Callback invoked by the open pipeline to describe or supply file-open data.
+			/// @param action The action code identifying what the callback is being asked to do.
+			/// @param payload A pointer to the action-specific payload structure.
+			/// @return An action-specific result code.
 			typedef std::function<int(int action, void* payload)> open_callback_t;
 
 #if defined(_WIN32) || defined(_WIN64)
+			/// @brief Function pointer type used to release memory allocated by the library.
+			/// @param p Pointer to the memory block to release.
 			typedef void(__cdecl* memory_destruct_t)(void*);
 #else
+			/// @brief Function pointer type used to release memory allocated by the library.
+			/// @param p Pointer to the memory block to release.
 			typedef void (*memory_destruct_t)(void*);
 #endif
 
@@ -1072,21 +1102,21 @@ namespace Hyland
 
 			/// @brief Creates an output canvas for the specified file.
 			/// @param filename The name of the file as a string.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified file.
 			Canvas MakeOutputCanvas(const std::string& filename, CanvasType type, const std::wstring& options = std::wstring());
 
 			/// @brief Creates an output canvas for the specified file.
 			/// @param filename The name of the file as a wide string.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified file.
 			Canvas MakeOutputCanvas(const std::wstring& filename, CanvasType type, const std::wstring& options = std::wstring());
 
 			/// @brief Creates an output canvas for the specified stream.
 			/// @param stream Reference to the input/output stream.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified stream.
 			Canvas MakeOutputCanvas(std::iostream& stream, CanvasType type, const std::wstring& options = std::wstring());
@@ -1094,7 +1124,7 @@ namespace Hyland
 			/// @brief Creates an output canvas for the specified stream.
 			/// @param stream Pointer to the input/output stream.
 			/// @param own_stream Boolean indicating ownership of the stream.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified stream.
 			Canvas MakeOutputCanvas(std::iostream* stream, bool own_stream, CanvasType type, const std::wstring& options = std::wstring());
@@ -1102,14 +1132,14 @@ namespace Hyland
 			/// @brief Creates an output canvas for the specified file.
 			/// @param file Pointer to the file.
 			/// @param own_file Boolean indicating ownership of the file.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified file.
 			Canvas MakeOutputCanvas(FILE* file, bool own_file, CanvasType type, const std::wstring& options = std::wstring());
 
 			/// @brief Creates an output canvas for the specified stream.
 			/// @param stream Reference to the stream object.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified stream.
 			Canvas MakeOutputCanvas(Stream& stream, CanvasType type, const std::wstring& options = std::wstring());
@@ -1117,14 +1147,14 @@ namespace Hyland
 			/// @brief Creates an output canvas for the specified stream.
 			/// @param stream Pointer to the stream object.
 			/// @param own_stream Boolean indicating ownership of the stream.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified stream.
 			Canvas MakeOutputCanvas(Stream* stream, bool own_stream, CanvasType type, const std::wstring& options = std::wstring());
 
 			/// @brief Creates an output canvas for the specified writable stream.
 			/// @param stream Pointer to the writable stream object.
-			/// @param getType The getType of the canvas.
+			/// @param type The type of the canvas.
 			/// @param options Optional additional options as a wide string. Defaults to an empty string.
 			/// @return A canvas object for the specified writable stream.
 			Canvas MakeOutputCanvas(IGR_Writable_Stream* stream, CanvasType type, const std::wstring& options = std::wstring());
@@ -1148,7 +1178,10 @@ namespace Hyland
 			const std::vector<Option>& getAvailableOptions() const { return getOptions(); }
 
 		protected:
+			/// @brief Opaque implementation details for DocumentFilters.
 			class impl_t;
+
+			/// @brief Shared pointer to the implementation details.
 			std::shared_ptr<impl_t> m_impl;
 
 			/// @brief Creates an output canvas for the specified writable stream.
@@ -1332,11 +1365,30 @@ namespace Hyland
 		class FileStream : public Stream
 		{
 		public:
+			/// @brief Constructs a FileStream object with a given input stream and ownership flag.
+			/// @param stream Pointer to the input stream.
+			/// @param own_stream Boolean indicating whether the FileStream should take ownership of the stream.
 			FileStream(std::istream* stream, bool own_stream);
+
+			/// @brief Constructs a FileStream object with a given input stream and ownership flag.
+			/// @param stream Pointer to the input/output stream.
+			/// @param own_stream Boolean indicating whether the FileStream should take ownership of the stream.
 			FileStream(std::iostream* stream, bool own_stream);
+
+			/// @brief Constructs a FileStream object with a given file pointer and ownership flag.
+			/// @param stream Pointer to the file.
+			/// @param own_stream Boolean indicating whether the FileStream should take ownership of the file.
 			FileStream(FILE* stream, bool own_stream);
+
+			/// @brief Constructs a FileStream object with a given filename.
+			/// @param filename The name of the file as a string.
 			FileStream(const std::string& filename);
+
+			/// @brief Constructs a FileStream object with a given filename.
+			/// @param filename The name of the file as a wide string.
 			FileStream(const std::wstring& filename);
+
+			/// @brief Destructor for the FileStream class.
 			~FileStream() override;
 
 			/// @brief Seeks to a specific position in the stream.
@@ -1365,7 +1417,7 @@ namespace Hyland
 			void close();
 
 		protected:
-			IGR_Writable_Stream* m_inner = nullptr;
+			IGR_Writable_Stream* m_inner = nullptr; ///< The underlying writable stream, or nullptr once closed.
 		};
 
 		/// @brief Represents a color with red, green, blue, and alpha components.
@@ -1558,6 +1610,10 @@ namespace Hyland
 			/// @return The ID as a 32-bit unsigned integer.
 			uint32_t id() const { return m_id; }
 
+			/// @brief Gets the ID of the format as a FormatId.
+			/// @return The format ID.
+			FormatId getFormatId() const { return static_cast<FormatId>(m_id); }
+
 			/// @brief Gets the display name of the format.
 			/// @return The display name as a wide string.
 			const std::wstring& getDisplayName() const { return m_display_name; }
@@ -1666,10 +1722,11 @@ namespace Hyland
 			/// @brief Flag to ignore field differences.
 			NoFields = IGR_COMPARE_DOCUMENTS_FLAGS_NO_FIELDS,
 		};
+		/// @brief Enables bitmask operators for CompareFlags.
 		template <>
 		struct EnableBitMaskOperators<CompareFlags>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for CompareFlags.
 		};
 
 		/// @enum DifferenceType
@@ -1808,12 +1865,14 @@ namespace Hyland
 			/// @brief Constructor for CompareDocumentSource with a document handle.
 			///
 			/// @param handle The handle to an open document.
+			/// @param settings The comparison settings to apply to the document source.
 			CompareDocumentSource(IGR_HDOC handle, const CompareDocumentSettings& settings = CompareDocumentSettings());
 
 			/// @brief Constructor for CompareDocumentSource with an Extractor.
 			///
-			/// @param Extractor The Extractor object used to initialize the CompareDocumentSource.
-			CompareDocumentSource(const Extractor& Extractor, const CompareDocumentSettings& settings = CompareDocumentSettings());
+			/// @param extractor The Extractor object used to initialize the CompareDocumentSource.
+			/// @param settings The comparison settings to apply to the document source.
+			CompareDocumentSource(const Extractor& extractor, const CompareDocumentSettings& settings = CompareDocumentSettings());
 
 			/// @brief Assigns the specified comparison settings to the CompareDocumentSource.
 			/// @param settings The settings to assign to the CompareDocumentSource.
@@ -1845,6 +1904,7 @@ namespace Hyland
 			CompareResultDifferenceDetail(const IGR_Compare_Documents_Difference_Item& ref);
 
 			/// @brief Checks if the difference detail is valid.
+			/// @return True if the difference detail is valid; otherwise, false.
 			bool ok() const;
 
 			/// @brief Gets the page index where the difference was found.
@@ -1892,6 +1952,7 @@ namespace Hyland
 			CompareResultDifference(const IGR_Compare_Documents_Difference& ref);
 
 			/// @brief Checks if the difference is valid.
+			/// @return True if the difference is valid; otherwise, false.
 			bool ok() const;
 
 			/// @brief Gets the getType of the difference.
@@ -2000,23 +2061,51 @@ namespace Hyland
 		class Extractor
 		{
 		public:
+			/// @brief Callback invoked to supply a password for an encrypted document.
 			typedef std::function<std::wstring(const std::wstring&)> password_callback_t;
+
+			/// @brief Callback invoked to localize a string for a given locale identifier.
 			typedef std::function<std::wstring(IGR_ULONG, const std::wstring&)> localize_callback_t;
+
+			/// @brief Callback invoked periodically to report that a long-running operation is still active.
 			typedef std::function<int()> heartbeat_callback_t;
+
+			/// @brief Callback invoked to determine the log level for a given log category.
 			typedef std::function<IGR_LOG_LEVEL_TYPE(const std::string&)> log_level_callback_t;
+
+			/// @brief Callback invoked to deliver a log message at a given log level.
 			typedef std::function<void(IGR_LOG_LEVEL_TYPE, const std::string&, const std::string&)> log_message_callback_t;
+
+			/// @brief Callback invoked to approve access to an external resource referenced by the document.
 			typedef std::function<bool(const std::wstring&)> approve_external_resource_callback_t;
+
+			/// @brief Callback invoked to supply a stream for an external resource referenced by the document.
 			typedef std::function<std::unique_ptr<Stream>(const std::wstring&)> get_resource_stream_callback_t;
+
+			/// @brief Callback invoked to supply an OCR image for processing.
 			typedef std::function<bool(OcrImage&)> ocr_image_callback_t;
+
+			/// @brief Callback invoked to describe an image encountered in the document.
 			typedef std::function<bool(DescribeImage&)> describe_image_callback_t;
+
+			/// @brief Type definition for a lazy-loaded list of pages.
 			typedef lazy_loader_indexed<Page> pages_t;
+
+			/// @brief Type definition for an enumerable collection of subfiles.
 			typedef enumerable_t<Subfile> subfiles_t;
 
-
+			/// @brief Constructs an Extractor with no open document.
 			Extractor();
+
+			/// @brief Constructs an Extractor bound to an already-open stream.
+			/// @param stream Pointer to the IGR_Stream to extract from.
 			Extractor(IGR_Stream* stream);
+
+			/// @brief Destructor for the Extractor class.
 			virtual ~Extractor() {};
 
+			/// @brief Retrieves the handle to the open document.
+			/// @return The handle to the document as an IGR_HDOC.
 			IGR_HDOC getHandle() const;
 
 			/// @brief Closes the document.
@@ -2043,6 +2132,11 @@ namespace Hyland
 			///
 			/// @return The file getType as a 32-bit unsigned integer.
 			uint32_t getFileType() const;
+
+			/// @brief Retrieves the format of the document as a FormatId.
+			///
+			/// @return The format, the same value as getFileType().
+			FormatId getFormatId() const { return static_cast<FormatId>(getFileType()); }
 
 			/// @brief Retrieves the file capabilities.
 			///
@@ -2099,7 +2193,7 @@ namespace Hyland
 			///
 			/// @param stream The stream to save the object to.
 			/// @param code_page The code page to use for saving the file. Default is 65001.
-			void SaveTo(std::ostream& Stream, int code_page = 65001);
+			void SaveTo(std::ostream& stream, int code_page = 65001);
 
 			/// Copies the bytes of the document to a file.
 			///
@@ -2109,12 +2203,12 @@ namespace Hyland
 			/// Copies the bytes of the document to a stream.
 			///
 			/// @param stream The stream to copy the object to.
-			void CopyTo(std::ostream& Stream);
+			void CopyTo(std::ostream& stream);
 
 			/// Copies the bytes of the document to a stream.
 			///
 			/// @param stream The stream to copy the object to.
-			void CopyTo(Stream& Stream);
+			void CopyTo(Stream& stream);
 
 			/// @brief Retrieves the MD5 hash of the current object.
 			///
@@ -2253,11 +2347,19 @@ namespace Hyland
 			                              const CompareSettings& settings = CompareSettings());
 
 		protected:
+			/// @brief Resolves the stream backing this document, opening it if necessary.
+			/// @return A pointer to the resolved IGR_Stream, or nullptr if none is available.
 			virtual IGR_Stream* resolve_stream() const;
+
+			/// @brief Resolves the stream backing this document, requiring one to be available.
+			/// @return A pointer to the resolved IGR_Stream.
 			IGR_Stream* need_stream() const;
 
 		protected:
+			/// @brief Opaque implementation details for Extractor.
 			class impl_t;
+
+			/// @brief Shared pointer to the implementation details.
 			std::shared_ptr<impl_t> m_impl;
 		};
 
@@ -2290,7 +2392,7 @@ namespace Hyland
 			/// @param doc_handle The handle to the document containing the subfile.
 			/// @param id The ID of the subfile.
 			/// @param stream The stream associated with the subfile.
-			Subfile(IGR_LONG doc_handle, const std::wstring& id, IGR_Stream* Stream);
+			Subfile(IGR_LONG doc_handle, const std::wstring& id, IGR_Stream* stream);
 
 			/// @brief Retrieves the ID of the subfile.
 			/// @return The ID of the subfile as a wide string.
@@ -2337,18 +2439,28 @@ namespace Hyland
 		};
 
 
+		/// @brief Represents a single page of an open document.
 		class Page
 		{
 			friend class Extractor;
 
 		protected:
+			/// @brief Constructs a Page bound to an open page handle.
+			/// @param page_handle The handle to the open page.
+			/// @param index The index of the page within the document.
 			Page(IGR_HPAGE page_handle, size_t index);
 
 		public:
+			/// @brief Type definition for a lazy-loaded list of words on the page.
 			typedef lazy_loader_indexed<Word> words_t;
+
+			/// @brief Type definition for an enumerable collection of images on the page.
 			typedef Extractor::subfiles_t images_t;
+
+			/// @brief Type definition for a lazy-loaded list of annotations on the page.
 			typedef lazy_loader_indexed<std::shared_ptr<Annotation>> annotations_t;
 
+			/// @brief Constructs an empty Page not bound to any open page.
 			Page();
 
 			/// @brief Returns the index of the object.
@@ -2426,20 +2538,20 @@ namespace Hyland
 			/// @brief Renders the content onto the provided canvas.
 			///
 			/// @param canvas The canvas to render the content onto.
-			void Render(Canvas& Canvas) const;
+			void Render(Canvas& canvas) const;
 
 			/// @brief Renders the content onto the provided canvas with specific properties.
 			///
 			/// @param canvas The canvas to render the content onto.
 			/// @param properties The properties to use for rendering the page.
-			void Render(Canvas& Canvas, const RenderPageProperties& properties) const;
+			void Render(Canvas& canvas, const RenderPageProperties& properties) const;
 
 			/// @brief Renders the content onto the provided canvas with specific options and properties.
 			///
 			/// @param canvas The canvas to render the content onto.
 			/// @param options The options to use for rendering the page.
 			/// @param properties The properties to use for rendering the page.
-			void Render(Canvas& Canvas, std::wstring& options, const RenderPageProperties& properties) const;
+			void Render(Canvas& canvas, std::wstring& options, const RenderPageProperties& properties) const;
 
 			/// @brief Retrieves the value of a specified attribute.
 			///
@@ -2452,19 +2564,19 @@ namespace Hyland
 			PagePixels getPixels() const;
 
 			/// @brief Gets the pixels of the page with a specified pixel getType.
-			/// @param getType The getType of pixels to retrieve.
+			/// @param type The getType of pixels to retrieve.
 			/// @return The pixels of the page.
 			PagePixels getPixels(PixelType type) const;
 
 			/// @brief Gets the pixels of the page with a specified pixel getType and source rectangle.
-			/// @param getType The getType of pixels to retrieve.
+			/// @param type The getType of pixels to retrieve.
 			/// @param src_rect The source rectangle to extract pixels from.
 			/// @param options Optional parameters for pixel extraction.
 			/// @return The pixels of the page.
 			PagePixels getPixels(PixelType type, const IGR_Rect& src_rect, const std::wstring& options = std::wstring()) const;
 
 			/// @brief Gets the pixels of the page with a specified pixel getType, source rectangle, and destination size.
-			/// @param getType The getType of pixels to retrieve.
+			/// @param type The getType of pixels to retrieve.
 			/// @param src_rect The source rectangle to extract pixels from.
 			/// @param dest_size The destination size for the extracted pixels.
 			/// @param options Optional parameters for pixel extraction.
@@ -2495,15 +2607,22 @@ namespace Hyland
 			                       const CompareSettings& settings = CompareSettings()) const;
 
 		private:
+			/// @brief Opaque implementation details for Page.
 			class impl_t;
+
+			/// @brief Shared pointer to the implementation details.
 			std::shared_ptr<impl_t> m_impl;
 		};
 
+		/// @brief Represents a single word extracted from a page.
 		class Word
 		{
 			friend class Page;
 
 		protected:
+			/// @brief Constructs a Word from its underlying data and index.
+			/// @param Word The underlying IGR_Page_Word data.
+			/// @param index The index of the word within the page.
 			Word(const IGR_Page_Word& Word, size_t index);
 
 		public:
@@ -2536,6 +2655,7 @@ namespace Hyland
 			int32_t getBottom() const;
 
 			/// @brief Retrieves the bounding box of the word.
+			/// @return The bounding box of the word.
 			RectI32 getRect() const;
 
 			/// @brief Retrieves the character offset of the word within the page.
@@ -2546,26 +2666,30 @@ namespace Hyland
 			/// @return The index of the word within the page.
 			size_t getWordIndex() const;
 
-			// @brief Retrieves the IGR_Page_Word of the word.
+			/// @brief Retrieves the underlying IGR_Page_Word of the word.
+			/// @return A pointer to the underlying IGR_Page_Word structure.
 			const IGR_Page_Word* data() const;
 
 		private:
-			IGR_Page_Word m_word;
-			size_t m_index;
+			IGR_Page_Word m_word; ///< The underlying word data.
+			size_t m_index;       ///< The index of the word within the page.
 		};
 
+		/// @brief Flags controlling how a page is rendered/redacted onto a canvas.
 		enum class RenderPagePropertiesFlags : uint32_t
 		{
-			DoNotRedactText = IGR_REDACT_FLAGS_DO_NOT_REDACT_TEXT,
-			DoNotRedactImages = IGR_REDACT_FLAGS_DO_NOT_REDACT_IMAGES,
-			AlwaysRaster = IGR_REDACT_FLAGS_ALWAYS_RASTER,
-			NeverRaster = IGR_REDACT_FLAGS_NEVER_RASTER,
-			DoNotDrawRegion = IGR_REDACT_FLAGS_DO_NOT_DRAW_REGION
+			DoNotRedactText = IGR_REDACT_FLAGS_DO_NOT_REDACT_TEXT,     ///< Skip redaction of text content.
+			DoNotRedactImages = IGR_REDACT_FLAGS_DO_NOT_REDACT_IMAGES, ///< Skip redaction of images.
+			AlwaysRaster = IGR_REDACT_FLAGS_ALWAYS_RASTER,             ///< Always render the page as a raster image.
+			NeverRaster = IGR_REDACT_FLAGS_NEVER_RASTER,               ///< Never render the page as a raster image.
+			DoNotDrawRegion = IGR_REDACT_FLAGS_DO_NOT_DRAW_REGION      ///< Do not draw the redaction region.
 		};
+
+		/// @brief Enables bitmask operators for RenderPagePropertiesFlags.
 		template <>
 		struct EnableBitMaskOperators<RenderPagePropertiesFlags>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for RenderPagePropertiesFlags.
 		};
 
 		/// @brief Represents properties for rendering a page, including source and destination rectangles, getFlags, redactions, and form values.
@@ -2678,37 +2802,54 @@ namespace Hyland
 			std::shared_ptr<impl_t> m_impl;
 		};
 
+		/// @brief The style of a pen used to stroke shapes on a canvas.
 		enum class PenStyle
 		{
-			None = IGR_PEN_NONE,
-			Solid = IGR_PEN_SOLID,
+			None = IGR_PEN_NONE,   ///< No pen; the outline is not stroked.
+			Solid = IGR_PEN_SOLID, ///< A solid stroke.
 		};
 
+		/// @brief The style of a brush used to fill shapes on a canvas.
 		enum class BrushStyle
 		{
-			None = IGR_BRUSH_NONE,
-			Solid = IGR_BRUSH_SOLID,
+			None = IGR_BRUSH_NONE,   ///< No brush; the shape is not filled.
+			Solid = IGR_BRUSH_SOLID, ///< A solid fill.
 		};
 
+		/// @brief Flags describing the style of rendered text.
 		enum class FontStyle : uint32_t
 		{
-			Normal = 0,
-			Bold = IGR_TEXT_STYLE_BOLD,
-			Italic = IGR_TEXT_STYLE_ITALIC,
-			Underline = IGR_TEXT_STYLE_UNDERLINE,
+			Normal = 0,                           ///< No styling.
+			Bold = IGR_TEXT_STYLE_BOLD,           ///< Bold text.
+			Italic = IGR_TEXT_STYLE_ITALIC,       ///< Italic text.
+			Underline = IGR_TEXT_STYLE_UNDERLINE, ///< Underlined text.
 		};
+
+		/// @brief Enables bitmask operators for FontStyle.
 		template <>
 		struct EnableBitMaskOperators<FontStyle>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for FontStyle.
 		};
 
+		/// @brief Interface for annotation types that can be serialized to and bound from the underlying C API.
 		class AnnotationSerializable
 		{
 		public:
+			/// @brief Virtual destructor for AnnotationSerializable.
 			virtual ~AnnotationSerializable() = default;
+
+			/// @brief Serializes the annotation to its string representation.
+			/// @return The serialized annotation.
 			virtual std::string serialize() const = 0;
+
+			/// @brief Binds the annotation to the properties of the given underlying IGR_Annotation.
+			/// @param annot The underlying annotation to bind from.
 			virtual void bind(const IGR_Annotation& annot) { }
+
+			/// @brief Equality operator.
+			/// @param other The other annotation to compare with.
+			/// @return True; base AnnotationSerializable instances always compare equal.
 			bool operator==(const AnnotationSerializable& other) const { return true; }
 		};
 
@@ -2743,17 +2884,17 @@ namespace Hyland
 			/// @param page The page to render.
 			/// @param options Optional rendering options.
 			/// @param properties Optional rendering properties.
-			void RenderPage(const Page& Page, const std::wstring& options = std::wstring(),
+			void RenderPage(const Page& page, const std::wstring& options = std::wstring(),
 			                const RenderPageProperties& properties = RenderPageProperties());
 
 			/// @brief Renders a page onto the canvas with specified properties.
 			/// @param page The page to render.
 			/// @param properties The rendering properties.
-			void RenderPage(const Page& Page, const RenderPageProperties& properties);
+			void RenderPage(const Page& page, const RenderPageProperties& properties);
 
 			/// @brief Renders multiple pages onto the canvas.
-			/// @param Extractor The extractor containing the pages to render.
-			void RenderPages(const Extractor& Extractor);
+			/// @param extractor The extractor containing the pages to render.
+			void RenderPages(const Extractor& extractor);
 
 			/// @brief Creates a blank page on the canvas.
 			/// @param width The width of the blank page.
@@ -2860,40 +3001,40 @@ namespace Hyland
 			/// @brief Draws Text at the specified position.
 			/// @param x The x-coordinate of the starting point.
 			/// @param y The y-coordinate of the starting point.
-			/// @param Text The Text to draw.
+			/// @param text The text to draw.
 			void TextOut(int x, int y, const std::wstring& text);
 
-			/// @brief Draws Text within a specified rectangle.
+			/// @brief Draws text within a specified rectangle.
 			/// @param x The x-coordinate of the top-left corner.
 			/// @param y The y-coordinate of the top-left corner.
 			/// @param x2 The x-coordinate of the bottom-right corner.
 			/// @param y2 The y-coordinate of the bottom-right corner.
-			/// @param Text The Text to draw.
-			/// @param getFlags Optional getFlags for Text alignment and formatting.
+			/// @param text The text to draw.
+			/// @param flags Optional flags for text alignment and formatting.
 			void TextRect(int x, int y, int x2, int y2, const std::wstring& text, int flags = 0);
 
-			/// @brief Draws Text within a specified rectangle structure.
-			/// @param r The rectangle structure defining the bounds for the Text.
-			/// @param Text The Text to draw.
-			/// @param getFlags Optional getFlags for Text alignment and formatting.
+			/// @brief Draws text within a specified rectangle structure.
+			/// @param r The rectangle structure defining the bounds for the text.
+			/// @param text The text to draw.
+			/// @param flags Optional flags for text alignment and formatting.
 			void TextRect(const RectI32& r, const std::wstring& text, int flags = 0)
 			{
 				TextRect(r.left, r.top, r.right, r.bottom, text, flags);
 			}
 
-			/// @brief Gets the width of the specified Text.
-			/// @param Text The Text to measure.
-			/// @return The width of the Text in pixels.
+			/// @brief Gets the width of the specified text.
+			/// @param text The text to measure.
+			/// @return The width of the text in pixels.
 			uint32_t TextWidth(const std::wstring& text);
 
-			/// @brief Gets the height of the specified Text.
-			/// @param Text The Text to measure.
-			/// @return The height of the Text in pixels.
+			/// @brief Gets the height of the specified text.
+			/// @param text The text to measure.
+			/// @return The height of the text in pixels.
 			uint32_t TextHeight(const std::wstring& text);
 
-			/// @brief Measures the size of the specified Text.
-			/// @param Text The Text to measure.
-			/// @return The size of the Text.
+			/// @brief Measures the size of the specified text.
+			/// @param text The text to measure.
+			/// @return The size of the text.
 			IGR_Size MeasureText(const std::wstring& text);
 
 			/// @brief Sets the pen for drawing.
@@ -2922,7 +3063,7 @@ namespace Hyland
 			/// @param y The y-coordinate.
 			/// @param buffer The image buffer.
 			/// @param buffer_size The size of the image buffer.
-			/// @param getMimeType The MIME getType of the image. Defaults to an empty string.
+			/// @param mime_type The MIME getType of the image. Defaults to an empty string.
 			void DrawImage(int x, int y, const void* buffer, size_t buffer_size, const std::wstring& mime_type = std::wstring());
 
 			/// @brief Draws a scaled image at the specified coordinates.
@@ -2932,7 +3073,7 @@ namespace Hyland
 			/// @param height The height of the image.
 			/// @param buffer The image buffer.
 			/// @param buffer_size The size of the image buffer.
-			/// @param getMimeType The MIME getType of the image. Defaults to an empty string.
+			/// @param mime_type The MIME getType of the image. Defaults to an empty string.
 			void DrawScaleImage(int x, int y, int width, int height, const void* buffer, size_t buffer_size,
 			                    const std::wstring& mime_type = std::wstring());
 
@@ -2940,7 +3081,7 @@ namespace Hyland
 			/// @param rc The rectangle specifying the area to draw the image.
 			/// @param buffer The image buffer.
 			/// @param buffer_size The size of the image buffer.
-			/// @param getMimeType The MIME getType of the image. Defaults to an empty string.
+			/// @param mime_type The MIME getType of the image. Defaults to an empty string.
 			void DrawScaleImage(const RectI32& rc, const void* buffer, size_t buffer_size, const std::wstring& mime_type = std::wstring());
 
 			/// @brief Rotates the image by the specified degrees.
@@ -2955,8 +3096,8 @@ namespace Hyland
 			void Annotate(const std::string& json);
 
 			/// @brief Annotates the document with the specified annotation object.
-			/// @param Annotation The annotation object.
-			void Annotate(const AnnotationSerializable& Annotation);
+			/// @param annotation The annotation object.
+			void Annotate(const AnnotationSerializable& annotation);
 
 			/// @brief Clears all bookmarks from the document.
 			void ClearBookmarks();
@@ -2971,7 +3112,10 @@ namespace Hyland
 			void AppendBookmarkRecursive(const Bookmark& item) { AppendBookmark(item, true); }
 
 		private:
+			/// @brief Opaque implementation details for Canvas.
 			class impl_t;
+
+			/// @brief Shared pointer to the implementation details.
 			std::shared_ptr<impl_t> m_impl;
 		};
 
@@ -2981,38 +3125,60 @@ namespace Hyland
 			friend class Extractor;
 
 		private:
+			/// @brief Opaque implementation details for Bookmark.
 			class impl_t;
+
+			/// @brief Shared pointer to the implementation details.
 			std::shared_ptr<impl_t> m_impl;
 
 		protected:
+			/// @brief Constructs a new, empty bookmark owned by the given document.
+			/// @param doc_handle The handle to the document that owns the bookmark.
 			Bookmark(IGR_LONG doc_handle);
+
+			/// @brief Constructs a bookmark from its underlying data.
+			/// @param doc_handle The handle to the document that owns the bookmark.
+			/// @param Bookmark The underlying IGR_Bookmark data.
 			Bookmark(IGR_LONG doc_handle, const IGR_Bookmark& Bookmark);
 
 		public:
+			/// @brief The action performed when a bookmark is activated.
 			enum class ActionType
 			{
-				GoTo = IGR_BOOKMARK_ACTION_GOTO,
-				Link = IGR_BOOKMARK_ACTION_LINK
+				GoTo = IGR_BOOKMARK_ACTION_GOTO, ///< Navigate to a location within the document.
+				Link = IGR_BOOKMARK_ACTION_LINK  ///< Follow a link.
 			};
+
+			/// @brief The zoom/fit mode applied when navigating to a bookmark.
 			enum class FitType
 			{
-				None = IGR_BOOKMARK_FIT_NONE,
-				both = IGR_BOOKMARK_FIT_BOTH,
-				width = IGR_BOOKMARK_FIT_WIDTH,
-				height = IGR_BOOKMARK_FIT_HEIGHT,
-				rect = IGR_BOOKMARK_FIT_RECT,
+				None = IGR_BOOKMARK_FIT_NONE,     ///< Use the viewer's current zoom.
+				both = IGR_BOOKMARK_FIT_BOTH,     ///< Fit both dimensions of the destination rectangle in the view.
+				width = IGR_BOOKMARK_FIT_WIDTH,   ///< Fit the width of the destination rectangle in the view.
+				height = IGR_BOOKMARK_FIT_HEIGHT, ///< Fit the height of the destination rectangle in the view.
+				rect = IGR_BOOKMARK_FIT_RECT,     ///< Fit the destination rectangle exactly in the view.
 			};
+
+			/// @brief Flags describing the style of the bookmark's title text.
 			enum class TextStyle
 			{
-				None = 0,
-				Bold = IGR_TEXT_STYLE_BOLD,
-				Italic = IGR_TEXT_STYLE_ITALIC,
-				Underline = IGR_TEXT_STYLE_UNDERLINE,
+				None = 0,                             ///< No styling.
+				Bold = IGR_TEXT_STYLE_BOLD,           ///< Bold text.
+				Italic = IGR_TEXT_STYLE_ITALIC,       ///< Italic text.
+				Underline = IGR_TEXT_STYLE_UNDERLINE, ///< Underlined text.
 			};
+
+			/// @brief Type definition for an enumerable collection of bookmarks.
 			typedef enumerable_t<Bookmark> bookmarks_t;
+
+			/// @brief Type definition for a constant iterator over a collection of bookmarks.
 			typedef bookmarks_t::const_iterator const_iterator;
 
+			/// @brief Constructs an empty, invalid bookmark.
 			Bookmark();
+
+			/// @brief Constructs a bookmark that shares the given implementation details.
+			/// @param impl The implementation details to share.
 			Bookmark(const std::shared_ptr<impl_t>& impl);
 
 			/// @brief Get the title of the bookmark.
@@ -3140,27 +3306,37 @@ namespace Hyland
 			Bookmark& setPageIndex(uint32_t value);
 
 			/// @brief Sets the Text style of the bookmark.
-			/// @param getFlags The Text style getFlags to be applied to the bookmark.
+			/// @param flags The Text style getFlags to be applied to the bookmark.
 			/// @return Reference to the updated bookmark object.
 			Bookmark& setTextStyle(TextStyle flags);
 
 			/// @brief Appends a child bookmark to the current bookmark.
 			/// @param child The child bookmark to be appended.
+			/// @return Reference to the updated bookmark object.
 			Bookmark& AppendChild(const Bookmark& child);
 
-
+			/// @brief Equality operator.
+			/// @param other The other bookmark to compare with.
+			/// @return True if the bookmarks are equal, false otherwise.
 			bool operator==(const Bookmark& other) const;
+
+			/// @brief Inequality operator.
+			/// @param other The other bookmark to compare with.
+			/// @return True if the bookmarks are not equal, false otherwise.
 			bool operator!=(const Bookmark& other) const;
 		};
 
+		/// @brief Enables bitmask operators for Bookmark::TextStyle.
 		template <>
 		struct EnableBitMaskOperators<Bookmark::TextStyle>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for Bookmark::TextStyle.
 		};
 
+		/// @brief The kind of content a PageElement represents.
 		enum class PageElementType
 		{
+			/// @brief No page element type; the element is invalid or unset.
 			None = 0,
 
 			/// @brief Indicates a page element of unknown page.
@@ -3228,12 +3404,20 @@ namespace Hyland
 			friend class Page;
 
 		private:
+			/// @brief Opaque implementation details for PageElement.
 			class impl_t;
+
+			/// @brief Shared pointer to the implementation details.
 			std::shared_ptr<impl_t> m_impl;
 
 		public:
+			/// @brief Type definition for an enumerable collection of page elements.
 			typedef enumerable_t<PageElement> page_elements_t;
+
+			/// @brief Type definition for a constant iterator over a collection of page elements.
 			typedef page_elements_t::const_iterator const_iterator;
+
+			/// @brief Type definition for a map of style names to style values.
 			typedef std::map<std::wstring, std::wstring> style_map_t;
 
 			/// @brief Default constructor for page_element.
@@ -3244,7 +3428,8 @@ namespace Hyland
 			/// @param element The page element.
 			PageElement(IGR_HPAGE page_handle, const IGR_Page_Element& element);
 
-
+			/// @brief Constructs a page element that shares the given implementation details.
+			/// @param impl The implementation details to share.
 			PageElement(const std::shared_ptr<impl_t>& impl);
 
 			/// @brief Gets the getType of the page element.
@@ -3288,6 +3473,8 @@ namespace Hyland
 			/// @return A collection of child page elements.
 			const page_elements_t& children() const;
 
+			/// @brief Gets all descendant elements of the page element, flattened into a single collection.
+			/// @return A collection of all descendant page elements.
 			const page_elements_t& allChildren() const;
 
 			/// @brief Gets an iterator to the beginning of the children collection.
@@ -3310,6 +3497,9 @@ namespace Hyland
 			/// @return The handle of the page element.
 			const IGR_Page_Element* data() const;
 
+			/// @brief Equality operator.
+			/// @param other The other page element to compare with.
+			/// @return True if the page elements are equal, false otherwise.
 			bool operator==(const PageElement& other) const;
 		};
 
@@ -3375,31 +3565,35 @@ namespace Hyland
 		};
 
 
+		/// @brief The kind of interactive control a FormElement represents.
 		enum class FormElementType
 		{
-			Button = IGR_PAGE_FORM_ELEMENT_TYPE_BUTTON,
-			RadioButton = IGR_PAGE_FORM_ELEMENT_TYPE_RADIOBUTTON,
-			Checkbox = IGR_PAGE_FORM_ELEMENT_TYPE_CHECKBOX,
-			FileSelect = IGR_PAGE_FORM_ELEMENT_TYPE_FILESELECT,
-			MultilineText = IGR_PAGE_FORM_ELEMENT_TYPE_MULTILINE_TEXT,
-			SinglelineText = IGR_PAGE_FORM_ELEMENT_TYPE_SINGLELINE_TEXT,
-			Combobox = IGR_PAGE_FORM_ELEMENT_TYPE_COMBOBOX,
-			Listbox = IGR_PAGE_FORM_ELEMENT_TYPE_LISTBOX,
-			Signature = IGR_PAGE_FORM_ELEMENT_TYPE_SIGNATURE,
-			Password = IGR_PAGE_FORM_ELEMENT_TYPE_PASSWORD,
+			Button = IGR_PAGE_FORM_ELEMENT_TYPE_BUTTON,                  ///< A push button.
+			RadioButton = IGR_PAGE_FORM_ELEMENT_TYPE_RADIOBUTTON,        ///< A radio button.
+			Checkbox = IGR_PAGE_FORM_ELEMENT_TYPE_CHECKBOX,              ///< A checkbox.
+			FileSelect = IGR_PAGE_FORM_ELEMENT_TYPE_FILESELECT,          ///< A file selection control.
+			MultilineText = IGR_PAGE_FORM_ELEMENT_TYPE_MULTILINE_TEXT,   ///< A multi-line text field.
+			SinglelineText = IGR_PAGE_FORM_ELEMENT_TYPE_SINGLELINE_TEXT, ///< A single-line text field.
+			Combobox = IGR_PAGE_FORM_ELEMENT_TYPE_COMBOBOX,              ///< A combo box.
+			Listbox = IGR_PAGE_FORM_ELEMENT_TYPE_LISTBOX,                ///< A list box.
+			Signature = IGR_PAGE_FORM_ELEMENT_TYPE_SIGNATURE,            ///< A digital signature field.
+			Password = IGR_PAGE_FORM_ELEMENT_TYPE_PASSWORD,              ///< A password field.
 		};
 
+		/// @brief Flags describing the state and behavior of a form element.
 		enum class FormElementFlag : uint32_t
 		{
-			ReadOnly = IGR_PAGE_FORM_ELEMENT_FLAG_READONLY,
-			Required = IGR_PAGE_FORM_ELEMENT_FLAG_REQUIRED,
-			Comb = IGR_PAGE_FORM_ELEMENT_FLAG_COMB,
-			Checked = IGR_PAGE_FORM_ELEMENT_FLAG_CHECKED
+			ReadOnly = IGR_PAGE_FORM_ELEMENT_FLAG_READONLY, ///< The field cannot be edited.
+			Required = IGR_PAGE_FORM_ELEMENT_FLAG_REQUIRED, ///< The field must be filled in.
+			Comb = IGR_PAGE_FORM_ELEMENT_FLAG_COMB,         ///< The field divides its value into equally spaced characters.
+			Checked = IGR_PAGE_FORM_ELEMENT_FLAG_CHECKED    ///< The checkbox or radio button is checked.
 		};
+
+		/// @brief Enables bitmask operators for FormElementFlag.
 		template <>
 		struct EnableBitMaskOperators<FormElementFlag>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for FormElementFlag.
 		};
 
 		/// @brief Represents a form element on a page.
@@ -3437,7 +3631,11 @@ namespace Hyland
 			};
 
 			typedef std::vector<Option> options_t;
+
+			/// @brief Typedef for the form element's type enumeration.
 			using Type = FormElementType;
+
+			/// @brief Typedef for the form element's flags enumeration.
 			using Flags = FormElementFlag;
 
 			/// @brief Constructs a FormElement object from a page form element.
@@ -3522,7 +3720,7 @@ namespace Hyland
 
 		private:
 			/// @brief Gets a string representation of a specific getType.
-			/// @param getType The getType to get the string representation for.
+			/// @param type The getType to get the string representation for.
 			/// @return The string representation.
 			std::wstring get_str(int type) const;
 
@@ -3649,22 +3847,24 @@ namespace Hyland
 			std::shared_ptr<impl_t> m_impl;
 		};
 
+		/// @brief Enables bitmask operators for Hyperlink::Flags.
 		template <>
 		struct EnableBitMaskOperators<Hyperlink::Flags>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for Hyperlink::Flags.
 		};
 
 		/// @brief Represents style information for OCR (Optical Character Recognition) text, including font family, font size, and text style.
 		class OcrStyleInfo
 		{
 		public:
+			/// @brief Flags describing the style of OCR-rendered text.
 			enum class TextStyle
 			{
-				None = 0,
-				Bold = IGR_TEXT_STYLE_BOLD,
-				Italic = IGR_TEXT_STYLE_ITALIC,
-				Underline = IGR_TEXT_STYLE_UNDERLINE,
+				None = 0,                             ///< No styling.
+				Bold = IGR_TEXT_STYLE_BOLD,           ///< Bold text.
+				Italic = IGR_TEXT_STYLE_ITALIC,       ///< Italic text.
+				Underline = IGR_TEXT_STYLE_UNDERLINE, ///< Underlined text.
 			};
 
 			/// @brief Default constructor for OcrStyleInfo.
@@ -3676,6 +3876,7 @@ namespace Hyland
 
 			/// @brief Sets the font family for text rendering.
 			/// @param fontFamily A wide string representing the name of the font family to set.
+			/// @return A reference to the updated OcrStyleInfo object.
 			OcrStyleInfo& setFontFamily(const std::wstring& fontFamily);
 
 			/// @brief Retrieves the current font size.
@@ -3684,6 +3885,7 @@ namespace Hyland
 
 			/// @brief Sets the font size for text rendering.
 			/// @param fontSize The desired font size, specified as a floating-point value.
+			/// @return A reference to the updated OcrStyleInfo object.
 			OcrStyleInfo& setFontSize(float fontSize);
 
 			/// @brief Retrieves the text style associated with the object.
@@ -3692,6 +3894,7 @@ namespace Hyland
 
 			/// @brief Sets the text style for rendering text.
 			/// @param textStyle The text style to apply, such as font, size, or weight.
+			/// @return A reference to the updated OcrStyleInfo object.
 			OcrStyleInfo& setTextStyle(TextStyle textStyle);
 
 			/// @brief Retrieves a constant reference to the raw OCR image style information.
@@ -3699,13 +3902,14 @@ namespace Hyland
 			const IGR_Open_Callback_Action_OCR_Image_Style_Info& raw() const;
 
 		private:
-			IGR_Open_Callback_Action_OCR_Image_Style_Info m_style {};
+			IGR_Open_Callback_Action_OCR_Image_Style_Info m_style {}; ///< The underlying OCR image style information.
 		};
 
+		/// @brief Enables bitmask operators for OcrStyleInfo::TextStyle.
 		template <>
 		struct EnableBitMaskOperators<OcrStyleInfo::TextStyle>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for OcrStyleInfo::TextStyle.
 		};
 
 		/// @brief Represents an OCR image object with methods for managing image data, blocks, text, and orientation.
@@ -3771,7 +3975,7 @@ namespace Hyland
 			void Reorient(float angle) const;
 
 		private:
-			IGR_Open_Callback_Action_OCR_Image* m_dest;
+			IGR_Open_Callback_Action_OCR_Image* m_dest; ///< The underlying OCR image callback action.
 		};
 
 		/// @brief Represents a described image object with methods for managing image data and alt text.
@@ -3835,145 +4039,185 @@ namespace Hyland
 			void AddText(const std::string& text, const IGR_ULONG flags = 0) const;
 
 		private:
-			IGR_Open_Callback_Action_Describe_Image* m_dest;
+			IGR_Open_Callback_Action_Describe_Image* m_dest; ///< The underlying describe-image callback action.
 		};
 
 		// --------------------------------------------------------------------------------
 
+/// @def DOCFILTERS_ANNOTATION_SERIALIZE_METHODS
+/// @brief Declares the serialize/bind/equality method overrides shared by annotation types.
+/// @param TYPE The annotation class these methods are declared for.
 #define DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(TYPE) \
+	/** @brief Serializes the annotation to its string representation. @return The serialized annotation. */ \
 	std::string serialize() const override; \
+	/** @brief Binds the annotation to the properties of the given underlying annotation. @param anno The underlying annotation to bind from. */ \
 	void bind(const IGR_Annotation& anno) override; \
+	/** @brief Equality operator. @param other The other object to compare with. @return True if the objects are equal, false otherwise. */ \
 	bool operator==(const TYPE& other) const; \
+	/** @brief Inequality operator. @param other The other object to compare with. @return True if the objects are not equal, false otherwise. */ \
 	bool operator!=(const TYPE& other) const \
 	{ \
 		return !(*this == other); \
 	}
+/// @def DOCFILTERS_ANNOTATION_CONSTRUCT
+/// @brief Declares a default constructor that binds an annotation subclass to its
+///        IGR_Annotation_Type, plus the serialize/bind/equality method overrides.
+/// @param CLASSTYPE The annotation class being constructed.
+/// @param ANNOTYPE The IGR_Annotation_Type value identifying the annotation subclass.
 #define DOCFILTERS_ANNOTATION_CONSTRUCT(CLASSTYPE, ANNOTYPE) \
+	/** @brief Constructs a default instance of the CLASSTYPE annotation. */ \
 	CLASSTYPE() \
 	    : Annotation(ANNOTYPE) \
 	{ } \
 	DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(CLASSTYPE)
+
+/// @def DOCFILTERS_OBJECT_SERIALIZE_METHODS
+/// @brief Declares the serialize/equality method overrides shared by non-annotation
+///        serializable value types (e.g. annotation sub-objects).
+/// @param TYPE The class these methods are declared for.
 #define DOCFILTERS_OBJECT_SERIALIZE_METHODS(TYPE) \
+	/** @brief Serializes the object to its string representation. @return The serialized object. */ \
 	std::string serialize() const override; \
+	/** @brief Equality operator. @param other The other object to compare with. @return True if the objects are equal, false otherwise. */ \
 	bool operator==(const TYPE& other) const; \
+	/** @brief Inequality operator. @param other The other object to compare with. @return True if the objects are not equal, false otherwise. */ \
 	bool operator!=(const TYPE& other) const \
 	{ \
 		return !(*this == other); \
 	}
+
+/// @def DOCFILTERS_ANNOTATION_PROPERTY
+/// @brief Declares a private backing field plus public getter/setter accessors for a
+///        named annotation property.
+/// @param TYPE The property's value type.
+/// @param NAME The property name, used to derive the field and accessor names.
+/// @param DEFAULT_VALUE The default value assigned to the backing field.
 #define DOCFILTERS_ANNOTATION_PROPERTY(TYPE, NAME, DEFAULT_VALUE) \
 \
 private: \
+	/** @brief Backing storage for the NAME property. */ \
 	TYPE m_##NAME = DEFAULT_VALUE; \
 \
 public: \
+	/** @brief Gets the current value of the NAME property. @return The current value of the NAME property. */ \
 	const TYPE& get##NAME() const \
 	{ \
 		return m_##NAME; \
 	} \
 \
 public: \
+	/** @brief Gets a mutable reference to the NAME property. @return A mutable reference to the NAME property. */ \
 	TYPE& get##NAME() \
 	{ \
 		return m_##NAME; \
 	} \
 \
 public: \
+	/** @brief Sets the NAME property. @param value The new value for the NAME property. @return A reference to the updated NAME property value. */ \
 	TYPE& set##NAME(const TYPE& value) \
 	{ \
 		m_##NAME = value; \
 		return m_##NAME; \
 	}
 
+		/// @brief Base class for all annotation types, holding the properties common to every annotation.
 		class AnnotationBase : public AnnotationSerializable
 		{
 			friend AnnotationBase& json_bind(const AnnoBind& src, const std::wstring& name, AnnotationBase& dest);
 			friend JsonWriter& json_write_props(JsonWriter& writer, const AnnotationBase& src);
 
 		public:
+			/// @brief Flags controlling the visibility and interaction behavior of an annotation.
 			enum class Flags : uint32_t
 			{
-				None = 0,
-				Invisible = 0x1,
-				Hidden = 0x2,
-				Print = 0x4,
-				NoZoom = 0x8,
-				NoRotate = 0x10,
-				NoView = 0x20,
-				ReadOnly = 0x40,
-				Locked = 0x80,
-				ToogleNoView = 0x100,
-				LockedContents = 0x200
+				None = 0,              ///< No flags set.
+				Invisible = 0x1,       ///< Do not render the annotation if its handler is unknown.
+				Hidden = 0x2,          ///< Do not render or print the annotation.
+				Print = 0x4,           ///< Print the annotation when the page is printed.
+				NoZoom = 0x8,          ///< Do not scale the annotation's appearance with the page zoom level.
+				NoRotate = 0x10,       ///< Do not rotate the annotation's appearance with the page rotation.
+				NoView = 0x20,         ///< Do not render the annotation on screen.
+				ReadOnly = 0x40,       ///< Do not allow the annotation to be interacted with or modified.
+				Locked = 0x80,         ///< Do not allow the annotation to be deleted or its properties modified.
+				ToogleNoView = 0x100,  ///< Invert the NoView behavior when the annotation is selected.
+				LockedContents = 0x200 ///< Do not allow the annotation's contents to be modified.
 			};
 
+			/// @brief The kind of markup or object an annotation represents.
 			enum class Type
 			{
-				Unknown = IGR_ANNOTATION_UNKNOWN,
-				Text = IGR_ANNOTATION_TEXT,
-				Link = IGR_ANNOTATION_LINK,
-				Freetext = IGR_ANNOTATION_FREETEXT,
-				Line = IGR_ANNOTATION_LINE,
-				Rectangle = IGR_ANNOTATION_SQUARE,
-				Ellipse = IGR_ANNOTATION_CIRCLE,
-				Polygon = IGR_ANNOTATION_POLYGON,
-				Polyline = IGR_ANNOTATION_POLYLINE,
-				Highlight = IGR_ANNOTATION_HIGHLIGHT,
-				Underline = IGR_ANNOTATION_UNDERLINE,
-				Squiggly = IGR_ANNOTATION_SQUIGGLE,
-				Strikeout = IGR_ANNOTATION_STRIKEOUT,
-				Stamp = IGR_ANNOTATION_STAMP,
-				Caret = IGR_ANNOTATION_CARET,
-				Ink = IGR_ANNOTATION_INK,
-				Popup = IGR_ANNOTATION_POPUP,
-				FileAttachment = IGR_ANNOTATION_FILEATTACHMENT,
-				Sound = IGR_ANNOTATION_SOUND,
-				Movie = IGR_ANNOTATION_MOVIE,
-				Widget = IGR_ANNOTATION_WIDGET,
-				Screen = IGR_ANNOTATION_SCREEN,
-				Printermark = IGR_ANNOTATION_PRINTERMARK,
-				Trapnet = IGR_ANNOTATION_TRAPNET,
-				Watermark = IGR_ANNOTATION_WATERMARK,
-				ThreeD = IGR_ANNOTATION_3D,
-				Barcode = IGR_ANNOTATION_BARCODE,
-				NamedDestination = IGR_ANNOTATION_NAMED_DESTINATION,
+				Unknown = IGR_ANNOTATION_UNKNOWN,                    ///< Unrecognized annotation type.
+				Text = IGR_ANNOTATION_TEXT,                          ///< A sticky-note text annotation.
+				Link = IGR_ANNOTATION_LINK,                          ///< A link annotation.
+				Freetext = IGR_ANNOTATION_FREETEXT,                  ///< A free text annotation.
+				Line = IGR_ANNOTATION_LINE,                          ///< A line annotation.
+				Rectangle = IGR_ANNOTATION_SQUARE,                   ///< A rectangle annotation.
+				Ellipse = IGR_ANNOTATION_CIRCLE,                     ///< An ellipse annotation.
+				Polygon = IGR_ANNOTATION_POLYGON,                    ///< A polygon annotation.
+				Polyline = IGR_ANNOTATION_POLYLINE,                  ///< A polyline annotation.
+				Highlight = IGR_ANNOTATION_HIGHLIGHT,                ///< A highlight markup annotation.
+				Underline = IGR_ANNOTATION_UNDERLINE,                ///< An underline markup annotation.
+				Squiggly = IGR_ANNOTATION_SQUIGGLE,                  ///< A squiggly-underline markup annotation.
+				Strikeout = IGR_ANNOTATION_STRIKEOUT,                ///< A strikeout markup annotation.
+				Stamp = IGR_ANNOTATION_STAMP,                        ///< A rubber stamp annotation.
+				Caret = IGR_ANNOTATION_CARET,                        ///< A caret annotation.
+				Ink = IGR_ANNOTATION_INK,                            ///< A freehand ink annotation.
+				Popup = IGR_ANNOTATION_POPUP,                        ///< A pop-up window annotation associated with another annotation.
+				FileAttachment = IGR_ANNOTATION_FILEATTACHMENT,      ///< A file attachment annotation.
+				Sound = IGR_ANNOTATION_SOUND,                        ///< A sound annotation.
+				Movie = IGR_ANNOTATION_MOVIE,                        ///< A movie annotation.
+				Widget = IGR_ANNOTATION_WIDGET,                      ///< A form field widget annotation.
+				Screen = IGR_ANNOTATION_SCREEN,                      ///< A screen (rendered media) annotation.
+				Printermark = IGR_ANNOTATION_PRINTERMARK,            ///< A printer's mark annotation.
+				Trapnet = IGR_ANNOTATION_TRAPNET,                    ///< A trap network annotation.
+				Watermark = IGR_ANNOTATION_WATERMARK,                ///< A watermark annotation.
+				ThreeD = IGR_ANNOTATION_3D,                          ///< A 3D artwork annotation.
+				Barcode = IGR_ANNOTATION_BARCODE,                    ///< A barcode annotation.
+				NamedDestination = IGR_ANNOTATION_NAMED_DESTINATION, ///< A named destination annotation.
 			};
 
+			/// @brief The style of an annotation's border line.
 			enum class BorderStyleType
 			{
-				Unknown = 0,
-				Solid = 1,
-				Dashed = 2,
-				Beveled = 3,
-				Inset = 4,
-				Underline = 5,
-				RightOpenArrow = 7,
-				RightClosedArrow = 8,
-				Slash = 9
+				Unknown = 0,          ///< Unrecognized border style.
+				Solid = 1,            ///< A solid border.
+				Dashed = 2,           ///< A dashed border.
+				Beveled = 3,          ///< A beveled (raised) border.
+				Inset = 4,            ///< An inset (recessed) border.
+				Underline = 5,        ///< A border drawn only along the bottom edge.
+				RightOpenArrow = 7,   ///< An open arrow border pointing right.
+				RightClosedArrow = 8, ///< A closed arrow border pointing right.
+				Slash = 9             ///< A slash-style border.
 			};
 
+			/// @brief The style of a line ending decoration.
 			enum class LineEndingType
 			{
-				None = 0,
-				Square = 1,
-				Circle = 2,
-				Diamond = 3,
-				OpenArrow = 4,
-				ClosedArrow = 5,
-				Butt = 6,
-				RightOpenArrow = 7,
-				RightClosedArrow = 8,
-				Slash = 9
+				None = 0,             ///< No line ending decoration.
+				Square = 1,           ///< A square line ending.
+				Circle = 2,           ///< A circular line ending.
+				Diamond = 3,          ///< A diamond-shaped line ending.
+				OpenArrow = 4,        ///< An open arrow line ending.
+				ClosedArrow = 5,      ///< A closed arrow line ending.
+				Butt = 6,             ///< A butt (flat) line ending.
+				RightOpenArrow = 7,   ///< An open arrow line ending pointing right.
+				RightClosedArrow = 8, ///< A closed arrow line ending pointing right.
+				Slash = 9             ///< A slash-style line ending.
 			};
 
+			/// @brief The horizontal alignment of annotation text.
 			enum class AlignmentType
 			{
-				Left = 0,
-				Center = 1,
-				Right = 2
+				Left = 0,   ///< Left-aligned text.
+				Center = 1, ///< Center-aligned text.
+				Right = 2   ///< Right-aligned text.
 			};
 
+			/// @brief The line-ending decorations applied to the two ends of a line-based annotation.
 			class LineEndings : public AnnotationSerializable
 			{
 			public:
+				/// @brief Constructs a LineEndings object with default (no) line endings.
 				LineEndings() = default;
 
 				DOCFILTERS_ANNOTATION_PROPERTY(LineEndingType, Begin, LineEndingType::None);
@@ -3982,9 +4226,11 @@ public: \
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(LineEndings)
 			};
 
+			/// @brief The border style applied to an annotation.
 			class BorderStyle : public AnnotationSerializable
 			{
 			public:
+				/// @brief Constructs a BorderStyle object with default border properties.
 				BorderStyle() = default;
 
 				DOCFILTERS_ANNOTATION_PROPERTY(BorderStyleType, Type, BorderStyleType::Solid);
@@ -3995,9 +4241,11 @@ public: \
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(BorderStyle);
 			};
 
+			/// @brief The default text appearance (font, size, and color) used to render an annotation's free text.
 			class DefaultAppearance : public AnnotationSerializable
 			{
 			public:
+				/// @brief Constructs a DefaultAppearance object with default font properties.
 				DefaultAppearance() = default;
 
 				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, FontName, L"Helvetica");
@@ -4007,6 +4255,7 @@ public: \
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(DefaultAppearance)
 			};
 
+			/// @brief A single, Base64-encoded appearance stream for an annotation.
 			class AppearanceStream : public AnnotationSerializable
 			{
 			public:
@@ -4014,13 +4263,19 @@ public: \
 				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, ContentType, std::wstring());
 				DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Encoding, L"Base64");
 
+				/// @brief Sets the appearance stream's content from a raw byte buffer, Base64-encoding it.
+				/// @param buffer Pointer to the raw content bytes.
+				/// @param size The number of bytes in the buffer.
 				void load_from_bytes(const void* buffer, size_t size) { setContent(base64_encode(buffer, size)); }
 
+				/// @brief Checks whether the appearance stream has no content.
+				/// @return True if the content is empty, false otherwise.
 				bool empty() const { return getContent().empty(); }
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(AppearanceStream)
 			};
 
+			/// @brief The set of appearance streams (normal, rollover, and down) for an annotation.
 			class AppearanceStreams : public AnnotationSerializable
 			{
 			public:
@@ -4028,11 +4283,15 @@ public: \
 				DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStream, Rollover, AppearanceStream());
 				DOCFILTERS_ANNOTATION_PROPERTY(AppearanceStream, Down, AppearanceStream());
 
+				/// @brief Checks whether all of the normal, rollover, and down appearance streams are empty.
+				/// @return True if all appearance streams are empty, false otherwise.
 				bool empty() const { return getNormal().empty() && getRollover().empty() && getDown().empty(); }
 
 				DOCFILTERS_OBJECT_SERIALIZE_METHODS(AppearanceStreams);
 			};
 
+			/// @brief Constructs an AnnotationBase of the given type.
+			/// @param type The annotation type. Defaults to Type::Unknown.
 			AnnotationBase(Type type = Type::Unknown)
 			    : type(type)
 			{ }
@@ -4047,29 +4306,40 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Text, std::wstring());
 			DOCFILTERS_ANNOTATION_PROPERTY(std::shared_ptr<BorderStyle>, Border, nullptr);
 
+			/// @brief Gets the type of the annotation.
+			/// @return The type of the annotation.
 			const Type& getType() const { return type; }
+
+			/// @brief Gets the type of the annotation.
+			/// @return The type of the annotation.
 			Type& getType() { return type; }
 
 			DOCFILTERS_OBJECT_SERIALIZE_METHODS(AnnotationBase);
 
 		protected:
-			Type type = Type::Unknown;
+			Type type = Type::Unknown; ///< The annotation's type.
 		};
+
+		/// @brief Enables bitmask operators for AnnotationBase::Flags.
 		template <>
 		struct EnableBitMaskOperators<AnnotationBase::Flags>
 		{
-			static const bool enable = true;
+			static const bool enable = true; ///< Indicates that bitmask operators are enabled for AnnotationBase::Flags.
 		};
 
+		/// @brief Associates a compile-time AnnotationBase::Type with an annotation subclass.
+		/// @tparam Type The annotation type associated with the subclass.
 		template <typename AnnotationBase::Type Type>
 		class AnnotationTypeT
 		{
 		public:
-			static const AnnotationBase::Type AnnoType = Type;
+			static const AnnotationBase::Type AnnoType = Type; ///< The annotation type associated with the subclass.
 		};
 
+		/// @brief Typedef for the annotation border style type.
 		using AnnotationBorderStyle = AnnotationBase::BorderStyle;
 
+		/// @brief Represents a sticky-note text annotation, or a reply to another annotation.
 		class AnnotationNote : public AnnotationBase, public AnnotationTypeT<AnnotationBase::Type::Text>
 		{
 		public:
@@ -4083,6 +4353,11 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, StateModel, std::wstring());
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Author, std::wstring());
 
+			/// @brief Creates a reply note with the given text, author, and flags.
+			/// @param text The text of the reply.
+			/// @param author The author of the reply. Defaults to an empty string.
+			/// @param flags The flags to apply to the reply. Defaults to Flags::Print.
+			/// @return The newly created reply note.
 			static AnnotationNote CreateReply(const std::wstring& text, const std::wstring& author = std::wstring(),
 			                                  Flags flags = Flags::Print)
 			{
@@ -4094,12 +4369,19 @@ public: \
 			}
 		};
 
+		/// @brief Represents an annotation that can be attached to a page, holding properties common to all concrete annotation types.
 		class Annotation : public AnnotationBase
 		{
 		public:
+			/// @brief Constructs an Annotation of the given type.
+			/// @param type The annotation type. Defaults to Type::Unknown.
 			Annotation(Type type = Type::Unknown)
 			    : AnnotationBase(type)
 			{ }
+
+			/// @brief Creates a concrete Annotation subclass instance from its underlying representation.
+			/// @param anno The underlying IGR_Annotation to construct from.
+			/// @return A pointer to the newly created Annotation, or nullptr if the type is unrecognized.
 			static std::unique_ptr<Annotation> make(const IGR_Annotation& anno);
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(Annotation);
@@ -4116,10 +4398,19 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(std::vector<Point>, Points, std::vector<Point>());
 			DOCFILTERS_ANNOTATION_PROPERTY(std::shared_ptr<AnnotationPopup>, Popup, nullptr);
 
+			/// @brief Checks whether two annotations are equal.
+			/// @param a The first annotation to compare.
+			/// @param b The second annotation to compare.
+			/// @return True if the annotations are equal, false otherwise.
 			static bool is_equal(const Annotation& a, const Annotation& b);
+
+			/// @brief Checks whether this annotation is equal to another.
+			/// @param other The other annotation to compare with.
+			/// @return True if the annotations are equal, false otherwise.
 			bool is_equal(const Annotation& other) const;
 		};
 
+		/// @brief Represents a pop-up window annotation associated with another annotation.
 		class AnnotationPopup : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Popup>
 		{
 		public:
@@ -4129,16 +4420,18 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(bool, Open, false);
 		};
 
+		/// @brief Represents the action performed when a link or field annotation is activated.
 		class AnnotationAction : public AnnotationBase
 		{
 		public:
+			/// @brief The kind of action performed when the annotation is activated.
 			enum class ActionType
 			{
-				Unknown,
-				GoTo,
-				Uri,
-				GoToRemote,
-				Named
+				Unknown,    ///< Unrecognized action type.
+				GoTo,       ///< Navigate to a location within the document.
+				Uri,        ///< Open a URI.
+				GoToRemote, ///< Navigate to a location within another document.
+				Named       ///< Perform a named action.
 			};
 			DOCFILTERS_OBJECT_SERIALIZE_METHODS(AnnotationAction);
 
@@ -4153,6 +4446,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(std::wstring, Filename, std::wstring());
 		};
 
+		/// @brief Represents a sticky-note text annotation attached to a page.
 		class AnnotationStickyNote : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Text>
 		{
 		public:
@@ -4166,16 +4460,18 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(bool, Open, false)
 		};
 
+		/// @brief Represents a link annotation that navigates to a destination or opens a URI when activated.
 		class AnnotationLink : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Link>
 
 		{
 		public:
+			/// @brief The visual effect applied to the link when activated.
 			enum class HighlightType
 			{
-				None = 0,
-				Invert = 1,
-				Outline = 2,
-				Push = 3,
+				None = 0,    ///< No highlight effect.
+				Invert = 1,  ///< Invert the colors within the link's rectangle.
+				Outline = 2, ///< Invert the link's border.
+				Push = 3,    ///< Display the link's down appearance, simulating a button push.
 			};
 
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationLink, AnnotationBase::Type::Link);
@@ -4184,11 +4480,16 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(HighlightType, Highlight, HighlightType::None);
 			DOCFILTERS_ANNOTATION_PROPERTY(AnnotationAction, Action, AnnotationAction());
 
+			/// @brief Configures the link's action to open the given URI.
+			/// @param uri The URI to open when the link is activated.
 			void setUri(const std::wstring& uri)
 			{
 				getAction().setType(AnnotationAction::ActionType::Uri);
 				getAction().setUri(uri);
 			}
+
+			/// @brief Configures the link's action to navigate to the given page.
+			/// @param page The index of the page to navigate to.
 			void setGoTo(int page)
 			{
 				getAction().setType(AnnotationAction::ActionType::GoTo);
@@ -4196,6 +4497,7 @@ public: \
 			}
 		};
 
+		/// @brief Represents a free text annotation that displays its text directly on the page.
 		class AnnotationFreeText : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Freetext>
 		{
 		public:
@@ -4205,6 +4507,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(AlignmentType, Alignment, AlignmentType::Left);
 		};
 
+		/// @brief Represents a line annotation.
 		class AnnotationLine : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Line>
 		{
 		public:
@@ -4215,6 +4518,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
 		};
 
+		/// @brief Represents a rectangle annotation.
 		class AnnotationRectangle : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Rectangle>
 		{
 		public:
@@ -4226,6 +4530,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, RectDifferences, RectI32());
 		};
 
+		/// @brief Represents an ellipse annotation.
 		class AnnotationEllipse : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Ellipse>
 		{
 		public:
@@ -4236,6 +4541,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(RectI32, RectDifferences, RectI32());
 		};
 
+		/// @brief Represents a polygon annotation.
 		class AnnotationPolygon : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Polygon>
 		{
 		public:
@@ -4245,6 +4551,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(Color, InteriorColor, Color::transparent());
 		};
 
+		/// @brief Represents a polyline annotation.
 		class AnnotationPolyline : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Polyline>
 		{
 		public:
@@ -4254,9 +4561,12 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(LineEndings, LineEndings, LineEndings());
 		};
 
+		/// @brief Base class for text markup annotations (highlight, squiggly, strikeout, and underline).
 		class AnnotationMarkup : public Annotation
 		{
 		public:
+			/// @brief Constructs an AnnotationMarkup of the given type.
+			/// @param type The annotation type. Defaults to Type::Unknown.
 			AnnotationMarkup(Type type = Type::Unknown)
 			    : Annotation(type)
 			{ }
@@ -4265,6 +4575,7 @@ public: \
 		};
 
 
+		/// @brief Represents a highlight markup annotation.
 		class AnnotationHighlight : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Highlight>
 		{
 		public:
@@ -4275,6 +4586,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationHighlight)
 		};
 
+		/// @brief Represents a squiggly-underline markup annotation.
 		class AnnotationSquiggly : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Squiggly>
 		{
 		public:
@@ -4285,6 +4597,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationSquiggly)
 		};
 
+		/// @brief Represents a strikeout markup annotation.
 		class AnnotationStrikeOut : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Strikeout>
 		{
 		public:
@@ -4295,6 +4608,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationStrikeOut)
 		};
 
+		/// @brief Represents an underline markup annotation.
 		class AnnotationUnderline : public AnnotationMarkup, public AnnotationTypeT<AnnotationBase::Type::Underline>
 		{
 		public:
@@ -4305,6 +4619,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationUnderline)
 		};
 
+		/// @brief Represents a rubber stamp annotation.
 		class AnnotationStamp : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Stamp>
 		{
 		public:
@@ -4315,6 +4630,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationStamp)
 		};
 
+		/// @brief Represents a freehand ink annotation.
 		class AnnotationInk : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Ink>
 		{
 		public:
@@ -4324,11 +4640,14 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(std::vector<std::vector<Point>>, InkList, std::vector<std::vector<Point>>());
 		};
 
+		/// @brief Base class for barcode annotations.
 		class AnnotationBarcode : public Annotation, public AnnotationTypeT<AnnotationBase::Type::Barcode>
 		{
 		public:
 			DOCFILTERS_ANNOTATION_CONSTRUCT(AnnotationBarcode, AnnotationBase::Type::Barcode);
 
+			/// @brief Constructs an AnnotationBarcode of the given barcode symbology.
+			/// @param subType The barcode symbology identifier (e.g. "qr", "code128").
 			AnnotationBarcode(const std::wstring& subType)
 			    : Annotation(Type::Barcode)
 			    , m_SubType(subType)
@@ -4343,6 +4662,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(int, Margin, 0);
 		};
 
+		/// @brief Represents a QR code barcode annotation.
 		class AnnotationQrCode : public AnnotationBarcode
 		{
 		public:
@@ -4353,6 +4673,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationQrCode)
 		};
 
+		/// @brief Represents an Aztec barcode annotation.
 		class AnnotationAztec : public AnnotationBarcode
 		{
 		public:
@@ -4363,6 +4684,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationAztec)
 		};
 
+		/// @brief Represents a Data Matrix barcode annotation.
 		class AnnotationDatamatrix : public AnnotationBarcode
 		{
 		public:
@@ -4373,6 +4695,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationDatamatrix)
 		};
 
+		/// @brief Represents a PDF417 barcode annotation.
 		class AnnotationPDF417 : public AnnotationBarcode
 		{
 		public:
@@ -4383,6 +4706,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationPDF417)
 		};
 
+		/// @brief Represents a Code 39 barcode annotation.
 		class AnnotationCode39 : public AnnotationBarcode
 		{
 		public:
@@ -4393,6 +4717,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationCode39)
 		};
 
+		/// @brief Represents a Code 93 barcode annotation.
 		class AnnotationCode93 : public AnnotationBarcode
 		{
 		public:
@@ -4403,6 +4728,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationCode93)
 		};
 
+		/// @brief Represents a Code 128 barcode annotation.
 		class AnnotationCode128 : public AnnotationBarcode
 		{
 		public:
@@ -4413,6 +4739,7 @@ public: \
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationCode128)
 		};
 
+		/// @brief Represents a GS1-128 barcode annotation with named data parts.
 		class AnnotationGS1_128 : public AnnotationBarcode
 		{
 		public:
@@ -4420,10 +4747,14 @@ public: \
 			    : AnnotationBarcode(L"gs1-128")
 			{ }
 
+			/// @brief Type definition for a map of GS1-128 application identifier names to values.
 			using PartMap = std::map<std::wstring, std::wstring>;
 
 			DOCFILTERS_ANNOTATION_SERIALIZE_METHODS(AnnotationGS1_128);
 
+			/// @brief Adds or updates a named data part of the barcode.
+			/// @param name The name of the data part to add or update.
+			/// @param value The value of the data part.
 			void AddPart(const std::wstring& name, const std::wstring& value) { m_Parts[name] = value; }
 
 			// Properties
@@ -4431,6 +4762,7 @@ public: \
 			DOCFILTERS_ANNOTATION_PROPERTY(PartMap, Parts, PartMap());
 		};
 
+		/// @brief Represents a named destination annotation.
 		class AnnotationNamedDestination : public Annotation, public AnnotationTypeT<AnnotationBase::Type::NamedDestination>
 		{
 		public:
@@ -4438,27 +4770,57 @@ public: \
 		};
 
 
+		/// @brief Writes a DateTime to a stream as its ISO 8601 string representation.
+		/// @param os The output stream to write to.
+		/// @param val The DateTime to write.
+		/// @return A reference to the output stream.
 		inline std::ostream& operator<<(std::ostream& os, const DateTime& val)
 		{
 			return os << val.ToIsoString();
 		}
+
+		/// @brief Writes a Color to a stream as its `{ r,g,b }` representation.
+		/// @param os The output stream to write to.
+		/// @param val The Color to write.
+		/// @return A reference to the output stream.
 		inline std::ostream& operator<<(std::ostream& os, const Color& val)
 		{
 			return os << "{ " << static_cast<uint32_t>(val.r) << "," << static_cast<uint32_t>(val.g) << "," << static_cast<uint32_t>(val.b)
 			          << "}";
 		}
+
+		/// @brief Writes a Point to a stream as its `{ x,y }` representation.
+		/// @param os The output stream to write to.
+		/// @param val The Point to write.
+		/// @return A reference to the output stream.
 		inline std::ostream& operator<<(std::ostream& os, const Point& val)
 		{
 			return os << "{ " << val.x() << "," << val.y() << "}";
 		}
+
+		/// @brief Writes a RectI32 to a stream as its `{ left, top, right, bottom }` representation.
+		/// @param os The output stream to write to.
+		/// @param val The rectangle to write.
+		/// @return A reference to the output stream.
 		inline std::ostream& operator<<(std::ostream& os, const RectI32& val)
 		{
 			return os << "{ left: " << val.left << ", top: " << val.top << ", right: " << val.right << ", bottom: " << val.bottom << " }";
 		}
+
+		/// @brief Writes an AnnotationSerializable to a stream as its serialized representation.
+		/// @param os The output stream to write to.
+		/// @param val The annotation to write.
+		/// @return A reference to the output stream.
 		inline std::ostream& operator<<(std::ostream& os, const AnnotationSerializable& val)
 		{
 			return os << val.serialize();
 		}
+
+		/// @brief Writes an optional value to a stream, or `{{empty}}` if it has no value.
+		/// @tparam T The optional's value type.
+		/// @param os The output stream to write to.
+		/// @param val The optional value to write.
+		/// @return A reference to the output stream.
 		template <typename T>
 		inline std::ostream& operator<<(std::ostream& os, const std::optional<T>& val)
 		{
