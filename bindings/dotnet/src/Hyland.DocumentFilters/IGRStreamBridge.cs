@@ -116,14 +116,7 @@ namespace Hyland.DocumentFilters
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (offset == 0)
-                return (int) _methods.Read(_stream, buffer, (uint) count);
-
-            byte[] temp = new byte[count];
-            int bytesRead = (int) _methods.Read(_stream, temp, (uint) count);
-            if (bytesRead > 0)
-                Array.Copy(temp, 0, buffer, offset, bytesRead);
-            return bytesRead;
+            return (int) _methods.Read(_stream, buffer, (uint) count);
         }
 
         public override long Seek(long offset, SeekOrigin origin)

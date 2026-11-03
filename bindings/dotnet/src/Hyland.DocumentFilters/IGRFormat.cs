@@ -75,6 +75,11 @@ namespace Hyland.DocumentFilters
         public int Id { get; private set; }
 
         /// <summary>
+        /// Gets the ID of the format as a <see cref="Hyland.DocumentFilters.FormatId"/>.
+        /// </summary>
+        public FormatId FormatId => (FormatId)Id;
+
+        /// <summary>
         /// Gets the file type category of the format.
         /// </summary>
         public int FileTypeCategory { get; private set; }

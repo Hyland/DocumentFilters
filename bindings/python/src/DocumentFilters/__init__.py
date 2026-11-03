@@ -13,4 +13,5 @@
 
 from . DocumentFiltersAPI import *
 from . DocumentFilters import *
+from . DocumentFiltersFormats import *
 
