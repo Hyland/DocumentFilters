@@ -271,19 +271,37 @@ namespace Hyland.DocumentFilters.Cli.Cli
 			SharedOptions sharedOptions,
 			TOptions ownOptions)
 		{
-			ValidateTokens(command, args, sharedDefinitions.Cast<IArgumentDescriptor>().Concat(ownDefinitions).ToList());
+			IReadOnlyList<IArgumentDescriptor> descriptors =
+				sharedDefinitions.Cast<IArgumentDescriptor>().Concat(ownDefinitions).ToList();
+
+			ValidateTokens(command, args, descriptors);
+
+			// The paths are taken out here rather than registered as a McMaster
+			// argument, because McMaster and this tool disagree about which tokens
+			// are paths at all. LooksLikeOption is the contract, and by it a token
+			// such as "-tsv", "--" or "---weird" is a path; McMaster reads the first
+			// as a cluster of short options, the second as the end-of-options
+			// separator, and the third as a long option, and throws
+			// UnrecognizedCommandParsingException on all three. That is not a
+			// CliError, so nothing caught it and the tool ended a mistyped command
+			// line with a .NET stack trace instead of a message. Handing McMaster
+			// only the tokens this tool calls options leaves it nothing to disagree
+			// about — the same split the Python and Java ports already make, for
+			// their own parsers and for this reason.
+			var optionTokens = new List<string>();
+			var paths = new List<string>();
+			PartitionTokens(args, descriptors, optionTokens, paths);
 
 			var app = new CommandLineApplication { Name = command }; // McMaster app
 
 			_appliers.Clear();
 			RegisterArguments(app, sharedDefinitions, sharedOptions);
 			RegisterArguments(app, ownDefinitions, ownOptions);
-			CommandArgument paths = app.Argument("paths", "Files or directories to process", multipleValues: true);
 
-			app.Execute(args);
+			app.Execute(optionTokens.ToArray());
 
 			ApplyArguments();
-            sharedOptions.Input.Paths.AddRange(paths.Values);
+            sharedOptions.Input.Paths.AddRange(paths);
 		}
 
 		/// <summary>
@@ -331,13 +349,7 @@ namespace Hyland.DocumentFilters.Cli.Cli
 		/// </summary>
 		private static void ValidateTokens(string command, IReadOnlyList<string> args, IReadOnlyList<IArgumentDescriptor> descriptors)
 		{
-			var byToken = new Dictionary<string, IArgumentDescriptor>(StringComparer.Ordinal);
-			foreach (IArgumentDescriptor descriptor in descriptors)
-			{
-				byToken["--" + descriptor.LongName] = descriptor;
-				if (!string.IsNullOrEmpty(descriptor.ShortName))
-					byToken["-" + descriptor.ShortName] = descriptor;
-			}
+			var byToken = DescriptorsByToken(descriptors);
 
             char[] optionValueSeparators = { '=', ':' };
             int i = 0;
@@ -374,6 +386,65 @@ namespace Hyland.DocumentFilters.Cli.Cli
 
 				i += 2;
 			}
+		}
+
+		/// <summary>
+		/// Splits the command line into the tokens McMaster is to parse and the
+		/// positional paths it must never see.
+		/// </summary>
+		/// <remarks>
+		/// Walks by the same rules as <see cref="ValidateTokens"/>, which has already
+		/// run and rejected everything malformed — so the lookup below is known to
+		/// succeed, and anything <see cref="LooksLikeOption"/> turns down here is a
+		/// path by that method's own definition rather than by elimination. A value
+		/// may itself look like a path, or like stdin (<c>--out-file -</c>); what
+		/// follows a value-taking option is its value either way. Paths keep their
+		/// positions relative to each other, which <c>--combine</c> depends on.
+		/// </remarks>
+		private static void PartitionTokens(IReadOnlyList<string> args, IReadOnlyList<IArgumentDescriptor> descriptors,
+											List<string> optionTokens, List<string> paths)
+		{
+			var byToken = DescriptorsByToken(descriptors);
+
+			char[] optionValueSeparators = { '=', ':' };
+			int i = 0;
+			while (i < args.Count)
+			{
+				string token = args[i];
+				int kvSeparator = token.IndexOfAny(optionValueSeparators);
+				string name = kvSeparator < 0 ? token : token.Substring(0, kvSeparator);
+				if (!LooksLikeOption(name))
+				{
+					paths.Add(token);
+					i += 1;
+					continue;
+				}
+
+				IArgumentDescriptor descriptor = byToken[name];
+				optionTokens.Add(token);
+
+				if (descriptor.Arity == ArgumentArity.NoValue || kvSeparator >= 0)
+				{   // we don't need a value or we already have one in the token itself
+					i += 1;
+					continue;
+				}
+
+				optionTokens.Add(args[i + 1]);
+				i += 2;
+			}
+		}
+
+		/// <summary>Indexes a verb's arguments by every token that selects one.</summary>
+		private static Dictionary<string, IArgumentDescriptor> DescriptorsByToken(IReadOnlyList<IArgumentDescriptor> descriptors)
+		{
+			var byToken = new Dictionary<string, IArgumentDescriptor>(StringComparer.Ordinal);
+			foreach (IArgumentDescriptor descriptor in descriptors)
+			{
+				byToken["--" + descriptor.LongName] = descriptor;
+				if (!string.IsNullOrEmpty(descriptor.ShortName))
+					byToken["-" + descriptor.ShortName] = descriptor;
+			}
+			return byToken;
 		}
 
 		/// <summary>

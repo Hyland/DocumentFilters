@@ -146,6 +146,51 @@ namespace Hyland.DocumentFilters.Cli.Tests.Unit
 			Assert.Equal(new[] { "a.docx", "b.docx" }, shared.Input.Paths);
 		}
 
+		// A token that starts with a dash but is not one of this tool's own option
+		// spellings is a path. LooksLikeOption is the whole rule, and these four
+		// shapes are the ones McMaster reads differently: a cluster of short
+		// options, the end-of-options separator, a long option, and a long option
+		// whose name begins with a dash. Each of them used to reach McMaster, which
+		// threw UnrecognizedCommandParsingException -- not a CliError, so the tool
+		// exited with a .NET stack trace rather than reporting anything. Reported
+		// from the field against 1.0.0-prerelease.1 as `-tsv`.
+		[Theory]
+		[InlineData("-tsv")]
+		[InlineData("-ab")]
+		[InlineData("--")]
+		[InlineData("---weird")]
+		[InlineData("----")]
+		public void A_dash_token_that_is_not_an_option_spelling_is_a_path(string token)
+		{
+			SharedOptions shared = Bind("convert", "--to", "text", "--out-dir", "out", token).SharedOptions;
+
+			Assert.Equal(new[] { token }, shared.Input.Paths);
+		}
+
+		[Fact]
+		public void A_dash_shaped_path_keeps_its_position_among_the_others()
+		{
+			// Order is load-bearing: --combine writes the inputs in the order given.
+			// Collecting the odd tokens separately and appending them would pass the
+			// test above and still get this wrong.
+			SharedOptions shared = Bind("convert", "--to", "text", "--out-dir", "out",
+										"a.docx", "-tsv", "b.docx").SharedOptions;
+
+			Assert.Equal(new[] { "a.docx", "-tsv", "b.docx" }, shared.Input.Paths);
+		}
+
+		[Fact]
+		public void An_option_value_may_look_like_a_path()
+		{
+			// The partition walks by arity, not by shape: --out-name takes a value, so
+			// the next token is that value however it is spelled.
+			SharedOptions shared = Bind("convert", "--to", "text", "--out-dir", "out",
+										"--out-name", "-{stem}.txt", "a.docx").SharedOptions;
+
+			Assert.NotNull(shared.Output.NameTemplate);
+			Assert.Equal(new[] { "a.docx" }, shared.Input.Paths);
+		}
+
 		[Fact]
 		public void Files_from_writes_its_path()
 		{
