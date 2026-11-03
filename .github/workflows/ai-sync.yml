@@ -683,11 +683,6 @@ jobs:
       # branch, not against the previous run --- so each run produces a
       # complete replacement, not an increment.
       #
-      # Which makes the branch update a replacement too, and `-s ours` is how
-      # that is done without rewriting history: it keeps this run's tree
-      # exactly and records the previous tip as a second parent, so the push
-      # fast-forwards and needs no --force.
-      #
       # An ordinary merge is not an option, and not for a subtle reason:
       # measured, two independent whole-delta translations of the same change
       # conflict in every file they both touch, because relative to the common
@@ -697,28 +692,59 @@ jobs:
       # towards the union of every attempt rather than being the current
       # translation.
       #
-      # `-s ours` discards the old tree as thoroughly as a force push would,
-      # just more quietly, so the guard below still matters: once a human has
-      # pushed to this branch, the run refuses to touch it and says so.
-      # Comments on changed lines still go stale when the tree is replaced.
-      # That is the cost of regenerating, and the refusal is what bounds it.
-      - name: Push the branch
+      # So the branch update is a replacement too, and the way to do that
+      # without rewriting history is to commit this run's whole tree on top of
+      # whatever the branch currently holds. That is why the diff below is
+      # taken against the remote tip rather than against BEFORE: one commit
+      # carries the entire translation, and the previous tree is discarded as
+      # thoroughly as a force push would discard it, just more quietly. The
+      # branch only ever moves forward, so the guard below still matters:
+      # once a human has pushed to this branch, the run refuses to touch it
+      # and says so. Comments on changed lines still go stale when the tree is
+      # replaced. That is the cost of regenerating, and the refusal is what
+      # bounds it.
+      #
+      # The commit itself is not made here. The organisation requires verified
+      # signatures on every branch, and this runner has no signing key ---
+      # deliberately, because a signing key in repository secrets is a key any
+      # workflow edit can borrow, which is most of what the rule exists to
+      # prevent. `createCommitOnBranch` makes the commit on GitHub's side
+      # instead, and GitHub signs what it creates with its own key: "Commits
+      # made using this mutation are automatically signed by GitHub if
+      # supported and will be marked as verified in the user interface."
+      # Nothing is stored for this --- the credential is the job's own
+      # `github.token`, which it already has.
+      #
+      # Two consequences this step is written around. The mutation takes file
+      # contents rather than a commit object, so the tree has to be expressed
+      # as additions and deletions; `Collect what changed` froze the index,
+      # and `git diff --cached <commit>` is that commit against the index, so
+      # the change set is exactly the translation and not what the build left
+      # behind. And the mutation gives the commit one parent, the branch head,
+      # so there is no merge commit to make: what used to be a `-s ours` merge
+      # is now the choice of what to diff against, above.
+      - name: Commit the translation
         id: push
         if: ${{ !cancelled() && needs.guard.outputs.dry_run != 'true' && steps.diff.outputs.changed == 'true' }}
         env:
           BEFORE: ${{ steps.before.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+          PORT: ${{ matrix.port }}
         run: |
-          git config user.name  "claude[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          set -euo pipefail
 
           # Does the branch already exist on the remote, and if so does it
           # carry anything this workflow did not write?
-          remote=no
+          #
+          # Keyed on the author login reported by the API rather than on
+          # `%an`: the commit is authored by whoever owns the credential that
+          # made it, and the display name that produces is not something to
+          # guess at from here. The login is stable and is what the compare
+          # endpoint reports.
           if git ls-remote --exit-code --heads origin "$SYNC_BRANCH" >/dev/null 2>&1; then
-            remote=yes
-            git fetch --quiet origin "$SYNC_BRANCH"
-            foreign=$(git log --format='%an' "origin/$SYNC_BRANCH" "^$BEFORE" \
-                        | grep -v '^claude\[bot\]$' | sort -u || true)
+            foreign=$(gh api "repos/$GITHUB_REPOSITORY/compare/$BEFORE...$SYNC_BRANCH" \
+                        --jq '.commits[].author.login // "unknown"' \
+                      | grep -v '^github-actions\[bot\]$' | sort -u || true)
             if [ -n "$foreign" ]; then
               echo "pushed=false" >> "$GITHUB_OUTPUT"
               echo "::warning::$SYNC_BRANCH carries commits by $(echo "$foreign" | paste -sd', ')."
@@ -726,34 +752,78 @@ jobs:
               echo "This run's translation is in its logs and artifacts."
               exit 0
             fi
+          else
+            # Create the branch at a commit the repository already has. The
+            # push introduces no commit object, so the signature rule has
+            # nothing to check, and the mutation below needs the ref to exist.
+            git push origin "$BEFORE:refs/heads/$SYNC_BRANCH"
           fi
 
-          # -B, not -b: a re-run points the branch at the current HEAD rather
-          # than failing because the local branch already exists.
-          git checkout -B "$SYNC_BRANCH"
-          # Only if the agent left changes uncommitted; if it committed the
-          # work itself, HEAD already carries them.
-          if ! git diff --cached --quiet; then
-            git commit -m "propagate the reference change into ${{ matrix.port }}
+          git fetch --quiet origin "$SYNC_BRANCH"
+          head=$(git rev-parse "origin/$SYNC_BRANCH")
 
-          Translated from the change on #$PR by the /propagate-delta command.
-          Review it as a translation: see DocFiltersCli/.claude/commands/review-port.md."
+          # --no-renames, because a rename would have to be turned into an
+          # addition and a deletion anyway and git will do it itself; -z,
+          # because a path may contain anything but NUL.
+          additions='[]'
+          deletions='[]'
+          while IFS= read -r -d '' status && IFS= read -r -d '' path; do
+            case "$status" in
+              D)
+                deletions=$(jq -c --arg p "$path" '. + [{path: $p}]' <<<"$deletions")
+                ;;
+              *)
+                additions=$(jq -c --arg p "$path" \
+                                  --arg c "$(git show ":$path" | base64 -w0)" \
+                                  '. + [{path: $p, contents: $c}]' <<<"$additions")
+                ;;
+            esac
+          done < <(git diff --cached --name-status --no-renames -z "$head")
+
+          if [ "$additions" = '[]' ] && [ "$deletions" = '[]' ]; then
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            echo "$SYNC_BRANCH already holds exactly this translation; nothing to commit."
+            exit 0
           fi
 
-          # Supersede the previous attempt without rewriting it. "Already up
-          # to date" when the remote tip is an ancestor, which is a no-op.
-          if [ "$remote" = yes ]; then
-            git merge -s ours --no-edit "origin/$SYNC_BRANCH" \
-              -m "supersede the previous translation of #$PR into ${{ matrix.port }}
+          jq -n \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg branch "$SYNC_BRANCH" \
+            --arg oid "$head" \
+            --arg headline "propagate the reference change into $PORT" \
+            --arg body "Translated from the change on #$PR by the /propagate-delta command.
+          Review it as a translation: see DocFiltersCli/.claude/commands/review-port.md." \
+            --argjson additions "$additions" \
+            --argjson deletions "$deletions" \
+            '{
+               query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+               variables: {
+                 input: {
+                   branch: { repositoryNameWithOwner: $repo, branchName: $branch },
+                   expectedHeadOid: $oid,
+                   message: { headline: $headline, body: $body },
+                   fileChanges: { additions: $additions, deletions: $deletions }
+                 }
+               }
+             }' > "$RUNNER_TEMP/commit-$PORT.json"
 
-          This run re-translated the whole delta, so its tree replaces the
-          earlier attempt rather than being merged with it. The previous tip is
-          recorded as a parent so the branch moves forward instead of being
-          rewritten."
+          # expectedHeadOid makes this a compare-and-swap: if anything moved
+          # the branch between the fetch above and here, the mutation is
+          # refused rather than quietly overwriting it. The same protection a
+          # `git push` without --force gave, kept deliberately.
+          gh api graphql --input "$RUNNER_TEMP/commit-$PORT.json" \
+            > "$RUNNER_TEMP/commit-$PORT-result.json"
+
+          # A GraphQL error arrives as an HTTP 200 with an `errors` array, so
+          # a zero exit is not on its own evidence that the commit was made.
+          if jq -e '.errors' "$RUNNER_TEMP/commit-$PORT-result.json" >/dev/null; then
+            jq -r '.errors[].message' "$RUNNER_TEMP/commit-$PORT-result.json" >&2
+            exit 1
           fi
 
-          git push origin "$SYNC_BRANCH"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
+          echo "Committed $(jq -r '.data.createCommitOnBranch.commit.oid' \
+                              "$RUNNER_TEMP/commit-$PORT-result.json") to $SYNC_BRANCH."
 
       # Opened once, keyed by the branch name. A later run moves the branch
       # on, and GitHub updates the open pull request's diff by itself --- so
