@@ -94,6 +94,17 @@ property, different route.
 production side needs no deviation: a `String` is UTF-16 units as in C#, so
 `JsonWriter.escape` mirrors the reference with `Character.isSurrogate`.
 
+### The test harness has no `[Theory]`
+
+**C#** `A_dash_token_that_is_not_an_option_spelling_is_a_path` is a `[Theory]`
+with five `[InlineData]` rows. **Java** the JDK-only runner has no
+parameterised form, so `aDashTokenThatIsNotAnOptionSpellingIsAPath` is one
+test that loops over the same five tokens. Same property, different route; a
+failure names the test, not the row.
+
+**Rule** Keep the rows in the loop in step with the reference's, and do not add
+a data-row mechanism to the runner for one test.
+
 ### Enum names are not the reference's names
 
 **C#** `PageElementType.TextBox.ToString().ToLowerInvariant()` is `textbox`.
