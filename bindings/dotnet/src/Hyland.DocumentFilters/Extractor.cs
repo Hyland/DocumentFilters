@@ -178,6 +178,11 @@ namespace Hyland.DocumentFilters
         public int FileType => getFileType();
 
         /// <summary>
+        /// Returns the format of the document. This is <see cref="FileType"/> as a <see cref="Hyland.DocumentFilters.FormatId"/>.
+        /// </summary>
+        public FormatId FormatId => (FormatId)getFileType();
+
+        /// <summary>
         /// Returns the capabilities mask for the document.
         /// </summary>
         public int Capabilities => getFileCapabilities();

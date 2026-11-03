@@ -711,31 +711,31 @@ class IGR_Open_Callback_Action_OCR_Image(ctypes.Structure):
         ('source_name', IGR_UCS2 * 128),  # The name of the source image, if known.
 
         # Function pointers for callbacks
-        ('GetMetadata', ctypes.CFUNCTYPE(
+        ('GetMetadata', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             ctypes.POINTER(None),  # Name
             ctypes.POINTER(None),  # Destination buffer
             ctypes.c_size_t)),  # Destination buffer size
 
-        ('SaveImage', ctypes.CFUNCTYPE(
+        ('SaveImage', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             ctypes.POINTER(None),  # Filename
             ctypes.POINTER(None))),  # Mime type
 
-        ('StartBlock', ctypes.CFUNCTYPE(
+        ('StartBlock', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             IGR_ULONG,  # Block type
             ctypes.POINTER(IGR_QuadPoint))),  # Rectangle
 
-        ('EndBlock', ctypes.CFUNCTYPE(
+        ('EndBlock', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             IGR_ULONG)),  # Block type
 
-        ('AddText', ctypes.CFUNCTYPE(
+        ('AddText', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             ctypes.POINTER(None),  # Text
@@ -743,7 +743,7 @@ class IGR_Open_Callback_Action_OCR_Image(ctypes.Structure):
             IGR_ULONG,  # Flags
             ctypes.POINTER(IGR_Open_Callback_Action_OCR_Image_Style_Info))),  # Font style
 
-        ('AddTextWithOffsets', ctypes.CFUNCTYPE(
+        ('AddTextWithOffsets', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             ctypes.POINTER(None),  # Text
@@ -752,7 +752,7 @@ class IGR_Open_Callback_Action_OCR_Image(ctypes.Structure):
             IGR_ULONG,  # Flags
             ctypes.POINTER(IGR_Open_Callback_Action_OCR_Image_Style_Info))),  # Font style
 
-        ('Reorient', ctypes.CFUNCTYPE(
+        ('Reorient', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             IGR_FLOAT))  # Degrees
@@ -765,7 +765,7 @@ class IGR_Open_Callback_Action_Describe_Image(ctypes.Structure):
         ('reserved', ctypes.c_void_p),
         
         # Returns a pointer to an IGR_Open_DIB_Info owned by Document Filters, valid only until the callback returns.
-        ('GetSourceImagePixels', ctypes.CFUNCTYPE(
+        ('GetSourceImagePixels', IGRFUNCTYPE(
             ctypes.POINTER(IGR_Open_DIB_Info),
             ctypes.POINTER(None))),  # Pointer to this structure
 
@@ -775,13 +775,13 @@ class IGR_Open_Callback_Action_Describe_Image(ctypes.Structure):
         ('source_name', IGR_UCS2 * 128),
         ('existing_alt_text', IGR_UCS2 * 4096),
 
-        ('SaveImage', ctypes.CFUNCTYPE(
+        ('SaveImage', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             ctypes.POINTER(None),  # Filename
             ctypes.POINTER(None))),  # Mime type
 
-        ('AddText', ctypes.CFUNCTYPE(
+        ('AddText', IGRFUNCTYPE(
             IGR_RETURN_CODE,
             ctypes.POINTER(None),  # Pointer to this structure
             ctypes.POINTER(None),  # Text
@@ -789,7 +789,7 @@ class IGR_Open_Callback_Action_Describe_Image(ctypes.Structure):
     ]
 
 
-IGR_OPEN_CALLBACK = ctypes.CFUNCTYPE(UNCHECKED(IGR_LONG), IGR_OPEN_CALLBACK_ACTION, ctypes.POINTER(None), ctypes.POINTER(None))
+IGR_OPEN_CALLBACK = IGRFUNCTYPE(UNCHECKED(IGR_LONG), IGR_OPEN_CALLBACK_ACTION, ctypes.POINTER(None), ctypes.POINTER(None))
 
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_TYPE = IGR_ULONG
 IGR_COMPARE_DOCUMENTS_DIFFERENCE_SOURCE_TYPE = IGR_ULONG
@@ -836,12 +836,12 @@ class IGR_Text_Compare_Settings(ctypes.Structure):
         ("reserved2", ctypes.c_void_p),
         ("reserved3", ctypes.c_void_p),
         ("reserved4", ctypes.c_void_p),
-        ("OpenPage", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.c_uint32, ctypes.POINTER(IGR_HANDLE))),
-        ("ClosePage", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), IGR_HANDLE)),
-        ("GetPageMargins", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(IGR_FRect))),
-        ("GetPageArea", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(IGR_FRect))),
-        ("GetNextPageIndex", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(ctypes.c_uint32))),
-        ("HandleError", ctypes.CFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.c_void_p)),
+        ("OpenPage", IGRFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.c_uint32, ctypes.POINTER(IGR_HANDLE))),
+        ("ClosePage", IGRFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), IGR_HANDLE)),
+        ("GetPageMargins", IGRFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(IGR_FRect))),
+        ("GetPageArea", IGRFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(IGR_FRect))),
+        ("GetNextPageIndex", IGRFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.POINTER(ctypes.c_uint32))),
+        ("HandleError", IGRFUNCTYPE(IGR_RETURN_CODE, ctypes.c_void_p, ctypes.POINTER(IGR_Compare_Documents_Callback_Context), ctypes.c_void_p)),
     ]
 
 class IGR_Text_Compare_Document_Source(ctypes.Structure):
@@ -878,14 +878,14 @@ class IGR_Subfile_Info(ctypes.Structure):
         ("date", IGR_ULONGLONG),
     ]
 
-IGR_PAGE_ELEMENT_STYLES_CALLBACK = ctypes.CFUNCTYPE(
+IGR_PAGE_ELEMENT_STYLES_CALLBACK = IGRFUNCTYPE(
     IGR_LONG,
     ctypes.POINTER(IGR_UCS2),
     ctypes.POINTER(IGR_UCS2),
     ctypes.c_void_p
 )
 
-IGR_PAGE_ELEMENT_CALLBACK = ctypes.CFUNCTYPE(
+IGR_PAGE_ELEMENT_CALLBACK = IGRFUNCTYPE(
     IGR_LONG,
     IGR_HPAGE,
     ctypes.POINTER(IGR_Page_Element),
