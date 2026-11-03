@@ -85,11 +85,8 @@ namespace Hyland
 							return token.size() == 2 && isAsciiLetterOrDigit(token[1]);
 					}
 
-					/// <summary>
-					/// Rejects an unknown argument, or one missing the value its arity
-					/// requires, with this tool's own message rather than CLI11's.
-					/// </summary>
-					void validateTokens(const std::string& command, const std::vector<std::string>& args,
+					/// <summary>Indexes a verb's arguments by every token that selects one.</summary>
+					std::unordered_map<std::string, const IArgumentDescriptor*> descriptorsByToken(
 						const std::vector<const IArgumentDescriptor*>& descriptors)
 					{
 						std::unordered_map<std::string, const IArgumentDescriptor*> byToken;
@@ -99,6 +96,17 @@ namespace Hyland
 							if (descriptor->shortName().has_value() && !descriptor->shortName()->empty())
 								byToken["-" + *descriptor->shortName()] = descriptor;
 						}
+						return byToken;
+					}
+
+					/// <summary>
+					/// Rejects an unknown argument, or one missing the value its arity
+					/// requires, with this tool's own message rather than CLI11's.
+					/// </summary>
+					void validateTokens(const std::string& command, const std::vector<std::string>& args,
+						const std::vector<const IArgumentDescriptor*>& descriptors)
+					{
+						std::unordered_map<std::string, const IArgumentDescriptor*> byToken = descriptorsByToken(descriptors);
 
 						size_t i = 0;
 						while (i < args.size())
@@ -138,6 +146,53 @@ namespace Hyland
 							if (i + 1 >= args.size() || looksLikeOption(args[i + 1])) // it's the last argument or the next one is another option
 								throw UsageError(ErrorCodes::missingValue, "--" + descriptor.longName() + " requires a value");
 
+							i += 2;
+						}
+					}
+
+					/// <summary>
+					/// Splits the command line into the tokens CLI11 is to parse and the
+					/// positional paths it must never see.
+					/// </summary>
+					/// <remarks>
+					/// Walks by the same rules as <see cref="validateTokens"/>, which has
+					/// already run and rejected everything malformed --- so the lookup below
+					/// is known to succeed, and anything <see cref="looksLikeOption"/> turns
+					/// down here is a path by that function's own definition rather than by
+					/// elimination. A value may itself look like a path, or like stdin
+					/// (<c>--out-file -</c>); what follows a value-taking option is its value
+					/// either way. Paths keep their positions relative to each other, which
+					/// <c>--combine</c> depends on.
+					/// </remarks>
+					void partitionTokens(const std::vector<std::string>& args,
+						const std::vector<const IArgumentDescriptor*>& descriptors, std::vector<std::string>& optionTokens,
+						std::vector<std::string>& paths)
+					{
+						std::unordered_map<std::string, const IArgumentDescriptor*> byToken = descriptorsByToken(descriptors);
+
+						size_t i = 0;
+						while (i < args.size())
+						{
+							const std::string& token = args[i];
+							size_t kvSeparator = token.find_first_of("=:");
+							std::string name = kvSeparator == std::string::npos ? token : token.substr(0, kvSeparator);
+							if (!looksLikeOption(name))
+							{
+								paths.push_back(token);
+								i += 1;
+								continue;
+							}
+
+							const IArgumentDescriptor& descriptor = *byToken.at(name);
+							optionTokens.push_back(token);
+
+							if (descriptor.arity() == ArgumentArity::NoValue || kvSeparator != std::string::npos)
+							{ // we don't need a value or we already have one in the token itself
+								i += 1;
+								continue;
+							}
+
+							optionTokens.push_back(args[i + 1]);
 							i += 2;
 						}
 					}
@@ -290,15 +345,23 @@ namespace Hyland
 
 						validateTokens(command, args, descriptors);
 
+						// The paths are taken out here rather than registered as a CLI11
+						// positional, so that CLI11 never has to decide which tokens are
+						// paths: looksLikeOption is the contract, and by it "-tsv", "--" and
+						// "---weird" are paths, which CLI11 would read as a short-option
+						// cluster, the end-of-options separator and a long option. Handing it
+						// only the tokens this tool calls options leaves nothing to disagree
+						// about --- the same split the C# reference now makes for McMaster.
+						std::vector<std::string> optionTokens;
+						std::vector<std::string> paths;
+						partitionTokens(args, descriptors, optionTokens, paths);
+
 						::CLI::App app{command};
 						std::vector<std::function<void()>> appliers;
 						registerArguments(app, sharedDefinitions, sharedOptions, appliers);
 						registerArguments(app, ownDefinitions, ownOptions, appliers);
 
-						std::vector<std::string> paths;
-						app.add_option("paths", paths, "Files or directories to process");
-
-						std::vector<std::string> reversed = normalizeForCli11(args);
+						std::vector<std::string> reversed = normalizeForCli11(optionTokens);
 						std::reverse(reversed.begin(), reversed.end()); // CLI::App::parse's vector overload consumes from the back
 						app.parse(reversed);
 

@@ -324,6 +324,21 @@ reasons that look nothing like a missing DLL.
 
 ---
 
+## Tests
+
+### A `[Theory]` is one `TEST_CASE` with a loop
+
+**C#** a `[Theory]` with `[InlineData]` rows is one named test that runs once
+per row, and `compare_inventory.py` collapses the rows to that one name.
+**C++17** the port writes one `TEST_CASE` under the same name and loops over the
+rows inside it, rather than using `GENERATE`, so the loop and the C# row list read side by
+side. A failing row is then reported by its `CHECK`, not by its own test run.
+
+**Rule** Same name as the `[Theory]` method, rows in a braced list. See
+`a dash token that is not an option spelling is a path`.
+
+---
+
 ## Verified non-traps
 
 Things that look like the list above, were measured on both toolchains, and are
