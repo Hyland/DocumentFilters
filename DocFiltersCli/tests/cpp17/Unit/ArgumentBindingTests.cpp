@@ -151,6 +151,41 @@ TEST_CASE("positional paths land in input paths in order", "[ArgumentBinding]")
 	CHECK(shared.input.paths == std::vector<std::string>{ "a.docx", "b.docx" });
 }
 
+// A token that starts with a dash but is not one of this tool's own option
+// spellings is a path. looksLikeOption is the whole rule, and these shapes are
+// the ones a parser library reads differently: a cluster of short options, the
+// end-of-options separator, a long option, and a long option whose name begins
+// with a dash. The C# [Theory] is one loop here, as elsewhere in this suite.
+TEST_CASE("a dash token that is not an option spelling is a path", "[ArgumentBinding]")
+{
+	for (const char* token : { "-tsv", "-ab", "--", "---weird", "----" })
+	{
+		SharedOptions shared = bind({ "convert", "--to", "text", "--out-dir", "out", token }).sharedOptions();
+
+		CHECK(shared.input.paths == std::vector<std::string>{ token });
+	}
+}
+
+TEST_CASE("a dash shaped path keeps its position among the others", "[ArgumentBinding]")
+{
+	// Order is load-bearing: --combine writes the inputs in the order given.
+	SharedOptions shared =
+		bind({ "convert", "--to", "text", "--out-dir", "out", "a.docx", "-tsv", "b.docx" }).sharedOptions();
+
+	CHECK(shared.input.paths == std::vector<std::string>{ "a.docx", "-tsv", "b.docx" });
+}
+
+TEST_CASE("an option value may look like a path", "[ArgumentBinding]")
+{
+	// The partition walks by arity, not by shape: --out-name takes a value, so
+	// the next token is that value however it is spelled.
+	SharedOptions shared =
+		bind({ "convert", "--to", "text", "--out-dir", "out", "--out-name", "-{stem}.txt", "a.docx" }).sharedOptions();
+
+	CHECK(shared.output.nameTemplate.has_value());
+	CHECK(shared.input.paths == std::vector<std::string>{ "a.docx" });
+}
+
 TEST_CASE("files-from writes its path", "[ArgumentBinding]")
 {
 	SharedOptions shared = sharedOptions({ "--files-from", "list.txt" });
