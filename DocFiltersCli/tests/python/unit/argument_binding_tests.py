@@ -95,6 +95,41 @@ class ArgumentBindingTests(unittest.TestCase):
 
         self.assertEqual(["a.docx", "b.docx"], shared.input.paths)
 
+    def test_a_dash_token_that_is_not_an_option_spelling_is_a_path(self):
+        # A token that starts with a dash but is not one of this tool's own option
+        # spellings is a path. looks_like_option is the whole rule, and these five shapes
+        # are the ones a parsing library reads differently: a cluster of short options,
+        # the end-of-options separator, a long option, and a long option whose name
+        # begins with a dash. Reported from the field against 1.0.0-prerelease.1 as -tsv.
+        #
+        # The C# is an xUnit Theory with one InlineData per token. unittest has no
+        # parametrised test, so this is one test looping over subTest, which reports each
+        # token separately on failure and keeps the one name compare_inventory matches.
+        for token in ["-tsv", "-ab", "--", "---weird", "----"]:
+            with self.subTest(token=token):
+                shared = _bind("convert", "--to", "text", "--out-dir", "out",
+                               token).shared_options
+
+                self.assertEqual([token], shared.input.paths)
+
+    def test_a_dash_shaped_path_keeps_its_position_among_the_others(self):
+        # Order is load-bearing: --combine writes the inputs in the order given.
+        # Collecting the odd tokens separately and appending them would pass the test
+        # above and still get this wrong.
+        shared = _bind("convert", "--to", "text", "--out-dir", "out",
+                       "a.docx", "-tsv", "b.docx").shared_options
+
+        self.assertEqual(["a.docx", "-tsv", "b.docx"], shared.input.paths)
+
+    def test_an_option_value_may_look_like_a_path(self):
+        # The partition walks by arity, not by shape: --out-name takes a value, so the
+        # next token is that value however it is spelled.
+        shared = _bind("convert", "--to", "text", "--out-dir", "out",
+                       "--out-name", "-{stem}.txt", "a.docx").shared_options
+
+        self.assertIsNotNone(shared.output.name_template)
+        self.assertEqual(["a.docx"], shared.input.paths)
+
     def test_files_from_writes_its_path(self):
         self.assertEqual("list.txt", _shared("--files-from", "list.txt").input.files_from)
 

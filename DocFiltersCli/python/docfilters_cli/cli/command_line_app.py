@@ -520,15 +520,10 @@ def _looks_like_option(token: str) -> bool:
     arguments this method exists to reject. It also excludes a bare -: that spelling means
     stdin or stdout, and must still work as a plain value.
 
-    This is the contract, and it is what this port follows, including where the reference
-    fails to. Every token that starts with a dash and lands on False here is a path by this
-    rule, but the reference hands it to McMaster anyway, which recognises a different set
-    and throws an UnrecognizedCommandParsingException that nothing catches: the built
-    binary exits 127 with a .NET stack trace for --, -ab, ---weird and ---- alike. Measured
-    against csharp/bin/Debug/net8.0/docfilters.exe rather than inferred. Python reports all
-    four the way this method classifies them, as paths that do not exist; reproducing four
-    different crashes is not parity worth having. Raised against the reference so the two
-    can converge on this one.
+    This is the contract. Every token that starts with a dash and lands on False here is a
+    path by this rule. The reference used to hand such tokens to McMaster, which recognises
+    a different set and threw an UnrecognizedCommandParsingException that nothing caught;
+    it now partitions the paths out first, as this port always has, so the two agree.
     """
     if len(token) < 2 or token[0] != '-':
         return False
@@ -551,9 +546,11 @@ def _partition_tokens(args: List[str],
     Splits the command line into the option tokens argparse is given and the positional
     paths it never sees.
 
-    Not in the C#, which lets McMaster do both jobs at once. See _bind_verb for why
-    argparse cannot: interspersed positionals, a bare -- that has to stay a path, and
-    values that look like options.
+    The C# has the same method (PartitionTokens), for the same reason: McMaster misreads
+    -tsv, -- and ---weird, which are paths by _looks_like_option. Python's version also
+    normalises each option to one token, because argparse cannot collect interspersed
+    positionals and has its own precedence for values that look like options. See
+    _bind_verb.
 
     Walks by the same rules as _validate_tokens, which has already run and has already
     rejected everything malformed -- so every lookup here is known to succeed, and the
