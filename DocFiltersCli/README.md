@@ -8,7 +8,7 @@ real tool rather than the way you would demonstrate one call.
 
 ```bash
 dotnet build csharp/DocFiltersCli.csproj
-csharp/bin/Debug/net8.0/docfilters convert --to pdf --out-dir out/ report.docx
+csharp/bin/Debug/net10.0/docfilters convert --to pdf --out-dir out/ report.docx
 ```
 
 No license key needed to try it — [Licensing](#licensing) says what evaluation

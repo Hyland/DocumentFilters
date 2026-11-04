@@ -34,11 +34,11 @@ Record each implementation, then diff the transcripts:
 
 ```bash
 cd ../e2e
-python end2end.py --cli ../../csharp/bin/Release/net8.0/docfilters --record /tmp/csharp.txt
+python end2end.py --cli ../../csharp/bin/Release/net10.0/docfilters --record /tmp/csharp.txt
 python end2end.py --cli ../cpp17/build/bin/docfilters              --record /tmp/cpp17.txt
 python end2end.py --cli python                                     --record /tmp/python.txt
 python end2end.py --cli ../../java                                 --record /tmp/java.txt
-python end2end.py --cli ../../csharp/bin/Release/net8.0/docfilters --record /tmp/csharp-repeat.txt
+python end2end.py --cli ../../csharp/bin/Release/net10.0/docfilters --record /tmp/csharp-repeat.txt
 
 cd ../parity
 python compare.py /tmp/csharp.txt /tmp/cpp17.txt /tmp/python.txt /tmp/java.txt --repeat /tmp/csharp-repeat.txt

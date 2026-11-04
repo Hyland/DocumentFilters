@@ -63,7 +63,7 @@ The native libraries come from one of:
   was installed or unpacked.
 - **The C# CLI's NuGet packages** — building `csharp/DocFiltersCli.csproj`
   restores Document Filters from NuGet, which puts the native libraries in
-  `csharp/bin/Debug/net8.0/runtimes/<rid>/native/` (e.g. `win-x64` on 64-bit
+  `csharp/bin/Debug/net10.0/runtimes/<rid>/native/` (e.g. `win-x64` on 64-bit
   Windows). The e2e tests use this path as a fallback.
 
 Point `DF_PATH` or `--library` at whichever directory holds them. `DF_PATH`

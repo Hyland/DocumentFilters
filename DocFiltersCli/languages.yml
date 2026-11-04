@@ -36,7 +36,7 @@ languages:
     test: dotnet test DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj --configuration Release --no-build
     list_tests: dotnet test DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj --configuration Release --no-build --list-tests
     # What tests/e2e/end2end.py --cli takes, and what the parity job records.
-    cli: DocFiltersCli/csharp/bin/Release/net8.0/docfilters
+    cli: DocFiltersCli/csharp/bin/Release/net10.0/docfilters
     test_framework: xUnit
     traps: DocFiltersCli/design/porting/traps-csharp.md
     notes: >-
