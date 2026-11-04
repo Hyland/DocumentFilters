@@ -358,13 +358,14 @@ class Recorder:
 
     VERSION = 1
 
-    NOT_COMPARED = ("--time", "--logmem", "--progress", "-x", "--debug-measure-io")
+    NOT_COMPARED = ("--time", "--logtime", "--logmem", "--progress", "-x",
+                    "--debug-measure-io")
     """
     Switches whose output is contract by shape but not by content.
 
-    tests/conformance/README.md excludes --time, --progress and --logmem for
-    the obvious reason: their figures differ every run. Two more belong with
-    them and are not named there:
+    tests/conformance/README.md excludes --time, --logtime, --progress and
+    --logmem for the obvious reason: their figures differ every run. Two more
+    belong with them and are not named there:
 
       -x                  reports the engine's memory status, so its figures
                           are per-process and differ between implementations
@@ -383,6 +384,18 @@ class Recorder:
     --- a rule that knows `Handle Count:` has a volatile number after it ---
     would be the list of content-aware regexes this design avoids everywhere
     else, and every entry would be a place for a real difference to hide.
+
+    --time was here from the start and --logtime was not, which cost a run of
+    the parity comparison reddening at random on a per-document duration
+    nobody had asked it to compare. The two are the same figure at different
+    granularities, and the gap survived because compare.py's --repeat mask
+    appeared to cover it: that mask holds a line volatile only when two runs
+    of the reference disagree on it, which is right for a temporary path and
+    wrong for a duration, since two runs of one binary print the same
+    milliseconds often enough to leave the line unmasked. Note that an entry
+    here need not have a caller --- --time and --progress have none either.
+    The list is read when a check is written, which is the point at which the
+    cost of leaving a switch out of it is cheapest to avoid.
     """
 
     def __init__(self, path, implementation):
@@ -553,6 +566,17 @@ class Runner:
         The key is appended rather than prepended so a check can still exercise
         argument order, and it is redacted from anything printed: this script is
         meant to be pasteable into a bug report.
+
+        record=False runs the command without writing it to the transcript. It
+        is for a command a check runs to decide *whether* it can run, rather
+        than to assert anything --- tests/parity/ compares every recorded
+        command byte for byte across four implementations, so a measurement
+        placed in front of it becomes contract, and a measurement is the one
+        thing four implementations cannot agree on. Use it for nothing else: a
+        command whose output a check actually asserts on belongs in the
+        transcript, and Recorder.NOT_COMPARED is how a recorded command's
+        volatile *streams* are set aside while its exit code and its files
+        stay compared.
         """
         argv = list(self.launcher) + [str(a) for a in args]
         if kwargs.get("with_license", True) and self.license_key:
@@ -582,7 +606,11 @@ class Runner:
             # Universal newlines, exactly as text mode applied them.
             return raw.decode("utf-8", "replace").replace("\r\n", "\n").replace("\r", "\n")
 
-        if self.recorder is not None:
+        # The record=False test is here rather than inside Recorder.record so
+        # that the sequence number is not spent either: that number is half the
+        # alignment key, and a gap in it would shift every later record of the
+        # check against the other implementations' records of the same check.
+        if self.recorder is not None and kwargs.get("record", True):
             self.recorder.record([self.redact(a) for a in argv[len(self.launcher):]],
                                  completed.returncode, completed.stdout,
                                  completed.stderr, self.out_dir)
@@ -1015,8 +1043,23 @@ def check_a_per_document_timeout_is_enforced(run, doc):
     Self-calibrating, because --timeout's smallest legal value is 1 second and
     the default sample renders in well under that. Times the document first and
     skips when it is too quick to prove anything.
+
+    The calibration run is recorded nowhere, and that is not tidiness.
+    --logtime prints a wall clock duration, tests/parity/ compares recorded
+    stdout byte for byte, and four implementations will never agree on how
+    long a PDF took: measured on one runner, C++17 came in at 0.573s, the
+    reference at 0.595s and the JVM at 0.601s, an ordering that is the
+    runtimes rather than noise. compare.py's --repeat mask does not cover it
+    either. That mask holds a line volatile only when two runs of the
+    reference disagree on it, which is exactly right for a temporary path or a
+    docpack timestamp --- they differ every run --- and exactly wrong for a
+    duration, which is stable within one implementation and systematically
+    different between them. Two runs of the same binary printed the same
+    milliseconds in 2 of 11 consecutive pairs when this was measured, so the
+    comparison reddened at random until the command stopped being recorded.
     """
-    measured = run.run("convert", "--to", "png", "-o", run.out_dir, "--logtime", doc).require(EXIT_OK)
+    measured = run.run("convert", "--to", "png", "-o", run.out_dir, "--logtime", doc,
+                       record=False).require(EXIT_OK)
 
     seconds = re.search(r":\s*([0-9.]+)s\s*$", measured.out.strip().splitlines()[-1])
     if not seconds:

@@ -154,5 +154,5 @@ formats.txt:41  $ pdf
 and none can be made to match without replacing the renderer — which the
 no-new-dependencies rule forbids.
 
-**`--time`, `--progress` and `--logmem` output.** The figures differ every run.
-Their *shape* is consistent; their content is not compared.
+**`--time`, `--logtime`, `--progress` and `--logmem` output.** The figures
+differ every run. Their *shape* is consistent; their content is not compared.
