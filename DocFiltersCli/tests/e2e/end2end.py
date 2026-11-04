@@ -54,6 +54,7 @@ guarded: see prepare_output_dir.
 
 import argparse
 import base64
+import contextlib
 import difflib
 import glob
 import hashlib
@@ -625,6 +626,24 @@ class Runner:
 
     def out(self, *parts):
         return os.path.join(self.out_dir, *parts)
+
+    @contextlib.contextmanager
+    def unrecorded(self):
+        """
+        Runs commands without writing any of them to the transcript.
+
+        For verifying a --skip waiver, where neither outcome belongs in the
+        record: the other implementations did not run this check, so a failed
+        command has nothing to be compared against, and a command that now
+        succeeds would be a case the reference has no twin for. Either way the
+        transcript would describe a check this implementation is still
+        declared not to run.
+        """
+        recorder, self.recorder = self.recorder, None
+        try:
+            yield
+        finally:
+            self.recorder = recorder
 
     def clear_output(self):
         """
@@ -1509,6 +1528,11 @@ def parse_skips(parser, requested):
 
     The check has to be one that exists. A typo would otherwise skip nothing,
     quietly, and the run would look like it had covered everything.
+
+    What the reason cannot do is go unread. The check still runs, with its
+    commands kept out of the transcript, and a waiver whose check passes fails
+    the run --- so the hole closes when the thing it was dug for is fixed,
+    rather than when somebody remembers. See the main loop.
     """
     known = {name for name, _ in CHECKS}
     skips = {}
@@ -1830,10 +1854,12 @@ def main(argv=None):
     parser.add_argument("--filter", default=None,
                         help="only run checks whose name contains this text")
     parser.add_argument("--skip", action="append", default=[], metavar="CHECK=REASON",
-                        help="do not run this check, and say why. For something an "
+                        help="do not count this check, and say why. For something an "
                              "implementation cannot do at all -- a call its binding "
                              "does not reach. The reason is printed and recorded, so "
-                             "it is worth writing a real one. Repeatable")
+                             "it is worth writing a real one. The check is still run, "
+                             "unrecorded, and a waiver whose check passes fails the "
+                             "run. Repeatable")
     args = parser.parse_args(argv)
 
     requested_skips = parse_skips(parser, args.skip)
@@ -1889,6 +1915,7 @@ def main(argv=None):
 
     failures = []
     skipped = []
+    stale = []
 
     def skip(name, reason):
         skipped.append((name, reason))
@@ -1899,7 +1926,41 @@ def main(argv=None):
     try:
         for name, check in checks:
             if name in requested_skips:
-                skip(name, requested_skips[name])
+                # A waiver is verified, not taken on trust. The check runs
+                # anyway, and if it passes then whatever it was waived for has
+                # started working and the waiver is the only thing still
+                # saying otherwise --- which is exactly how a temporary
+                # exclusion becomes permanent. tests/parity/port-exemptions.txt
+                # has been checked in this direction from the start; this is
+                # the same rule for the waiver that lives in a workflow file
+                # instead, where nothing was reading it back.
+                #
+                # Unrecorded, because neither outcome belongs in a transcript
+                # for a check this implementation is still declared not to
+                # run. See Runner.unrecorded.
+                runner.clear_output()
+                with runner.unrecorded():
+                    try:
+                        check(runner, document)
+                    except Exception:  # noqa: BLE001 - anything but a pass leaves the waiver standing
+                        # A CheckFailed is the waiver being right. A
+                        # CheckSkipped is the check declining to run here for
+                        # a second reason, which settles nothing either way,
+                        # so the waiver stands then too.
+                        needed = True
+                    else:
+                        needed = False
+
+                # Outside the block, both of them: skip() writes the skip to
+                # the transcript, and inside there is no recorder to write it
+                # to. Getting that wrong leaves the records missing with no
+                # reason beside them, which is exactly what compare.py reads
+                # as a check lost in translation.
+                if needed:
+                    skip(name, requested_skips[name])
+                else:
+                    stale.append((name, requested_skips[name]))
+                    print("  STALE %s" % name)
                 continue
 
             reason = getattr(check, "license_reason", None)
@@ -1946,6 +2007,16 @@ def main(argv=None):
         print("%d of %d checks failed:\n" % (len(failures), ran))
         for name, detail in failures:
             print("  %s\n    %s\n" % (name, detail.replace("\n", "\n    ")))
+
+    if stale:
+        print("%d waiver%s no longer needed:\n"
+              % (len(stale), "" if len(stale) == 1 else "s"))
+        for name, reason in stale:
+            print("  %s\n    passes now, and was skipped because: %s\n" % (name, reason))
+        print("  Drop the --skip for each and let the check run. It is in the\n"
+              "  \"Record each implementation\" step of .github/workflows/cli.yml.\n")
+
+    if failures or stale:
         return 1
 
     print("all %d checks passed" % ran)

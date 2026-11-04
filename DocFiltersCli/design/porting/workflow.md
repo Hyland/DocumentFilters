@@ -190,6 +190,13 @@ in the "Record each implementation" step of `.github/workflows/cli.yml`, with
 a comment explaining each: at the time of writing, two Java checks that need a
 `MakeDocPack` entry point the pinned engine release does not export.
 
+A skip is verified rather than trusted. The check still runs, with its
+commands kept out of the transcript so they have nothing to be compared
+against, and a skip whose check *passes* fails the run and names the waiver
+to delete. This is the same rule `port-exemptions.txt` has always had, and it
+is what stops a waiver outliving the gap it was written for --- the engine
+release that closes one of those two Java skips will not announce itself.
+
 ### 5. A faithful port is also a review
 
 Re-deriving a behaviour in another language is the most thorough review the
