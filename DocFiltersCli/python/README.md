@@ -129,7 +129,7 @@ the same order:
 
 ```
 python/docfilters_cli/
-├── cli/            the argument table and argparse — the only per-language part
+├── cli/            the argument table and the argv binder
 ├── configuration/  the options model, value parsers, cross-argument validation
 ├── planning/       format catalogue, output planner, name templates, page ranges
 ├── discovery/      the filesystem walk
@@ -141,10 +141,12 @@ python/docfilters_cli/
 └── __main__.py     python -m docfilters_cli
 ```
 
-`Cli/` is the one folder that is not a port. The reference uses
-`McMaster.Extensions.CommandLineUtils`; this uses `argparse`, because that is
-what the published Python samples use. The argument *table* is the same data in
-both, and the fixtures check the result rather than the library.
+`cli/` used to be the one folder that is not a port: the reference ran on
+`McMaster.Extensions.CommandLineUtils` and this on `argparse`, so only the
+argument *table* was shared data. Neither has a parser now --- the four
+disagreed about enough of the command line that every decision had already moved
+into shared logic --- so this folder is a translation like any other, and reads
+line for line against `csharp/Cli/`.
 
 ## Where it differs from the reference, and why
 
@@ -165,6 +167,7 @@ documents across every verb, every other entry of a docpack included. The two
 gaps left are non-ASCII report text on Windows and the missing subfile
 timestamp, and the reference is the side in the wrong in both.
 
-**No new dependencies.** The binding, `argparse` and `unittest` — the first is
-what the published Python samples already depend on, the other two are the
-standard library. Nothing is installed from PyPI to run this tool or its tests.
+**No new dependencies.** The binding and `unittest` — the first is what the
+published Python samples already depend on, the second is the standard library.
+`argparse` was here too and is not any more; see `cli/` above. Nothing is
+installed from PyPI to run this tool or its tests.

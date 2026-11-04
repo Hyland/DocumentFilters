@@ -13,8 +13,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import argparse
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from ..commands.convert_command import ConvertCommand
 from ..commands.extract_command import ExtractCommand
@@ -46,16 +45,28 @@ _OPTION_VALUE_SEPARATORS = "=:"
 
 class CommandLineApp:
     """
-    Builds the argparse command line application from ArgumentTable and dispatches to the
-    chosen command.
+    Binds a command line against ArgumentTable and dispatches to the chosen command.
 
-    This is the only class in the project that knows which CLI parsing library is in use,
-    and the whole of the stage 1 to stage 2 boundary. The C#, Java and C++17 ports replace
-    it with an equivalent over McMaster.Extensions.CommandLineUtils, picocli and CLI11;
-    everything below it is shared logic.
+    The whole of the stage 1 to stage 2 boundary, and the only class that touches argv at
+    all.
 
-    argparse rather than a third-party parser: it is the standard library, and it is what
-    the published Document Filters Python samples already use. No new dependency.
+    There is no parsing library behind it. There was: this port was built on argparse, the
+    reference on McMaster.Extensions.CommandLineUtils, and the other two on picocli and
+    CLI11, with this class as the wrapper that hid the differences. The four disagreed on
+    enough of the surface -- which tokens are options, what a repeated option means,
+    whether a value may look like a path, what an unknown argument costs -- that every one
+    of those decisions ended up here, hand written and shared, with the library left
+    holding only the matching of a token to a row of the table. Holding four libraries in
+    that role bought nothing, so the matching is written out too. See _partition_tokens,
+    which is all of it.
+
+    argparse cost nothing to keep, being the standard library, and was dropped with the
+    other three anyway: the point of the change was that four implementations stopped
+    having four different things to go wrong, and keeping one of them would have left the
+    reference and this port needing separate explanations again.
+
+    What that means for a reader who came for the API: this class is plumbing, and
+    deliberately dull. execution/ is the sample.
     """
 
     def __init__(self, console, file_system, engine=None, interruption=None, clock=None,
@@ -82,17 +93,6 @@ class CommandLineApp:
         self._clock = clock
         self._open_viewer = open_viewer
 
-        self._appliers: List[Callable[[], None]] = []
-        """
-        Deferred setter calls, one per registered argument, collected during
-        _register_arguments and run by _apply_arguments once the command line has been
-        parsed.
-
-        Holding them as closures is what lets one list carry arguments that write into
-        different targets -- SharedOptions for the shared options, a per-verb options
-        object for the rest. The C# needs this to escape its own generics; Python does
-        not, but the deferral is still what orders the setters correctly.
-        """
 
     def run(self, args: List[str]) -> int:
         """
@@ -180,44 +180,44 @@ class CommandLineApp:
         # -- so the table would be a table of closures that read no better than this.
         if verb == "convert":
             convert_options = ConvertOptions()
-            self._bind_verb(verb, rest, shared_definitions, ArgumentTable.convert(),
-                            shared, convert_options)
+            _bind_verb(verb, rest, shared_definitions, ArgumentTable.convert(),
+                       shared, convert_options)
             _build_name_matcher(shared)
             command: ICommand = ConvertCommand(convert_options)
         elif verb == "extract":
             extract_options = ExtractOptions()
-            self._bind_verb(verb, rest, shared_definitions, ArgumentTable.extract(),
-                            shared, extract_options)
+            _bind_verb(verb, rest, shared_definitions, ArgumentTable.extract(),
+                       shared, extract_options)
             _build_name_matcher(shared)
             _build_subfile_matchers(extract_options)
             command = ExtractCommand(extract_options)
         elif verb == "list":
             list_options = ListOptions()
-            self._bind_verb(verb, rest, shared_definitions, ArgumentTable.list(),
-                            shared, list_options)
+            _bind_verb(verb, rest, shared_definitions, ArgumentTable.list(),
+                       shared, list_options)
             _build_name_matcher(shared)
             command = ListCommand(list_options)
         elif verb == "identify":
             identify_options = IdentifyOptions()
-            self._bind_verb(verb, rest, shared_definitions, ArgumentTable.identify(),
-                            shared, identify_options)
+            _bind_verb(verb, rest, shared_definitions, ArgumentTable.identify(),
+                       shared, identify_options)
             _build_name_matcher(shared)
             command = IdentifyCommand(identify_options)
         elif verb == "meta":
             meta_options = MetaOptions()
-            self._bind_verb(verb, rest, shared_definitions, ArgumentTable.meta(),
-                            shared, meta_options)
+            _bind_verb(verb, rest, shared_definitions, ArgumentTable.meta(),
+                       shared, meta_options)
             _build_name_matcher(shared)
             command = MetaCommand(meta_options)
         elif verb == "formats":
             formats_options = FormatsOptions()
-            self._bind_verb(verb, rest, shared_definitions, ArgumentTable.formats(),
-                            shared, formats_options)
+            _bind_verb(verb, rest, shared_definitions, ArgumentTable.formats(),
+                       shared, formats_options)
             command = FormatsCommand(formats_options)
         elif verb == "options":
             catalog_options = OptionCatalogOptions()
-            self._bind_verb(verb, rest, shared_definitions, ArgumentTable.option_catalog(),
-                            shared, catalog_options)
+            _bind_verb(verb, rest, shared_definitions, ArgumentTable.option_catalog(),
+                       shared, catalog_options)
             command = OptionsCommand(catalog_options)
         else:
             # RuntimeError for the C#'s InvalidOperationException: a programming error in
@@ -226,177 +226,6 @@ class CommandLineApp:
                                "not know it")
 
         return BoundCommandLine(command, shared)
-
-    def _bind_verb(self, command: str, args: List[str],
-                   shared_definitions: List[ArgumentDefinition],
-                   own_definitions: List[ArgumentDefinition],
-                   shared_options: SharedOptions, own_options) -> None:
-        """
-        Binds one processing verb's shared and own arguments, and every positional path,
-        into shared_options and own_options.
-
-        Tokens are validated by hand, against the same descriptors that get registered
-        with argparse, before parse_args ever sees them. The reference does this because
-        two of McMaster's default behaviours do not match this tool's contract closely
-        enough to rely on; the same hand-validation is what lets argparse be used here
-        without inheriting its own answers to the same questions, and it is shared logic
-        rather than a Python workaround.
-        """
-        descriptors = list(shared_definitions) + list(own_definitions)
-        _validate_tokens(command, args, descriptors)
-
-        # The positional paths and the options are separated here rather than by argparse.
-        # Three reasons, each measured against the built C# binary rather than assumed:
-        #
-        #   * argparse cannot collect positionals that are interspersed with options.
-        #     `convert a.pdf --to text b.pdf` binds both paths in the reference -- its plan
-        #     dump reads `inputs a.pdf, b.pdf` -- and a `nargs='*'` positional would drop
-        #     b.pdf. Any tool invoked on a shell glob meets this on the first run.
-        #   * argparse has its own opinion about several tokens _looks_like_option has
-        #     already classified as paths -- it consumes a bare `--` as the end-of-options
-        #     separator, and would read `-ab` as a cluster of short options. The contract
-        #     is _looks_like_option, so a path is what each of them has to stay.
-        #   * A value may itself look like an option -- `--out-file -` means stdout -- and
-        #     normalising every occurrence to one `--long=value` token settles that here
-        #     instead of relying on argparse's own precedence.
-        option_tokens, paths = _partition_tokens(args, descriptors)
-
-        parser = _Parser(prog=command, add_help=False, allow_abbrev=False)
-
-        self._appliers = []
-        self._register_arguments(parser, shared_definitions, shared_options)
-        self._register_arguments(parser, own_definitions, own_options)
-
-        namespace = parser.parse_args(option_tokens)
-
-        self._apply_arguments(namespace)
-        shared_options.input.paths.extend(paths)
-
-    def _register_arguments(self, parser: argparse.ArgumentParser,
-                            definitions: List[ArgumentDefinition], target) -> None:
-        """
-        Registers a table of arguments against an argparse parser, remembering how to
-        write each one into target after parsing.
-
-        This plus _apply_arguments is the entire translation from command line text to the
-        options model. Everything fallible in that translation happens inside the setters,
-        in value_parsers, which is shared with the other three language implementations.
-
-        Every value-taking argument is registered with action='append' regardless of its
-        own arity -- see to_argparse_action -- so _apply_arguments is what actually
-        enforces "one value, last one wins" for SINGLE_VALUE, simply by calling the setter
-        once per occurrence in the order given: a plain assignment setter naturally ends
-        up holding the last one.
-        """
-        for index, definition in enumerate(definitions):
-            forms = definition.template.split('|')
-
-            # An explicit dest, rather than letting argparse derive one from the option
-            # name. Its own rule -- strip the dashes and turn the rest into underscores --
-            # would map --out-dir to out_dir, which reads well right up until a future
-            # argument's long name collides with another's or lands on a Python keyword.
-            # The index is unique by construction and nothing ever reads these names
-            # except the applier built directly below, so their spelling is private.
-            #
-            # id(target) is part of the name because this method is called twice against
-            # one parser, once for the shared table and once for the verb's own, and the
-            # two index ranges overlap.
-            dest = "arg{0}_{1}".format(id(target), index)
-
-            parser.add_argument(*forms, dest=dest, help=definition.description,
-                                **CommandLineApp.to_argparse_action(definition.arity))
-
-            self._appliers.append(_make_applier(definition, dest, target))
-
-    def _apply_arguments(self, namespace: argparse.Namespace) -> None:
-        """
-        Runs the setter for every argument the user actually supplied.
-
-        A NO_VALUE argument calls its setter once with None; a SINGLE_VALUE argument once
-        with the value; a MULTIPLE_VALUE argument once per occurrence, which is how
-        --redact and -p accumulate.
-
-        Two arguments that write the same setting never race: a contradictory pair is
-        rejected by options_validator rather than resolved by precedence. No precedence
-        rule is possible here -- argparse records values per option, not the relative
-        order of different options, and neither do all of McMaster, picocli and CLI11.
-
-        Raises:
-            UsageError: A value failed to parse.
-        """
-        for applier in self._appliers:
-            applier(namespace)
-
-    @staticmethod
-    def to_argparse_action(arity: ArgumentArity) -> Dict[str, object]:
-        """
-        Translates our arity to the argparse keywords that implement it.
-
-        SINGLE_VALUE maps to action='append', not argparse's default of storing one value:
-        argparse's default silently keeps the last occurrence, which happens to be this
-        tool's contract, but collecting every occurrence and letting _apply_arguments
-        replay them in order says so explicitly and is what the other three ports do. The
-        reference has the same line to write for the opposite reason -- McMaster's
-        SingleValue throws if the option is given twice, where this tool's contract says
-        the later one silently wins.
-
-        A dict of keywords rather than the single enum member the C# returns, because
-        argparse spells "takes no value" and "takes values" as different keyword
-        combinations rather than as one value of one type.
-        """
-        if arity == ArgumentArity.NO_VALUE:
-            # default=False, so _make_applier can ask whether the switch was given at all.
-            # store_true also collapses repeats, which is McMaster's HasValue() exactly:
-            # --overwrite --overwrite calls the setter once in both ports.
-            return {'action': 'store_true', 'default': False}
-        if arity in (ArgumentArity.SINGLE_VALUE, ArgumentArity.MULTIPLE_VALUE):
-            return {'action': 'append', 'default': None}
-
-        # The C#'s ArgumentOutOfRangeException. ValueError is Python's equivalent for an
-        # argument whose value is outside the set a function accepts.
-        raise ValueError("unknown arity: " + str(arity))
-
-    def show_help(self, command: Optional[str]) -> None:
-        """Prints top-level usage, or usage for one command."""
-        self._console.write_line(ContractDump.render() if command is None
-                                 else ContractDump.render_command(command))
-
-    def show_version(self) -> None:
-        """Prints the library version and build information."""
-        context = CommandContext()
-        context.shared_options = SharedOptions()
-        context.console = self._console
-        context.file_system = self._file_system
-
-        VersionCommand().execute(context)
-
-
-class _Parser(argparse.ArgumentParser):
-    """
-    An ArgumentParser that reports a problem the way the rest of this tool does.
-
-    Not in the C#, and it exists because argparse's defaults are wrong for a library this
-    tool only wants the mechanical half of. On a parse problem argparse writes usage text
-    to stderr itself and calls sys.exit(2), which would bypass both seams the project is
-    built on: runtime.i_console owns everything the user sees, and program.py owns the
-    mapping from error to exit code. exit() is overridden as well as error(), because
-    argparse calls it directly rather than always going through error().
-
-    Reaching either of these means _validate_tokens and this parser disagreed about the
-    same token, which is a bug in this file rather than anything the user typed -- every
-    rejection the contract defines has already happened by now, and _partition_tokens
-    hands over only tokens it has itself recognised. The code is UNKNOWN_ARGUMENT because
-    that is the nearest of the codes the fixtures pin; a new one is deliberately not
-    added, since ErrorCodes.all_codes is checked against the corpus in both directions
-    and a code no case provokes fails the conformance suite.
-    """
-
-    def error(self, message: str) -> None:
-        raise UsageError(ErrorCodes.UNKNOWN_ARGUMENT, message)
-
-    def exit(self, status: int = 0, message: Optional[str] = None) -> None:
-        raise UsageError(ErrorCodes.UNKNOWN_ARGUMENT,
-                         message if message is not None else "could not parse the command line")
 
 
 def _bind_help(args: List[str]) -> ICommand:
@@ -425,6 +254,31 @@ def _bind_help(args: List[str]) -> ICommand:
             raise UsageError(ErrorCodes.UNKNOWN_ARGUMENT,
                              "unknown argument '" + arg + "'; run 'docfilters help' to list them")
     return HelpCommand(topic, json)
+
+
+def _bind_verb(command: str, args: List[str],
+               shared_definitions: List[ArgumentDefinition],
+               own_definitions: List[ArgumentDefinition],
+               shared_options: SharedOptions, own_options) -> None:
+    """
+    Binds one processing verb's shared and own arguments, and every positional path,
+    into shared_options and own_options.
+
+    Two passes over the same descriptors, as in the reference: _validate_tokens
+    decides whether the line is well formed and says so in this tool's own words, and
+    _partition_tokens then walks a line already known to be good, so every lookup in
+    it succeeds and it has no error path of its own.
+
+    See the class docstring for why neither pass delegates to a parsing library.
+    """
+    descriptors = list(shared_definitions) + list(own_definitions)
+    _validate_tokens(command, args, descriptors)
+
+    values, paths = _partition_tokens(args, descriptors)
+
+    _apply(shared_definitions, shared_options, values)
+    _apply(own_definitions, own_options, values)
+    shared_options.input.paths.extend(paths)
 
 
 def _build_name_matcher(shared: SharedOptions) -> None:
@@ -467,8 +321,13 @@ def _build_subfile_matchers(options: ExtractOptions) -> None:
 def _validate_tokens(command: str, args: List[str],
                      descriptors: List[ArgumentDefinition]) -> None:
     """
-    Rejects an unknown argument, or one missing the value its arity requires, with this
-    tool's own message rather than argparse's.
+    Rejects an unknown argument, or one missing the value its arity requires, in this
+    tool's own words.
+
+    Separate from _partition_tokens so that exactly one of the two has an error path:
+    everything malformed is turned down here, and the walk that follows can assume a good
+    line. The messages are contract, checked byte for byte against plan-corpus.txt in all
+    four implementations.
     """
     by_token = _descriptors_by_token(descriptors)
 
@@ -508,49 +367,14 @@ def _validate_tokens(command: str, args: List[str],
         index += 2
 
 
-def _looks_like_option(token: str) -> bool:
+def _partition_tokens(args: List[str], descriptors: List[ArgumentDefinition]
+                      ) -> Tuple[Dict[ArgumentDefinition, List[str]], List[str]]:
     """
-    True for a token shaped like one of this tool's own options: a single dash plus exactly
-    one character (a short form, e.g. -o), or a double dash plus more than one character (a
-    long form, e.g. --out-dir).
+    Splits the command line into each argument's values and the positional paths.
 
-    Deliberately a grammar check, not "does this look like a plausible filename" -- almost
-    any string, including a mistyped --out-d or an entirely unknown --nonsense, is also a
-    syntactically valid relative path, so that test would accept exactly the malformed
-    arguments this method exists to reject. It also excludes a bare -: that spelling means
-    stdin or stdout, and must still work as a plain value.
-
-    This is the contract. Every token that starts with a dash and lands on False here is a
-    path by this rule. The reference used to hand such tokens to McMaster, which recognises
-    a different set and threw an UnrecognizedCommandParsingException that nothing caught;
-    it now partitions the paths out first, as this port always has, so the two agree.
-    """
-    if len(token) < 2 or token[0] != '-':
-        return False
-
-    if token[1] == '-':
-        return len(token) > 2 and token[2] != '-'
-
-    # char.IsAsciiLetterOrDigit, spelled out. Deliberately not str.isalnum, which is true
-    # for every decimal digit and letter in Unicode -- '-²' and '-٠' would both
-    # become options, and the reference would read them as paths.
-    character = token[1]
-    return len(token) == 2 and (('a' <= character <= 'z')
-                                or ('A' <= character <= 'Z')
-                                or ('0' <= character <= '9'))
-
-
-def _partition_tokens(args: List[str],
-                      descriptors: List[ArgumentDefinition]) -> Tuple[List[str], List[str]]:
-    """
-    Splits the command line into the option tokens argparse is given and the positional
-    paths it never sees.
-
-    The C# has the same method (PartitionTokens), for the same reason: McMaster misreads
-    -tsv, -- and ---weird, which are paths by _looks_like_option. Python's version also
-    normalises each option to one token, because argparse cannot collect interspersed
-    positionals and has its own precedence for values that look like options. See
-    _bind_verb.
+    The whole of what a parsing library used to do here, and the reason none is imported:
+    match a token to a row of the table, take its value from the token itself after an =
+    or a : or else from the token after it, and put everything else in the path list.
 
     Walks by the same rules as _validate_tokens, which has already run and has already
     rejected everything malformed -- so every lookup here is known to succeed, and the
@@ -559,13 +383,18 @@ def _partition_tokens(args: List[str],
     _validate_tokens stays a line-for-line port of the reference's own method, with the
     reference's own control flow, and this stays separable from it.
 
-    Every option occurrence is normalised to a single token: --long=value for anything that
-    takes a value, and the option's own spelling for a switch. The long form is used
-    because argparse reads -p=secret as the value "=secret", where --password=secret is
-    unambiguous; a switch keeps its own spelling because -x has no long form to use.
+    **The reference keys a Dictionary by the descriptor object**, which in C# is reference
+    equality for a class that does not override Equals. A dict keyed by the definition is
+    the same thing here: ArgumentDefinition defines neither __eq__ nor __hash__, so it
+    hashes by identity. Two definitions that happened to be spelled identically would
+    still be two keys, which is what the Java port spells out with an IdentityHashMap.
+
+    A switch is recorded with an empty list rather than being skipped: the entry is what
+    says it was given at all, and _apply reads presence, not count. Dropping it would make
+    --silent indistinguishable from an absent one.
     """
     by_token = _descriptors_by_token(descriptors)
-    option_tokens: List[str] = []
+    values: Dict[ArgumentDefinition, List[str]] = {}
     paths: List[str] = []
 
     index = 0
@@ -579,34 +408,22 @@ def _partition_tokens(args: List[str],
             continue
 
         descriptor = by_token[name]
-        if descriptor.arity == ArgumentArity.NO_VALUE:
-            if separator >= 0:
-                # --overwrite=true, which _validate_tokens waves through: it stops looking
-                # once a token carries its own value, whatever the arity says. The
-                # reference then hands it to McMaster, which throws a
-                # CommandParsingException that nothing catches -- the built binary exits
-                # 127 with a .NET stack trace. That is not a contract anyone wrote down,
-                # no fixture covers it, and reproducing a crash is not parity worth
-                # having, so it is reported as the usage error it is. Raised against the
-                # reference; once it agrees, this comment is what says why it ever
-                # differed. BAD_VALUE rather than a new code, because ErrorCodes.all_codes
-                # is checked against the corpus in both directions.
-                raise UsageError(ErrorCodes.BAD_VALUE,
-                                 "--" + descriptor.long_name + " does not take a value")
+        given = values.setdefault(descriptor, [])
 
-            option_tokens.append(name)
+        if descriptor.arity == ArgumentArity.NO_VALUE:
             index += 1
             continue
 
         if separator >= 0:
-            option_tokens.append("--" + descriptor.long_name + "=" + token[separator + 1:])
+            # the value is in the token itself
+            given.append(token[separator + 1:])
             index += 1
             continue
 
-        option_tokens.append("--" + descriptor.long_name + "=" + args[index + 1])
+        given.append(args[index + 1])
         index += 2
 
-    return option_tokens, paths
+    return values, paths
 
 
 def _descriptors_by_token(descriptors: List[ArgumentDefinition]) -> Dict[str, ArgumentDefinition]:
@@ -632,6 +449,73 @@ def _descriptors_by_token(descriptors: List[ArgumentDefinition]) -> Dict[str, Ar
     return by_token
 
 
+def _looks_like_option(token: str) -> bool:
+    """
+    True for a token shaped like one of this tool's own options: a single dash plus exactly
+    one character (a short form, e.g. -o), or a double dash plus more than one character (a
+    long form, e.g. --out-dir).
+
+    Deliberately a grammar check, not "does this look like a plausible filename" -- almost
+    any string, including a mistyped --out-d or an entirely unknown --nonsense, is also a
+    syntactically valid relative path, so that test would accept exactly the malformed
+    arguments this method exists to reject. It also excludes a bare -: that spelling means
+    stdin or stdout, and must still work as a plain value.
+
+    This is the contract. Every token that starts with a dash and lands on False here is a
+    path by this rule, in all four implementations.
+    """
+    if len(token) < 2 or token[0] != '-':
+        return False
+
+    if token[1] == '-':
+        return len(token) > 2 and token[2] != '-'
+
+    # char.IsAsciiLetterOrDigit, spelled out. Deliberately not str.isalnum, which is true
+    # for every decimal digit and letter in Unicode -- '-²' and '-٠' would both
+    # become options, and the reference would read them as paths.
+    character = token[1]
+    return len(token) == 2 and (('a' <= character <= 'z')
+                                or ('A' <= character <= 'Z')
+                                or ('0' <= character <= '9'))
+
+
+def _apply(definitions: List[ArgumentDefinition], target,
+           values: Dict[ArgumentDefinition, List[str]]) -> None:
+    """
+    Runs the setter for every argument the user actually supplied, writing into target.
+
+    This plus _partition_tokens is the entire translation from command line text to the
+    options model. Everything fallible in that translation happens inside the setters, in
+    value_parsers, which is shared with the other three language implementations.
+
+    A NO_VALUE argument calls its setter once with None; a SINGLE_VALUE argument once with
+    the value; a MULTIPLE_VALUE argument once per occurrence, which is how --redact and -p
+    accumulate.
+
+    A module-level function, where the reference has a private method. It needs nothing
+    from the instance, and the reference's own equivalent is static for the same reason;
+    C# simply has no place to put a free function.
+
+    No closure is built per argument, which removes the one trap this file used to carry:
+    a lambda written inside `for definition in definitions` captures the variable rather
+    than its value, so every deferred applier would have set whichever definition the loop
+    finished on. The factory function that worked around it is gone with the deferral.
+
+    Raises:
+        UsageError: A value failed to parse.
+    """
+    for definition in definitions:
+        given = values.get(definition)
+        if given is None:
+            continue
+
+        if definition.arity == ArgumentArity.NO_VALUE:
+            definition.setter(target, None)
+        else:
+            for value in given:
+                definition.setter(target, value)
+
+
 def _index_of_any(token: str, characters: str) -> int:
     """
     The position of the first of characters in token, or -1.
@@ -646,30 +530,3 @@ def _index_of_any(token: str, characters: str) -> int:
     return -1
 
 
-def _make_applier(definition: ArgumentDefinition, dest: str,
-                  target) -> Callable[[argparse.Namespace], None]:
-    """
-    Builds the deferred setter call for one argument.
-
-    A factory rather than a closure written inline in the registration loop, which is the
-    one thing this file could not port literally. A Python closure captures the variable
-    and not its value, so a lambda built inside `for definition in definitions` would see
-    whichever definition the loop finished on -- every applier would set the last
-    argument, and every other argument on the command line would be silently ignored. C#
-    has no such trap: its foreach variable is a fresh binding each iteration. Passing the
-    three values as arguments to a function is what gives each applier its own.
-    """
-    def apply(namespace: argparse.Namespace) -> None:
-        values = getattr(namespace, dest)
-
-        if definition.arity == ArgumentArity.NO_VALUE:
-            # values is the store_true flag here, so this is McMaster's HasValue().
-            if values:
-                definition.setter(target, None)
-        elif values is not None:
-            # `is not None` rather than truthiness: an append action leaves None when the
-            # option never appeared, and a list is the only other thing it can hold.
-            for value in values:
-                definition.setter(target, value)
-
-    return apply

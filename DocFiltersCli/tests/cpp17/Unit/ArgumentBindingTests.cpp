@@ -830,8 +830,8 @@ TEST_CASE("an unknown argument is a usage error", "[ArgumentBinding]")
 
 TEST_CASE("prefix abbreviation does not resolve", "[ArgumentBinding]")
 {
-	// Some parsing libraries allow this by default and the other ports do
-	// not, so it is rejected by hand validation before CLI11 ever sees it.
+	// --out-d must not resolve to --out-dir. Prefix abbreviation is a common
+	// parsing-library default, and none of the four allows it.
 	CHECK_THROWS_AS(bind({ "convert", "--to", "text", "--out-d", "out", "a.docx" }), UsageError);
 }
 
@@ -843,8 +843,8 @@ TEST_CASE("an argument from another verb is rejected", "[ArgumentBinding]")
 
 TEST_CASE("a bad value is reported by us and not by the parsing library", "[ArgumentBinding]")
 {
-	// The error code proves the message came from ValueParsers rather than
-	// CLI11, which is what keeps stderr identical across the four ports.
+	// The error code proves the message came from ValueParsers, which is what
+	// keeps stderr identical across the four ports.
 	try
 	{
 		bind({ "convert", "--to", "text", "--max-depth", "abc", "-o", "out", "a.docx" });

@@ -21,7 +21,14 @@ package com.hyland.documentfilters.cli.cli;
  */
 public interface IArgumentDescriptor
 {
-	/** McMaster-style template, e.g. {@code -o|--out-dir}. */
+	/**
+	 * Every spelling of the argument, pipe-separated, e.g. {@code -o|--out-dir}.
+	 *
+	 * <p>The shape is McMaster's, which this tool was once built on, and is kept
+	 * because the four implementations spell their tables identically and it is the one
+	 * string a reader can compare against {@code arguments.txt} by eye. It is now read
+	 * only here, to derive {@link #getLongName} and {@link #getShortName}.
+	 */
 	String getTemplate();
 
 	/** Help text. */

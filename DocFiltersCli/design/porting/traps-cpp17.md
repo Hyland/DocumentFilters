@@ -36,6 +36,31 @@ object.
 assume the C# you are translating says nothing about lifetime because it does
 not have to. See the comment on `SystemConsole::_options`.
 
+### A C# `Dictionary` keyed by an object is keyed by its address
+
+**C#** `Dictionary<IArgumentDescriptor, List<string>>` with a key type that
+overrides neither `Equals` nor `GetHashCode` compares keys by reference, and
+the reference reads naturally as "keyed by the argument". **C++17** there is no
+equivalent default: `std::unordered_map` needs a hashable key, and an
+`IArgumentDescriptor` has no hash.
+
+`partitionTokens` uses `std::unordered_map<const IArgumentDescriptor*,
+std::vector<std::string>>`. The pointer is the C# reference spelled for C++,
+and it is correct only because every descriptor outlives the map --- they are
+the `ArgumentDefinition` objects `bindVerb`'s caller holds, and the map dies
+first. Both the key and the lookup are an implicit upcast from
+`ArgumentDefinition<T>*`, which may adjust the address but adjusts it the same
+way at both sites, so the two agree. Keying by `longName()` instead would read better and be wrong in a way
+nothing would catch: two definitions may be spelled identically in different
+tables, and the whole point of the map is that `apply` finds *its own*
+definition's values.
+
+**Rule** When the reference keys a container by an object, key by address, and
+say in a comment why the addresses are stable. See `partitionTokens` in
+`src/Cli/CommandLineApp.cpp`. The Java port spells the same thing as an
+`IdentityHashMap`; Python gets it for free, since a class defining no `__eq__`
+hashes by identity.
+
 ### Destruction happens at the end of the scope, not after the last use
 
 **C#** `using var x = ...` disposes at the end of the enclosing block, same as
@@ -292,6 +317,48 @@ permitted --- no allocation, no locks, no iostreams.
 (`Runtime::Interruption`). See the non-traps below for what *is* allowed.
 
 ---
+
+## Declaration order
+
+### A definition must precede its use; the reference's order does not
+
+**C#** members may appear in any order; the compiler reads the whole type
+first. **C++17** a name must be declared before it is used, so a file written
+in the reference's order will not compile: `bindVerb` is the fourth member and
+calls `validateTokens`, which is the seventh.
+
+Written the obvious way, the file comes out callee-first --- `looksLikeOption`
+at the top, `bindVerb` near the bottom, `CommandLineApp::run` last of all ---
+which is close to the reverse of the reference. That is how every `.cpp` in
+this port reads, `src/Cli/CommandLineApp.cpp` included.
+
+Forward-declaring the helpers at the top of the anonymous namespace, so that
+the definitions can follow the reference's order with `run` and `bind` first,
+was tried and reverted. Two reasons, and the second is the one that decided
+it:
+
+- It duplicates nine signatures in the file that is diffed across languages
+  more than any other. They disagree loudly if they drift --- change one and
+  the other becomes a second overload, so the call fails to resolve or the
+  definition is reported unused --- but it is still a second place to edit.
+- It fixes one file. `src/Configuration/OptionsValidator.cpp` has the same 25
+  members as the reference and nothing like its order: the `check*` helpers
+  fill the anonymous namespace and the three `validate*` entry points sit
+  underneath them. Every other file with file-local helpers is the same.
+  Buying exact order in `Cli/` leaves the port with two conventions and no
+  way to tell which a given file follows.
+
+**Rule** Define file-local helpers callee-first and let the order differ from
+the reference. Match the reference on *names* and on *which* members exist,
+and look them up rather than reading top to bottom. Do not add a
+forward-declaration block to restore the order; if a future change makes
+exact order worth having, it has to be worth having in every file at once.
+
+Nothing checks any of this. `compare_inventory.py` compares *test* names
+across the four suites; no ring looks at source member names at all, so a
+helper quietly renamed or dropped in this port is invisible to the build.
+That is the gap to close if source parity is ever worth enforcing --- and it
+would be a names check, not an order one.
 
 ## Toolchain
 

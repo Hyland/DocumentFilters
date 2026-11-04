@@ -25,12 +25,11 @@ languages:
     role: reference
     source: DocFiltersCli/csharp
     tests: DocFiltersCli/tests/csharp
-    # Paths outside the port that are inputs to its build. The C# project
-    # reaches into samples/ for the shared sample helpers and the license
-    # stub; all four read VERSION.txt.
+    # Paths outside the port that are inputs to its build. The C# project used
+    # to reach into samples/csharp/DfSamplesCommon for its packages and the
+    # license stub, and now declares the Document Filters packages itself, so
+    # nothing under samples/ is an input any more. All four read VERSION.txt.
     extra_paths:
-      - samples/csharp/DfSamplesCommon/**
-      - samples/csharp/DocumentFiltersLicense.cs
       - DocFiltersCli/VERSION.txt
       - DocFiltersCli/Directory.Build.props
     build: dotnet build DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj --configuration Release

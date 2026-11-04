@@ -31,8 +31,6 @@
 #include "Runtime/CliError.h"
 #include "Runtime/ExitCode.h"
 
-#include <CLI/CLI.hpp>
-
 #include <algorithm>
 #include <functional>
 #include <memory>
@@ -101,7 +99,7 @@ namespace Hyland
 
 					/// <summary>
 					/// Rejects an unknown argument, or one missing the value its arity
-					/// requires, with this tool's own message rather than CLI11's.
+					/// requires, in this tool's own words.
 					/// </summary>
 					void validateTokens(const std::string& command, const std::vector<std::string>& args,
 						const std::vector<const IArgumentDescriptor*>& descriptors)
@@ -151,10 +149,15 @@ namespace Hyland
 					}
 
 					/// <summary>
-					/// Splits the command line into the tokens CLI11 is to parse and the
-					/// positional paths it must never see.
+					/// Splits the command line into each argument's values and the
+					/// positional paths.
 					/// </summary>
 					/// <remarks>
+					/// The whole of what a parsing library used to do here, and the reason none
+					/// is needed: match a token to a row of the table, take its value from the
+					/// token itself after an <c>=</c> or a <c>:</c> or else from the token after
+					/// it, and put everything else in the path list.
+					///
 					/// Walks by the same rules as <see cref="validateTokens"/>, which has
 					/// already run and rejected everything malformed --- so the lookup below
 					/// is known to succeed, and anything <see cref="looksLikeOption"/> turns
@@ -163,9 +166,21 @@ namespace Hyland
 					/// (<c>--out-file -</c>); what follows a value-taking option is its value
 					/// either way. Paths keep their positions relative to each other, which
 					/// <c>--combine</c> depends on.
+					///
+					/// The map is keyed by descriptor address, not by name. **The reference
+					/// keys a Dictionary by the descriptor object**, which in C# is reference
+					/// equality for a class that does not override Equals; the pointer is the
+					/// same thing spelled for C++. Every descriptor outlives the call --- they
+					/// are the ArgumentDefinition objects the caller holds --- so the address
+					/// is stable for as long as the map is.
+					///
+					/// A switch is recorded with an empty vector rather than being skipped:
+					/// the entry is what says it was given at all, and <see cref="apply"/>
+					/// reads presence, not count.
 					/// </remarks>
 					void partitionTokens(const std::vector<std::string>& args,
-						const std::vector<const IArgumentDescriptor*>& descriptors, std::vector<std::string>& optionTokens,
+						const std::vector<const IArgumentDescriptor*>& descriptors,
+						std::unordered_map<const IArgumentDescriptor*, std::vector<std::string>>& values,
 						std::vector<std::string>& paths)
 					{
 						std::unordered_map<std::string, const IArgumentDescriptor*> byToken = descriptorsByToken(descriptors);
@@ -183,111 +198,58 @@ namespace Hyland
 								continue;
 							}
 
-							const IArgumentDescriptor& descriptor = *byToken.at(name);
-							optionTokens.push_back(token);
+							const IArgumentDescriptor* descriptor = byToken.at(name);
+							std::vector<std::string>& given = values[descriptor];
 
-							if (descriptor.arity() == ArgumentArity::NoValue || kvSeparator != std::string::npos)
-							{ // we don't need a value or we already have one in the token itself
+							if (descriptor->arity() == ArgumentArity::NoValue)
+							{
 								i += 1;
 								continue;
 							}
 
-							optionTokens.push_back(args[i + 1]);
+							if (kvSeparator != std::string::npos)
+							{ // the value is in the token itself
+								given.push_back(token.substr(kvSeparator + 1));
+								i += 1;
+								continue;
+							}
+
+							given.push_back(args[i + 1]);
 							i += 2;
 						}
 					}
 
 					/// <summary>
-					/// Splits every <c>name=value</c> or <c>name:value</c> token into two,
-					/// so CLI11 --- which only understands <c>=</c> on a long option, and
-					/// nothing on a short one --- sees the same "name, then its value" shape
-					/// this tool accepts either way.
-					/// </summary>
-					std::vector<std::string> normalizeForCli11(const std::vector<std::string>& args)
-					{
-						std::vector<std::string> result;
-						for (const std::string& token : args)
-						{
-							size_t separator = token.find_first_of("=:");
-							std::string name = separator == std::string::npos ? token : token.substr(0, separator);
-
-							if (separator == std::string::npos || !looksLikeOption(name))
-							{
-								result.push_back(token);
-								continue;
-							}
-
-							result.push_back(name);
-							result.push_back(token.substr(separator + 1));
-						}
-						return result;
-					}
-
-					/// <summary>McMaster's <c>-o|--out-dir</c> template, spelled the way CLI11 expects: <c>-o,--out-dir</c>.</summary>
-					std::string toCli11Names(const std::string& templateSpec)
-					{
-						std::string result = templateSpec;
-						std::replace(result.begin(), result.end(), '|', ',');
-						return result;
-					}
-
-					/// <summary>
-					/// Registers a table of arguments against a CLI11 command, remembering how
-					/// to write each one into <paramref name="target"/> once parsing finishes.
+					/// Runs the setter for every argument the user actually supplied, writing
+					/// into <paramref name="target"/>.
 					/// </summary>
 					/// <remarks>
-					/// Every value-taking argument is registered to accept any number of
-					/// occurrences, regardless of its own <see cref="ArgumentArity"/> --- the
-					/// same trick <c>CommandLineApp.cs</c> plays on McMaster's
-					/// <c>CommandOptionType</c> --- so that replaying the collected values in
-					/// occurrence order is what actually enforces "one value, last one wins"
-					/// for <see cref="ArgumentArity::SingleValue"/>: a plain assignment setter
-					/// naturally ends up holding the last one.
+					/// This plus <see cref="partitionTokens"/> is the entire translation from
+					/// command line text to the options model. Everything fallible in that
+					/// translation happens inside the setters, in <c>ValueParsers</c>, which
+					/// is shared with the other three language implementations.
 					///
-					/// Deferred into <paramref name="appliers"/> rather than applied from
-					/// inside CLI11's own callback: this is what lets every argument's setter
-					/// run in this table's registration order rather than in whatever order
-					/// CLI11 happens to fire callbacks, matching the C# reference exactly.
+					/// Setters run in this table's order, which is what the loop below is: not
+					/// the order the arguments were typed in, and it does not need to be.
+					///
+					/// "One value, last one wins" for <see cref="ArgumentArity::SingleValue"/>
+					/// falls out of calling a plain assignment setter once per occurrence.
 					/// </remarks>
 					template <typename T>
-					void registerArguments(::CLI::App& app, const std::vector<ArgumentDefinition<T>>& definitions, T& target,
-						std::vector<std::function<void()>>& appliers)
+					void apply(const std::vector<ArgumentDefinition<T>>& definitions, T& target,
+						const std::unordered_map<const IArgumentDescriptor*, std::vector<std::string>>& values)
 					{
 						for (const ArgumentDefinition<T>& definition : definitions)
 						{
-							std::string names = toCli11Names(definition.templateText());
+							auto found = values.find(&definition);
+							if (found == values.end())
+								continue;
 
 							if (definition.arity() == ArgumentArity::NoValue)
-							{
-								auto given = std::make_shared<bool>(false);
-								app.add_flag_function(
-									names, [given](std::int64_t count) { *given = count > 0; }, definition.description());
-
-								appliers.push_back([&target, &definition, given]()
-									{
-										if (*given)
-											definition.setter()(target, std::nullopt);
-									});
-							}
+								definition.setter()(target, std::nullopt);
 							else
-							{
-								auto values = std::make_shared<std::vector<std::string>>();
-								::CLI::callback_t callback = [values](const ::CLI::results_t& res)
-								{
-									for (const std::string& value : res)
-										values->push_back(value);
-									return true;
-								};
-
-								::CLI::Option* option = app.add_option(names, callback, definition.description(), false);
-								option->multi_option_policy(::CLI::MultiOptionPolicy::TakeAll);
-
-								appliers.push_back([&target, &definition, values]()
-									{
-										for (const std::string& value : *values)
-											definition.setter()(target, value);
-									});
-							}
+								for (const std::string& value : found->second)
+									definition.setter()(target, value);
 						}
 					}
 
@@ -327,9 +289,10 @@ namespace Hyland
 					/// <paramref name="ownOptions"/>.
 					/// </summary>
 					/// <remarks>
-					/// Tokens are validated by hand, against the same descriptors that get
-					/// registered with CLI11, before <c>CLI::App::parse</c> ever sees them ---
-					/// see <see cref="validateTokens"/>.
+					/// Two passes over the same descriptors: <see cref="validateTokens"/>
+					/// decides whether the line is well formed and says so in this tool's own
+					/// words, and <see cref="partitionTokens"/> then walks a line already
+					/// known to be good.
 					/// </remarks>
 					template <typename TOptions>
 					void bindVerb(const std::string& command, const std::vector<std::string>& args,
@@ -345,28 +308,12 @@ namespace Hyland
 
 						validateTokens(command, args, descriptors);
 
-						// The paths are taken out here rather than registered as a CLI11
-						// positional, so that CLI11 never has to decide which tokens are
-						// paths: looksLikeOption is the contract, and by it "-tsv", "--" and
-						// "---weird" are paths, which CLI11 would read as a short-option
-						// cluster, the end-of-options separator and a long option. Handing it
-						// only the tokens this tool calls options leaves nothing to disagree
-						// about --- the same split the C# reference now makes for McMaster.
-						std::vector<std::string> optionTokens;
+						std::unordered_map<const IArgumentDescriptor*, std::vector<std::string>> values;
 						std::vector<std::string> paths;
-						partitionTokens(args, descriptors, optionTokens, paths);
+						partitionTokens(args, descriptors, values, paths);
 
-						::CLI::App app{command};
-						std::vector<std::function<void()>> appliers;
-						registerArguments(app, sharedDefinitions, sharedOptions, appliers);
-						registerArguments(app, ownDefinitions, ownOptions, appliers);
-
-						std::vector<std::string> reversed = normalizeForCli11(optionTokens);
-						std::reverse(reversed.begin(), reversed.end()); // CLI::App::parse's vector overload consumes from the back
-						app.parse(reversed);
-
-						for (const std::function<void()>& applier : appliers)
-							applier();
+						apply(sharedDefinitions, sharedOptions, values);
+						apply(ownDefinitions, ownOptions, values);
 
 						for (const std::string& path : paths)
 							sharedOptions.input.paths.push_back(path);
@@ -410,6 +357,7 @@ namespace Hyland
 
 						return std::make_unique<Commands::HelpCommand>(topic, json);
 					}
+
 				}
 
 				int CommandLineApp::run(const std::vector<std::string>& args)

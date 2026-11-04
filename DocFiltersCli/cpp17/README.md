@@ -53,8 +53,10 @@ if ($user -notlike "*$bin*") {
 
 Restart the editor afterwards so it inherits the change.
 
-Fetches CLI11 v2.4.2 via CMake's `FetchContent` and links against
-`bindings/cpp17`.
+Links against `bindings/cpp17`, and nothing else. There is no `FetchContent`
+here: this port used to fetch CLI11 v2.4.2 and hand it the option tokens, and
+now binds argv itself in `src/Cli/CommandLineApp.cpp`, as all four
+implementations do.
 
 ```bash
 cmake -S cpp17 -B cpp17/build

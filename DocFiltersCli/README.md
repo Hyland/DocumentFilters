@@ -289,23 +289,26 @@ bug it guards. They are worth reading before adding one: every bug they cover
 shipped green, and every one would still pass a check that only asserted "exit 0
 and the file exists".
 
-**No new dependencies.** Each implementation uses only what the published
-samples in its own language already use: for C#, Document Filters and
-`McMaster.Extensions.CommandLineUtils`, both via `DfSamplesCommon`; for C++17,
-Document Filters and CLI11, which `samples/cpp17` already fetches at the same
-version. Both wrap that parser behind the same hand-written argument table, so
-the library is an implementation detail of one folder rather than a shape the
-rest of the code takes. xUnit and Catch2 are test-only and are never restored by
-anyone running the sample; the end-to-end script needs nothing beyond Python
-itself.
+**No new dependencies, and one fewer than there were.** Each implementation
+uses only what the published samples in its own language already use, and none
+of the four has an argument-parsing library. All four once did: C# on
+`McMaster.Extensions.CommandLineUtils`, C++17 on CLI11, Python on `argparse`,
+each wrapped behind the same hand-written argument table. The four parsers
+disagreed about which tokens are options, what a repeated option means and what
+an unknown argument costs, so every one of those decisions had already moved
+into shared code --- leaving each library holding only the match from a token to
+a row of the table, which is twenty lines to write. So C# depends on Document
+Filters alone, and C++17 on Document Filters alone. xUnit and Catch2 are
+test-only and are never restored by anyone running the sample; the end-to-end
+script needs nothing beyond Python itself.
 
 The same rule applied again in [`python/`](./python): the published binding, and
-`argparse` and `unittest` from the standard library. Nothing from PyPI.
+`unittest` from the standard library. Nothing from PyPI.
 
-And again in [`java/`](./java), which goes further because it has to: the
-published samples in `samples/java` bring in no parsing library, so this port
-has none either and binds its arguments with the same hand-written table the
-others wrap theirs in. Its only dependency is the binding jar already vendored
+And again in [`java/`](./java), which never had a parser to lose: the published
+samples in `samples/java` bring in none, so this port was written against the
+hand-written table from the start --- and it is the shape the other three
+converged on. Its only dependency is the binding jar already vendored
 at `bindings/java/lib`, and its suite is a ~200-line runner on the JDK alone
 rather than JUnit. The build is Gradle through the wrapper, at the same
 version `samples/java` already pins.

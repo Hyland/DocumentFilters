@@ -252,10 +252,13 @@ entries.
 
 Recorded here because each has been mistaken for drift at least once.
 
-- **`--help` layout.** Rendered by `McMaster.Extensions.CommandLineUtils`, and
-  each port's parser formats usage its own way. `tests/conformance/README.md`
-  excludes it. `help --json` *is* compared, because it renders from the shared
-  argument table instead.
+- **`--help` layout.** Excluded by `tests/conformance/README.md` from when each
+  implementation's parsing library rendered usage its own way. None of the four
+  has a parsing library now, so the layout is this tool's own and the same
+  everywhere, but it is still not contract: help text is the one surface a
+  reader is expected to improve, and pinning it byte for byte would make a
+  reworded line a four-implementation change. `help --json` *is* compared,
+  because it renders from the shared argument table instead.
 - **`--time`, `--progress`, `--logmem`, `-x`, `--debug-measure-io`.** Figures
   that differ every run, or that measure the implementation rather than the
   contract. `Recorder.NOT_COMPARED` in `tests/e2e/end2end.py` lists them with

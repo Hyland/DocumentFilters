@@ -168,11 +168,11 @@ public final class ArgumentBindingTests
 	}
 
 	// A token that starts with a dash but is not one of this tool's own option
-	// spellings is a path. looksLikeOption is the whole rule. The reference reaches
-	// it through McMaster, which reads these shapes as a cluster of short options,
-	// the end-of-options separator and a long option, and used to throw on them; this
-	// port has no such parser to disagree with, so the test pins the rule rather than
-	// a fix. Reported from the field against 1.0.0-prerelease.1 as `-tsv`.
+	// spellings is a path. looksLikeOption is the whole rule, and these four shapes
+	// are the ones a parsing library reads differently: a cluster of short options,
+	// the end-of-options separator, a long option, and a long option whose name
+	// begins with a dash. The reference once exited with a .NET stack trace on them.
+	// Reported from the field against 1.0.0-prerelease.1 as `-tsv`.
 	//
 	// Deviation: the reference's [Theory] with five [InlineData] rows is one test
 	// here that loops over the same five tokens, because the JDK-only runner has no

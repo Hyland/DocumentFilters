@@ -38,15 +38,11 @@ else()
 endif()
 set(CMAKE_INSTALL_RPATH "${DOCFILTERSCLI_RPATH}")
 
-# Same CLI-parsing library the published C++17 samples already use (samples/cpp17/
-# CMakeLists.txt), fetched the same way --- see DF-3104's no-new-dependencies
-# constraint. No new dependency for the tool itself is introduced here.
-include(FetchContent)
-FetchContent_Declare(CLI11
-  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-  GIT_TAG        v2.4.2
-)
-FetchContent_MakeAvailable(CLI11)
+# No CLI-parsing library. This port used to fetch CLI11 v2.4.2, the one the
+# published C++17 samples use, and hand it the option tokens; it now binds argv
+# itself, in src/Cli/CommandLineApp.cpp, as all four implementations do. The
+# tool's only dependency is Document Filters, so there is no FetchContent here
+# and nothing to download to build it beyond the engine itself.
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../../bindings/cpp17 bindings)
 
@@ -111,7 +107,7 @@ add_library(docfilters_lib STATIC ${DOCFILTERSCLI_SOURCES})
 target_include_directories(docfilters_lib PUBLIC src)
 target_compile_features(docfilters_lib PUBLIC cxx_std_17)
 target_compile_definitions(docfilters_lib PRIVATE DOCFILTERSCLI_VERSION="${DOCFILTERSCLI_VERSION}")
-target_link_libraries(docfilters_lib PUBLIC DocumentFilters::Cpp17 CLI11::CLI11)
+target_link_libraries(docfilters_lib PUBLIC DocumentFilters::Cpp17)
 
 # ---------------------------------------------------------------------------
 #  docfilters --- the shipped executable.
@@ -123,7 +119,3 @@ target_link_libraries(docfilters PRIVATE docfilters_lib)
 # than CMake's build rpath, which would also name the absolute directory the
 # libraries were linked from on the build machine.
 set_target_properties(docfilters PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
-
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18")
-  set_target_properties(CLI11 PROPERTIES FOLDER "Third-Party")
-endif()

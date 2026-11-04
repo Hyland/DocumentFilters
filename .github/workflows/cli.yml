@@ -128,15 +128,15 @@ jobs:
           filters: |
             # Each language's own source and tests, plus every path that is an
             # input to its build. Those dependency edges are the part that is
-            # easy to miss: the C# project reaches outside DocFiltersCli/ for
-            # its packages, and the C++ project reaches outside it for the
-            # Document Filters binding.
+            # easy to miss: the C++ project reaches outside DocFiltersCli/ for
+            # the Document Filters binding. The C# project no longer reaches
+            # outside it at all --- it used to build against
+            # samples/csharp/DfSamplesCommon, and now declares its packages
+            # itself.
             csharp:
               - 'DocFiltersCli/csharp/**'
               - 'DocFiltersCli/tests/csharp/**'
               - 'DocFiltersCli/tests/conformance/**'
-              - 'samples/csharp/DfSamplesCommon/**'
-              - 'samples/csharp/DocumentFiltersLicense.cs'
               # The CLI's own version, read by the build.
               - 'DocFiltersCli/VERSION.txt'
               - 'DocFiltersCli/Directory.Build.props'
@@ -249,9 +249,8 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      # Both versions on purpose. The projects target net8.0 today and move to
-      # net10.0 when DfSamplesCommon is multi-targeted; installing both means
-      # that change does not also have to be a CI change.
+      # Both versions on purpose. The projects target net8.0 today; installing
+      # both means a move to net10.0 does not also have to be a CI change.
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: |
@@ -266,7 +265,7 @@ jobs:
           # **/*.csproj --- the repository holds a csproj per sample, and
           # hashing all of them would throw the cache away whenever an
           # unrelated sample changed.
-          key: nuget-${{ runner.os }}-${{ hashFiles('DocFiltersCli/csharp/DocFiltersCli.csproj', 'DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj', 'samples/csharp/DfSamplesCommon/DfSamplesCommon.csproj') }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('DocFiltersCli/csharp/DocFiltersCli.csproj', 'DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
       # The test project rather than DocFiltersCli.slnx, deliberately.
@@ -276,9 +275,8 @@ jobs:
       # unrecognized", which is what a contributor with only the net8.0 the
       # projects actually target would hit. Targeting the test project keeps
       # CI working on any SDK the code supports, and loses nothing: its
-      # ProjectReference chain builds DocFiltersCli and DfSamplesCommon too,
-      # so the shipped tool is still compiled and the solution file's contents
-      # are still covered.
+      # ProjectReference chain builds DocFiltersCli too, so the shipped tool
+      # is still compiled and the solution file's contents are still covered.
       - name: Restore
         run: dotnet restore DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj
 
@@ -361,8 +359,9 @@ jobs:
       #
       # samples/DF_VERSION.txt is the answer rather than an authenticated
       # lookup because it is the version the rest of the repository already
-      # builds against: samples/csharp/DfSamplesCommon/DfSamplesCommon.csproj
-      # pins every Hyland.DocumentFilters package to it. Resolving "latest"
+      # builds against: DocFiltersCli/csharp/DocFiltersCli.csproj and
+      # samples/csharp/DfSamplesCommon/DfSamplesCommon.csproj each pin every
+      # Hyland.DocumentFilters package to it. Resolving "latest"
       # here would have left C++ on a different engine from C#, which is
       # unsound the moment the two are compared against each other.
       #
@@ -815,7 +814,7 @@ jobs:
   # One archive per runtime identifier, not one per operating system.
   #
   # Without `-r`, a framework-dependent publish copies every `runtimes/<rid>/`
-  # the graph offers --- and DfSamplesCommon references the Windows, Linux and
+  # the graph offers --- and the project references the Windows, Linux and
   # macOS packages unconditionally, so each archive held six platforms: 1143
   # MB under a name claiming one of them. `-r` resolves the natives at publish
   # time instead and `runtimes/` disappears: 246 MB for win-x64.
@@ -826,8 +825,8 @@ jobs:
   # `-macOS` cannot tell an Intel Mac from an Apple Silicon one, and both ship.
   #
   # The unconditional references cover Windows, Linux and macOS; arm64 comes
-  # from references DfSamplesCommon holds under a RuntimeIdentifier condition,
-  # so naming the RID is what brings it in. Not derived from
+  # from references the project holds under a RuntimeIdentifier condition, so
+  # naming the RID is what brings it in. Not derived from
   # `os_matrix`, which answers a different question --- which runners the
   # suites are tested on.
   #

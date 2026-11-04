@@ -249,6 +249,27 @@ whole unit suite would need the binding installed to run.
 every module above the engine seam free of it. See the "THE IMPORT IS LAZY"
 banner in `engine/document_filters_engine.py`.
 
+### A closure captures the variable, not its value
+
+**C#** a `foreach` variable is a fresh binding each iteration, so a lambda
+built inside the loop captures that iteration's value. **Python** a closure
+captures the variable, so a lambda built inside `for definition in
+definitions` sees whichever definition the loop finished on.
+
+This file used to pay for that. Registering arguments against `argparse` built
+one deferred applier per argument, and a lambda written inline in the loop
+would have made every applier set the last argument, silently ignoring every
+other option on the command line. `_make_applier` existed only to give each
+closure its own values by passing them as parameters.
+
+Both are gone: with no parser to defer to, `_apply` reads the values it needs
+in the loop body and no closure is built at all. The trap is recorded anyway,
+because the construct it bites is the one a translator reaches for whenever the
+reference writes a lambda inside a loop, and the reference writes several.
+
+**Rule** Never capture a loop variable in a Python closure that outlives the
+iteration. Pass it as a parameter to a factory, or do the work in the loop.
+
 ### Import cycles are resolved at call time, not at compile time
 
 **C#** classes in one assembly may refer to each other freely. **Python** a

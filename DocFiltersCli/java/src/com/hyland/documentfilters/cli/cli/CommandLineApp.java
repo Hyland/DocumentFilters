@@ -54,20 +54,31 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 /**
- * Turns {@code argv} into a bound command and runs it.
+ * Binds a command line against {@link ArgumentTable} and dispatches to the chosen
+ * command.
  *
- * <p>The reference hands the parsing to a library; this port does it by hand,
- * because the published samples use nothing beyond the JDK and the binding. That
- * is less of a departure than it sounds: the reference already validates every
- * token itself before the library sees it, by the rules in {@link #validateTokens},
- * so what the library contributed was only the split into option values and
- * positional paths --- which {@link #partitionTokens} does by those same rules.
+ * <p>The whole of the stage 1 to stage 2 boundary, and the only class that touches
+ * {@code argv} at all.
+ *
+ * <p>There is no parsing library behind it, and this port never had one: the
+ * published Java samples use nothing beyond the JDK and the binding, so picocli was
+ * never available to it. The reference was built on
+ * McMaster.Extensions.CommandLineUtils and the other two ports on argparse and
+ * CLI11, with this class as the wrapper that hid the differences. The four disagreed
+ * on enough of the surface --- which tokens are options, what a repeated option
+ * means, whether a value may look like a path, what an unknown argument costs ---
+ * that every one of those decisions ended up here, hand written and shared, leaving
+ * each library holding only the matching of a token to a row of the table. That
+ * matching is now written out in every implementation. See {@link #partitionTokens},
+ * which is all of it.
  *
  * <p>Values are applied argument by argument in table order, every occurrence of
- * one argument in the order given, exactly as the reference's appliers walk its
- * registered options. That is not the order they were typed in, and does not need
- * to be: a contradictory pair is rejected by {@code OptionsValidator} rather than
- * resolved by precedence.
+ * one argument in the order given. That is not the order they were typed in, and
+ * does not need to be: a contradictory pair is rejected by {@code OptionsValidator}
+ * rather than resolved by precedence.
+ *
+ * <p>What that means for a reader who came for the API: this class is plumbing, and
+ * deliberately dull. {@code Execution/} is the sample.
  */
 public final class CommandLineApp
 {
@@ -281,30 +292,6 @@ public final class CommandLineApp
 		sharedOptions.input.paths.addAll(paths);
 	}
 
-	/**
-	 * Runs the setter for every argument the user actually supplied: once with null
-	 * for a switch, once per occurrence for anything that takes a value.
-	 *
-	 * @throws UsageError a value failed to parse.
-	 */
-	private static <T> void apply(List<ArgumentDefinition<T>> definitions, T target, Map<IArgumentDescriptor, List<String>> values)
-	{
-		for (ArgumentDefinition<T> definition : definitions)
-		{
-			List<String> given = values.get(definition);
-			if (given == null)
-				continue;
-
-			if (definition.getArity() == ArgumentArity.NO_VALUE)
-				definition.apply(target, null);
-			else
-			{
-				for (String value : given)
-					definition.apply(target, value);
-			}
-		}
-	}
-
 	private static void buildNameMatcher(SharedOptions shared)
 	{
 		if (!shared.input.globPatterns.isEmpty())
@@ -450,6 +437,30 @@ public final class CommandLineApp
 		return token.length() == 2 && ((character >= 'a' && character <= 'z')
 			|| (character >= 'A' && character <= 'Z')
 			|| (character >= '0' && character <= '9'));
+	}
+
+	/**
+	 * Runs the setter for every argument the user actually supplied: once with null
+	 * for a switch, once per occurrence for anything that takes a value.
+	 *
+	 * @throws UsageError a value failed to parse.
+	 */
+	private static <T> void apply(List<ArgumentDefinition<T>> definitions, T target, Map<IArgumentDescriptor, List<String>> values)
+	{
+		for (ArgumentDefinition<T> definition : definitions)
+		{
+			List<String> given = values.get(definition);
+			if (given == null)
+				continue;
+
+			if (definition.getArity() == ArgumentArity.NO_VALUE)
+				definition.apply(target, null);
+			else
+			{
+				for (String value : given)
+					definition.apply(target, value);
+			}
+		}
 	}
 
 	private static int indexOfAny(String token, String characters)

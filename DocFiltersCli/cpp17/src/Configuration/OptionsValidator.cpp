@@ -164,8 +164,12 @@ namespace Hyland
 						/// </summary>
 						/// <remarks>
 						/// Rejected rather than resolved by precedence: the two arguments
-						/// write the same setting, and no portable ordering rule exists
-						/// across McMaster, argparse, picocli and CLI11.
+						/// write the same setting, and the binder records each argument's
+						/// occurrences rather than the relative order of two different
+						/// arguments. All four implementations could be taught to record
+						/// that order now that none of them delegates to a parsing library,
+						/// and none is: a tie-break is a rule four ports would have to agree
+						/// on for ever, where an error is a rule they already agree on.
 						/// </remarks>
 						void checkErrorPolicyConsistent(const SharedOptions& shared)
 						{

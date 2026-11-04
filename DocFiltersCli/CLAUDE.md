@@ -45,10 +45,20 @@ already use. This is a hard rule and it has no "just this once".
 
 | | May use |
 | --- | --- |
-| C# | Document Filters and `McMaster.Extensions.CommandLineUtils`, both through `DfSamplesCommon` |
-| C++17 | Document Filters and CLI11, at the version `samples/cpp17` already fetches |
+| C# | Document Filters, as `PackageReference`s in `csharp/DocFiltersCli.csproj` |
+| C++17 | Document Filters, through `bindings/cpp17` |
 | Python | the published binding, and the standard library. Nothing from PyPI |
-| Java | the binding jar in `bindings/java/lib`. No parsing library, no test framework |
+| Java | the binding jar in `bindings/java/lib` |
+
+**No implementation has an argument-parsing library, and none may gain one.**
+All four once did --- McMaster, CLI11, argparse and, had Java been able to,
+picocli --- with `Cli/` as the wrapper that hid their differences. The four
+disagreed about enough of the surface that every one of those decisions moved
+into shared hand-written code, leaving each library holding only the match from
+a token to a row of the argument table. That is the twenty lines of
+`PartitionTokens`, so the libraries went. Adding one back to any single
+implementation re-opens the whole class of divergence this tool exists to
+prevent.
 
 Test-only dependencies are xUnit and Catch2, already present, and are never
 restored by anyone running the sample. Do not add a third. Do not add a JSON
@@ -82,9 +92,26 @@ A port is a translation, not a rewrite.
   four already differ there. `tests/parity/compare_inventory.py` enforces the
   names and deliberately ignores the layout. A port may have *more* tests ---
   its own language's quirks need their own --- but never fewer.
-- `Cli/` is the one exception in the source. It wraps whatever argument parser
-  that language already uses, behind the hand-written argument table every
-  port shares.
+- `Cli/` **was** the one exception in the source, because each implementation
+  wrapped the argument parser its own language already had. None of them has
+  one now, so this folder is a translation like any other and the rule above
+  applies to it with nothing taken off: `CommandLineApp` declares the same
+  eleven members, under the same names, in all four.
+- **Order is the reference's, except where C++17 cannot have it.** C# and Java
+  resolve a member across the whole class whatever its position, and Python
+  resolves a global name at call time, so those three carry the reference's
+  order exactly. A C++17 free function must be declared before it is used, so
+  a file-local helper is defined **callee-first** --- the reverse of the
+  reference, near enough --- and `src/Cli/CommandLineApp.cpp` reads that way
+  like every other `.cpp` in that port. Forward-declaring the helpers to buy
+  the reference's order back was tried and reverted: it duplicates nine
+  signatures in the one file that gets diffed most, and leaves the other
+  files, `Configuration/OptionsValidator.cpp` above all, still callee-first.
+  One rule the whole port follows beats an exact match in one file.
+  `design/porting/traps-cpp17.md` has the longer version.
+- One more difference inside `Cli/` is language, not drift: Python and Java
+  carry an `indexOfAny` helper that C# gets from the BCL, and it is last in
+  both.
 
 ## Deviate out loud
 

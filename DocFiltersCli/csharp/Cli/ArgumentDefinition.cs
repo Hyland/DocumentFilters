@@ -34,7 +34,16 @@ namespace Hyland.DocumentFilters.Cli.Cli
 	/// </summary>
 	public interface IArgumentDescriptor
 	{
-		/// <summary>McMaster-style template, e.g. <c>-o|--out-dir</c>.</summary>
+		/// <summary>
+		/// Every spelling of the argument, pipe-separated, e.g. <c>-o|--out-dir</c>.
+		/// </summary>
+		/// <remarks>
+		/// The shape is McMaster's, which this tool was once built on, and is kept
+		/// because the four implementations spell their tables identically and it is
+		/// the one string a reader can compare against <c>arguments.txt</c> by eye.
+		/// It is now read only here, to derive <see cref="LongName"/> and
+		/// <see cref="ShortName"/>.
+		/// </remarks>
 		string Template { get; }
 
 		/// <summary>Help text.</summary>

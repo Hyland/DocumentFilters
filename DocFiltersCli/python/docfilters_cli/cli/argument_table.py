@@ -105,9 +105,9 @@ class ArgumentTable:
     help and version are verbs, but they are not in COMMANDS because they process no
     documents and accept no shared options.
 
-    Note that --help and -h as *arguments* appear in neither list: every parsing
-    library provides them, and their rendering differs between McMaster, argparse and
-    CLI11, which is exactly why help text is not part of the cross-language contract.
+    Note that --help and -h as *arguments* appear in neither list: help text is
+    rendered by each implementation and is deliberately not part of the
+    cross-language contract.
     """
 
     @staticmethod

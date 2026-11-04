@@ -614,9 +614,8 @@ class ArgumentBindingTests(unittest.TestCase):
         self.assertEqual(ErrorCodes.UNKNOWN_ARGUMENT, caught.exception.code)
 
     def test_prefix_abbreviation_does_not_resolve(self):
-        # argparse allows this by default and the other three do not, so it is switched
-        # off everywhere. Without this test the Python port silently accepts command
-        # lines the others reject.
+        # --out-d must not resolve to --out-dir. Prefix abbreviation is a common
+        # parsing-library default, and none of the four allows it.
         with self.assertRaises(UsageError):
             _bind("convert", "--to", "text", "--out-d", "out", "a.docx")
 
@@ -626,8 +625,8 @@ class ArgumentBindingTests(unittest.TestCase):
             _bind("extract", "--combine", "-o", "out", "a.zip")
 
     def test_a_bad_value_is_reported_by_us_and_not_by_the_parsing_library(self):
-        # The error code proves the message came from value_parsers rather than argparse,
-        # which is what keeps stderr identical across the four ports.
+        # The error code proves the message came from value_parsers, which is what keeps
+        # stderr identical across the four ports.
         with self.assertRaises(UsageError) as caught:
             _bind("convert", "--to", "text", "--max-depth", "abc", "-o", "out", "a.docx")
 

@@ -35,14 +35,26 @@ namespace Hyland
 			namespace Cli
 			{
 				/// <summary>
-				/// Builds the CLI11 command line application from <see cref="ArgumentTable"/>
-				/// and dispatches to the chosen command.
+				/// Binds a command line against <see cref="ArgumentTable"/> and dispatches to
+				/// the chosen command.
 				/// </summary>
 				/// <remarks>
-				/// This is the only class in the project that knows which CLI parsing library
-				/// is in use, and the whole of the stage 1 to stage 2 boundary. The Python,
-				/// Java and C# ports use an equivalent over argparse, picocli and McMaster;
-				/// everything below it is shared logic.
+				/// The whole of the stage 1 to stage 2 boundary, and the only class that
+				/// touches argv at all.
+				///
+				/// There is no parsing library behind it. There was: this port was built on
+				/// CLI11, the reference on McMaster.Extensions.CommandLineUtils, and the other
+				/// two on argparse and picocli, with this class as the wrapper that hid the
+				/// differences. The four disagreed on enough of the surface --- which tokens
+				/// are options, what a repeated option means, whether a value may look like a
+				/// path, what an unknown argument costs --- that every one of those decisions
+				/// ended up here, hand written and shared, with the library left holding only
+				/// the matching of a token to a row of the table. Holding four libraries in
+				/// that role bought nothing and cost a dependency each, so the matching is
+				/// written out too. See <c>partitionTokens</c>, which is all of it.
+				///
+				/// What that means for a reader who came for the API: this class is plumbing,
+				/// and deliberately dull. <c>Execution/</c> is the sample.
 				/// </remarks>
 				class CommandLineApp
 				{

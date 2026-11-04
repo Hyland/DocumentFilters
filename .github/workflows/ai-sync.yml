@@ -420,7 +420,7 @@ jobs:
           path: ~/.nuget/packages
           # The three projects that feed this build, not **/*.csproj: the
           # repository holds one per sample.
-          key: nuget-${{ runner.os }}-${{ hashFiles('DocFiltersCli/csharp/DocFiltersCli.csproj', 'DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj', 'samples/csharp/DfSamplesCommon/DfSamplesCommon.csproj') }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('DocFiltersCli/csharp/DocFiltersCli.csproj', 'DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
       - name: Cache FetchContent dependencies
