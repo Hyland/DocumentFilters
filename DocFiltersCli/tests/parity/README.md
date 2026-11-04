@@ -86,14 +86,21 @@ becoming a flaky gate that people learn to re-run until it passes.
 ## What is deliberately absent
 
 **`--help` output.** `tests/conformance/README.md` excludes it from the
-contract: each language's parsing library formats usage its own way, and none
-can be made to match without replacing the renderer, which the
-no-new-dependencies rule forbids. `help --json` *is* compared, because it
-renders from the shared argument table rather than from the parsing library.
+contract: each implementation renders usage its own way, and matching them
+would mean writing a fifth renderer for all four to share. `help --json` *is*
+compared, because it renders from the shared argument table rather than from
+each implementation's own usage layout.
 
-**`--time`, `--progress`, `--logmem`.** Their figures differ every run. The
-self-reproducibility pass would mask them anyway; leaving them out states that
-on purpose rather than by accident.
+**`--time`, `--logtime`, `--progress`, `--logmem`.** Their figures differ
+every run. Listed in `Recorder.NOT_COMPARED` in `end2end.py`, which writes
+`streams-not-compared <switch>` in place of the streams while still comparing
+the exit code and the output files' digests.
+
+The self-reproducibility pass would **not** mask them, and that is why the
+list has to exist. It marks a line volatile only when two runs of the
+*reference* disagree on it, so a figure that is stable within one
+implementation and systematically different between them passes straight
+through. A leaked `--logtime` duration broke `compare.py` exactly that way.
 
 **Anything `end2end.py` does not run.** The command vocabulary is that suite's,
 by design. Widening parity coverage means adding a check there, which is the

@@ -10,7 +10,7 @@ cpp17/
 └── src/
     ├── main.cpp     argv and the process exit code, and nothing else
     ├── Program.*    the pre-scan and the top-level error report
-    ├── Cli/         the argument table and the parsing library
+    ├── Cli/         the argument table, and the binding of argv against it
     ├── Configuration/  the options model, value parsers, cross-argument validation
     ├── Planning/    format catalogue, output planner, name templates, page ranges
     ├── Discovery/   the filesystem walk

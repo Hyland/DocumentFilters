@@ -233,9 +233,9 @@ jobs:
             \`DocFiltersCli/design/porting/workflow.md\`. This check does not
             care which of you did the work.
           - Add **\`ports-unaffected\`** if this reference change genuinely has
-            no counterpart in the ports --- \`csharp/Cli/\` plumbing around a
-            parser the others do not use, a C#-only build detail. That is a
-            claim you are signing for.
+            no counterpart in the ports --- a C#-only build detail, or a
+            \`csharp/\` construct the other three already express correctly
+            their own way. That is a claim you are signing for.
 
           Note that **\`contract-unchanged\`** does not satisfy this check, and
           is not meant to. It says the change needs no new fixture or test. A

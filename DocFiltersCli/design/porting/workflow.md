@@ -116,10 +116,12 @@ halfway through `Execution/`. Where a binding does not, say so in that port's
 traps file under a gap heading, and compose it from what the binding does
 expose or report that it cannot --- do not silently do something else.
 
-`Cli/` is last and is the only folder allowed to look unlike the reference. It
-holds whatever argument parser the language's published samples already use,
-behind the same hand-written argument table every port shares. That table is
-the contract; the parser is an implementation detail of one folder.
+`Cli/` **was** the one folder allowed to look unlike the reference, because
+each implementation held whatever argument parser its own published samples
+already used, behind the shared hand-written argument table. None of them has
+a parser now, so it is a translation like any other and the rule above applies
+to it in full. The table is still the contract; binding argv against it is now
+shared logic rather than a per-language detail.
 
 ### 3. Mirror the source file for file; mirror the tests name for name
 
@@ -298,9 +300,11 @@ be diffed by eye, and a rename that lands only in `csharp/` destroys that. So
 `contract-unchanged` does **not** stand down `Ports landed`, deliberately.
 
 `ports-unaffected` is for the narrow case where a reference change genuinely
-has no counterpart: plumbing in `csharp/Cli/` around a parsing library the
-other three do not use, or a C#-only build detail. It is a claim you sign for,
-and it is not the common case.
+has no counterpart: a C#-only build detail, or a `csharp/`-only construct the
+other three express differently and already express correctly. It is a claim
+you sign for, and it is not the common case. It got narrower when the parsers
+went --- `Cli/` used to supply most of its examples, and now mirrors the
+reference like every other folder.
 
 ---
 

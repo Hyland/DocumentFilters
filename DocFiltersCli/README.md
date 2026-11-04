@@ -102,7 +102,7 @@ Inside `csharp/`, the folders are the pipeline stages:
 
 | Folder | Holds |
 | --- | --- |
-| `Cli/` | the argument table and the parsing library — the only per-language folder |
+| `Cli/` | the argument table, and the hand-written binding of argv against it |
 | `Configuration/` | the options model, value parsers, cross-argument validation |
 | `Planning/` | format catalogue, output planner, name templates, page ranges |
 | `Discovery/` | the filesystem walk |
@@ -180,14 +180,51 @@ in the C++17 one:
 
 ### What is deliberately not compared
 
-`--help` text, because each port's parsing library formats it its own way and
-none can be made to match without replacing the renderer. And `--time` / `--progress`
-output, whose figures differ every run. The tool's own version string is in the
-same category — the engine version it reports is not.
-A `--to docpack` pack is in the same
-position for a reason that is not about implementations at all: its `df-core.xml`
-stamps `<created>` to the millisecond, so two packs of one document are never
-byte-identical even from the same binary. Every other entry in the pack is.
+`--help` text, because each implementation renders usage its own way and
+matching them would mean writing a fifth renderer for all four to share. And
+`--time` / `--progress` output, whose figures differ every run. The tool's own
+version string is in the same category --- the engine version it reports is
+not. A `--to docpack` pack is in the same position for a reason that is not
+about implementations at all: its `df-core.xml` stamps `<created>` to the
+millisecond, so two packs of one document are never byte-identical even from
+the same binary. Every other entry in the pack is.
+
+### Moving a change into the three ports
+
+A change to the reference is not finished until the ports carry it.
+[`.github/workflows/ai-sync.yml`](../.github/workflows/ai-sync.yml) does that
+work: it runs Claude Code against the procedure checked in at
+[`.claude/commands/propagate-delta.md`](./.claude/commands/propagate-delta.md)
+and opens one draft pull request per port, each targeting **your** branch
+rather than the default one --- so the reference change and all three
+translations arrive in a single merge, and `master` is never in a state where
+the four disagree.
+
+Two ways to start it:
+
+| Way in | What it does |
+| --- | --- |
+| The **`ai-sync`** label | On a pull request touching an authority path: `design/`, `tests/conformance/`, `csharp/` or `tests/csharp/`. The label is the human sanction and nothing runs without it. Pushing to an authority path again re-runs the translation, updating the same port pull requests rather than opening more. |
+| **Actions -> AI port sync -> Run workflow** | Takes the pull request number, with one checkbox per port (all on by default) and `dry_run` **on** by default, which produces the patch as an artifact and pushes nothing. This is the way to try it. |
+
+Either way a maintainer approves the run before it starts. Inference goes
+through Amazon Bedrock in our own AWS account, reached with the workflow's
+OIDC token; the only stored secret is an IAM role ARN, scoped to the
+`claude-sync` environment, and that environment has a reviewer gate. Pull
+requests from forks are refused outright, with no override.
+
+The commits it makes are created through GitHub's `createCommitOnBranch` API
+rather than pushed, so GitHub signs them and they satisfy the organisation's
+"commits must have verified signatures" rule without a signing key being
+stored anywhere.
+
+**None of this is privileged.** The `Ports landed` check measures the commits
+on your branch, not the agent's run history, so porting by hand and committing
+it yourself satisfies it identically. The agent is a way of doing the work,
+not a different standard. See [what CI checks](#what-ci-checks) below for how
+that check decides, and
+[`design/porting/workflow.md`](./design/porting/workflow.md) for the full
+method, including what to verify and in what order.
 
 ## Building and testing
 
@@ -312,6 +349,75 @@ converged on. Its only dependency is the binding jar already vendored
 at `bindings/java/lib`, and its suite is a ~200-line runner on the JDK alone
 rather than JUnit. The build is Gradle through the wrapper, at the same
 version `samples/java` already pins.
+
+## What CI checks
+
+Two status checks are meant to be required on `master`. They ask different
+questions and neither substitutes for the other:
+
+| Check | Workflow | Asks |
+| --- | --- | --- |
+| `CI gate` | [`cli.yml`](../.github/workflows/cli.yml) | did every affected suite pass? |
+| `Ports landed` | [`ports-landed.yml`](../.github/workflows/ports-landed.yml) | did the three translations move with the reference? |
+
+**Why one gate and not one check per language.** A workflow skipped by a
+`paths:` filter reports no status at all, so a required check that gets
+filtered out leaves the pull request waiting forever for something that will
+never arrive. `cli.yml` therefore always runs, filters *inside* itself, and
+ends in a `ci-gate` job that reads every other job's result. A job skipped
+because nothing it covers changed counts as a pass; a failure or a
+cancellation anywhere fails the gate. `ci-gate` is the only context from that
+workflow branch protection should name.
+
+What runs inside it:
+
+| Job | What it proves |
+| --- | --- |
+| Detect affected suites | which languages this change touches; everything below is filtered on it |
+| C# / C++17 / Python / Java | each implementation builds and its own suite passes, on each OS in its matrix |
+| Contract moves first | a behaviour change carries something the ports can be moved by: a shared fixture, or a test in that language's own suite |
+| Cross-implementation parity | all four binaries run the same command lines and are compared byte for byte. The only job that compares the implementations to *each other* |
+| Validate release version, Package, Publish | the release path, which runs only on a manual dispatch with `release` ticked |
+| CI gate | the aggregate of all of the above, and the required check |
+
+### The two labels
+
+Both checks have an escape hatch, and they are easy to confuse:
+
+| Label | Says | Stands down |
+| --- | --- | --- |
+| `contract-unchanged` | this change needs no shared fixture and no new test | Contract moves first |
+| `ports-unaffected` | this reference change has no counterpart in the ports | `Ports landed` |
+
+A refactor needs both halves understood. It pins nothing new, so
+`contract-unchanged` is right --- and it still has to be mirrored in the three
+ports, because the whole value of the mirror is that two implementations can
+be diffed by eye, and a rename landing only in `csharp/` destroys that. So
+`contract-unchanged` deliberately does **not** stand down `Ports landed`.
+`ports-unaffected` is the narrow case: a C#-only build detail, or a `csharp/`
+construct the other three already express correctly their own way. It is a
+claim you sign for.
+
+### How `Ports landed` decides
+
+It looks at the commits on your branch, not at any agent's run history ---
+porting by hand and committing it yourself satisfies it identically. A check
+only a bot could turn green would make the bot mandatory, and it is not.
+
+It goes red while a port pull request is still open against your branch, and
+while any port's newest commit is not a descendant of the reference's newest
+commit. "After" is ancestry rather than timestamps, which a rebase rewrites.
+Push a further change to `csharp/` and the ports are stale again, so the
+check reopens until they catch up.
+
+### Running the same checks locally
+
+The five verification rings, run outward --- each port's own suite, the shared
+fixtures inside it, `compare_inventory.py`, `end2end.py`, then `compare.py`
+--- are what CI runs and are all runnable here. Stop at the first failure and
+fix it there: an inner ring's failure explains itself, an outer one does not.
+The commands, and the table of what each ring is blind to, are in
+[`design/porting/workflow.md`](./design/porting/workflow.md).
 
 ## Exit codes
 

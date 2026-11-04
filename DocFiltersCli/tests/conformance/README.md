@@ -150,9 +150,9 @@ formats.txt:41  $ pdf
 
 ## What is deliberately not compared
 
-**`--help` text.** Each language's parsing library formats usage its own way,
-and none can be made to match without replacing the renderer — which the
-no-new-dependencies rule forbids.
+**`--help` text.** Each implementation renders usage its own way, and matching
+them would mean writing a fifth renderer for all four to share — which is work
+the contract does not need, since nothing downstream reads help text.
 
 **`--time`, `--logtime`, `--progress` and `--logmem` output.** The figures
 differ every run. Their *shape* is consistent; their content is not compared.
