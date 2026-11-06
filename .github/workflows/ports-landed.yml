@@ -1,0 +1,251 @@
+# Have the ports landed on this branch?
+#
+# DF-3106's premise, enforced. A pull request that changes the C# reference
+# may not merge until the three translations have merged *into it*, so the
+# contract change and all four implementations reach the default branch in one
+# merge and the default branch never holds a version where they disagree.
+#
+# Without this, the whole arrangement degrades to "the agent suggests, and
+# everyone ignores it". ai-sync.yml opens the port pull requests; this is what
+# makes merging them not optional.
+#
+# This asks a different question from cli.yml's `contract-order` job, and the
+# two have separate override labels because they are separate claims:
+#
+#   contract-order  does this change need a shared fixture or a test?
+#                   overridden by `contract-unchanged`
+#   this check      do the three ports have to move with it?
+#                   overridden by `ports-unaffected`
+#
+# A refactor answers no to the first and yes to the second: it pins nothing
+# new, and it still has to be mirrored in the ports so the four stay diffable
+# against each other. One label cannot carry both answers.
+#
+# Intended as a required status check on the default branch, alongside
+# `CI gate`. The job name below is the context name to require: `Ports landed`.
+#
+# Like `ci-gate`, it has no workflow-level `paths:` filter and always reports.
+# A required check that is skipped never reports at all, and a pull request
+# waiting on one waits forever.
+#
+# Re-evaluation takes care of itself: merging a port pull request pushes a
+# commit to this branch, which fires `synchronize` and runs this again.
+
+name: Ports landed
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ports-landed-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ports-landed:
+    name: Ports landed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      # Does this pull request move the reference's own behaviour? That is
+      # narrower than ai-sync.yml's trigger on purpose.
+      #
+      # `csharp/**` and `tests/csharp/**` are translatable: a change there has
+      # a counterpart the ports need. `design/**` and `tests/conformance/**`
+      # are not --- the fixtures are shared, every port's suite already runs
+      # them, and a new case either passes in a port or fails it. Demanding a
+      # port change for a fixture the ports already satisfy would be a red
+      # check with no edit that could turn it green.
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
+        id: filter
+        with:
+          filters: |
+            reference:
+              - 'DocFiltersCli/csharp/**'
+              - 'DocFiltersCli/tests/csharp/**'
+
+      - name: Check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          # This branch's own name, back after the `ai-sync/*` exemption took
+          # it out with it. Nothing is trusted on the strength of it now: it
+          # names the branch a port pull request has to be targeting to count
+          # as one, which is a fact about where that pull request merges, not
+          # a claim about who wrote it.
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REFERENCE: ${{ steps.filter.outputs.reference }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          pass() { echo "$1"; exit 0; }
+          fail() { echo "::error::$1"; printf '%s\n' "$2" >> "$GITHUB_STEP_SUMMARY"; exit 1; }
+
+          has_label() { echo "$LABELS" | jq -e --arg l "$1" 'index($l) != null' >/dev/null; }
+
+          # There used to be an exemption here for a head branch named
+          # `ai-sync/*`, on the reasoning that a port pull request is the
+          # translation rather than the thing being translated. It was both
+          # unsafe and unnecessary.
+          #
+          # Unsafe: a branch name is not a credential. Anyone who can push a
+          # branch could call it `ai-sync/anything`, change `csharp/` alone,
+          # and walk a required status check. Nothing verified that the branch
+          # came from this workflow, and nothing could --- the name is the
+          # only evidence there is.
+          #
+          # Unnecessary: a genuine port pull request changes its own port and
+          # nothing else, so `REFERENCE` is false for it and the very next
+          # check passes it anyway. The exemption bought nothing and sold the
+          # check. If a port pull request ever does touch `csharp/`, going red
+          # is the correct answer: that is a translation writing outside its
+          # lane, which `ai-sync.yml` now refuses to push in the first place.
+          if [ "$REFERENCE" != "true" ]; then
+            pass "Nothing here changes the C# reference."
+          fi
+
+          # `contract-unchanged` is deliberately NOT honoured here, and the
+          # distinction is the whole point of having two checks.
+          #
+          # That label answers cli.yml's question --- "does this change need a
+          # shared fixture or a test?" --- and a refactor, a crash fix or a
+          # comment edit answers it no. This check asks a different question:
+          # "do the three translations have to move with it?" A refactor
+          # answers that one *yes*. CLAUDE.md's mirror rule is that the four
+          # implementations keep the same names in the same order so they can
+          # be diffed side by side, so a rename that lands only in `csharp/`
+          # is drift even though no behaviour moved.
+          #
+          # The escape hatch for this check is its own label, below, because a
+          # claim about the contract and a claim about the ports are not the
+          # same claim and should not share a signature.
+          if has_label ports-unaffected; then
+            pass "Overridden by the 'ports-unaffected' label."
+          fi
+
+          # Any port pull request still open means the translations have not
+          # landed here yet.
+          #
+          # jq rather than `--search "head:..."`, which matches a branch name
+          # exactly rather than as a prefix. Three conditions, not one: the
+          # name alone proves nothing, which is the same reasoning that
+          # removed the `ai-sync/*` exemption above, applied in the blocking
+          # direction instead of the bypassing one. Without the base check, a
+          # pull request named `ai-sync/pr-<N>/python` but aimed somewhere
+          # else holds this one red forever with no edit here that could
+          # clear it; without the fork check, anyone able to open a pull
+          # request can mint that name.
+          #
+          # `$ENV` rather than interpolating the shell variables into the jq
+          # program. A branch name is allowed to contain a double quote ---
+          # `git check-ref-format` forbids a space, a colon and several
+          # others, but not that --- and interpolating one would break the
+          # program, leave `open` empty, and pass this check. An input that
+          # turns a blocking check green by malforming it is the one failure
+          # mode worth spending a line on. The program is in single quotes, so
+          # the shell does not touch it either.
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 \
+                   --json number,headRefName,baseRefName,isCrossRepository \
+                   --jq '.[] | select((.headRefName | startswith("ai-sync/pr-" + $ENV.PR + "/"))
+                                      and .baseRefName == $ENV.HEAD_REF
+                                      and (.isCrossRepository | not))
+                            | "  #\(.number)  \(.headRefName)"')
+          if [ -n "$open" ]; then
+            fail "Port pull requests are still open; merge them into this branch first." \
+          "### Ports have not landed
+
+          These port pull requests target this branch and are still open:
+
+          \`\`\`
+          $open
+          \`\`\`
+
+          Merge each of them into this branch. The four implementations are one
+          tool, and this pull request is the single merge that moves all of
+          them."
+          fi
+
+          # Nothing open. Now the actual question: did each port move, and did
+          # it move *after* the reference did?
+          #
+          # Asked of the commits on this branch rather than of the agent's run
+          # history, because the agent is one way to get here and not the only
+          # one. Porting by hand and committing it satisfies this identically
+          # --- which is the point. A check that only a bot could turn green
+          # would make the bot mandatory, and it is not.
+          #
+          # "After" is ancestry, not timestamps, which a rebase rewrites: the
+          # newest commit touching the reference must be an ancestor of (or
+          # the same as) the newest commit touching each port. Push a further
+          # reference change and it stops being one, so the check goes red
+          # again and the ports have to catch up. That is the staleness rule.
+          # The merge base, not `base.sha`: that field is the base branch's
+          # tip, which moves on without this pull request, and a range from it
+          # would start counting other people's commits.
+          since=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+
+          newest() {
+            git rev-list -1 "$since..$HEAD_SHA" -- "$@"
+          }
+
+          reference_commit=$(newest DocFiltersCli/csharp DocFiltersCli/tests/csharp)
+          if [ -z "$reference_commit" ]; then
+            # The path filter above compares against its own base, so the two
+            # can disagree at the edges. Nothing to measure against here.
+            pass "No commit on this branch touches the reference."
+          fi
+
+          behind=""
+          for port in cpp17 python java; do
+            port_commit=$(newest "DocFiltersCli/$port" "DocFiltersCli/tests/$port")
+            if [ -z "$port_commit" ]; then
+              behind="$behind  $port --- not touched on this branch"$'\n'
+            elif ! git merge-base --is-ancestor "$reference_commit" "$port_commit"; then
+              behind="$behind  $port --- last moved in ${port_commit:0:7}, before the reference moved in ${reference_commit:0:7}"$'\n'
+            fi
+          done
+
+          if [ -n "$behind" ]; then
+            fail "The ports have not moved with the reference." \
+          "### The ports have not moved with the reference
+
+          This pull request changes \`csharp/\` or its suite, so the three
+          translations have to move with it and land in this same merge.
+
+          \`\`\`
+          $behind
+          \`\`\`
+
+          Three ways to turn this green:
+
+          - Add the **\`ai-sync\`** label. The sync workflow translates the
+            change and opens one draft pull request per port against this
+            branch; merge them here.
+          - Port it by hand and commit it here --- see
+            \`DocFiltersCli/design/porting/workflow.md\`. This check does not
+            care which of you did the work.
+          - Add **\`ports-unaffected\`** if this reference change genuinely has
+            no counterpart in the ports --- a C#-only build detail, or a
+            \`csharp/\` construct the other three already express correctly
+            their own way. That is a claim you are signing for.
+
+          Note that **\`contract-unchanged\`** does not satisfy this check, and
+          is not meant to. It says the change needs no new fixture or test. A
+          refactor needs none *and* still has to be mirrored in the three
+          ports, or they stop being diffable against the reference."
+          fi
+
+          echo "Every port moved with the reference on this branch."
+          {
+            echo "### Ports landed"
+            echo ""
+            echo "No port pull request is open against this branch, and \`cpp17\`, \`python\` and \`java\` each moved at or after the reference's newest commit (\`${reference_commit:0:7}\`)."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,1012 @@
+# Translate a change made in the C# reference into the three ports.
+#
+# DF-3106's premise is that the four implementations move together. cli.yml
+# checks that they agree; this workflow is what does the moving. It reads the
+# reference change on a pull request and opens one port pull request per
+# language, each targeting *the source pull request's own branch* --- so the
+# contract change and all three translations merge in a single merge, and the
+# default branch is never in a state where the four disagree.
+#
+# The agent is Claude Code, following the /propagate-delta procedure checked
+# in at DocFiltersCli/.claude/commands/propagate-delta.md. The instructions
+# live there, in the repository, where they are reviewed like any other file,
+# rather than inside a YAML string here. The Translate step names that file by
+# path rather than invoking the slash command, for the reason given above it.
+#
+# Two ways in:
+#
+#   workflow_dispatch  a named pull request, one or all ports, dry run by
+#                      default. This is the way to try it.
+#   pull_request       automatic, but only once a maintainer applies the
+#                      `ai-sync` label. The label is the human sanction.
+#
+# A pull request from a fork is refused, on both of those, with no override.
+# The guard below says why.
+#
+# Inference runs in our own AWS account through Amazon Bedrock, reached with
+# the workflow's OIDC token. No long-lived cloud credential is stored here:
+# the only secret is an IAM role ARN, which is not a credential, and it is
+# scoped to the `claude-sync` environment so that a job cannot read it without
+# first passing that environment's reviewer gate.
+
+name: AI port sync
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    # The authority paths: the contract, the reference, and the reference's
+    # own tests. A pull request touching none of them has nothing to
+    # propagate. Kept in step with `languages.yml` by hand --- a `paths:`
+    # filter cannot read a file.
+    paths:
+      - 'DocFiltersCli/design/**'
+      - 'DocFiltersCli/tests/conformance/**'
+      - 'DocFiltersCli/csharp/**'
+      - 'DocFiltersCli/tests/csharp/**'
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: The pull request number carrying the reference change
+        type: string
+        required: true
+      # One checkbox per port rather than a single choice with an "all"
+      # option. `workflow_dispatch` has no multi-select input type --- `choice`
+      # picks exactly one --- so a set of booleans is the only way to offer
+      # "any combination, all of them by default", which is what dispatching
+      # this usually means.
+      cpp17:
+        description: Translate into the C++17 port
+        type: boolean
+        default: true
+      python:
+        description: Translate into the Python port
+        type: boolean
+        default: true
+      java:
+        description: Translate into the Java port
+        type: boolean
+        default: true
+      dry_run:
+        description: Produce the patch and leave it as an artifact; push nothing, open nothing
+        type: boolean
+        default: true
+
+# Read-only by default. The one job that needs more says so.
+permissions:
+  contents: read
+
+# No workflow-level concurrency: the grouping is on the port jobs below, and
+# the difference is not cosmetic.
+#
+# Cancelling here happens before `guard` has decided anything, so a push this
+# workflow is about to ignore cancels the translations anyway. Merging a
+# finished port pull request into the source branch is exactly that push ---
+# it touches only port files --- and it would kill three running agents, after
+# which the replacement run stops at "this push touched no authority path" and
+# never restarts them. Three quarters of an hour of work, destroyed on the
+# normal path, by the step that exists to save work.
+#
+# Queuing instead (cancel-in-progress: false) is worse: every later push waits
+# behind a 45-minute run before its guard can even say "ignore me".
+
+env:
+  # One place to change the model. Bedrock's cross-region inference profile
+  # IDs carry a region-group prefix; `us.` matches where model access was
+  # granted. Pinned rather than left to the `sonnet` alias, which resolves to
+  # Claude Code's built-in Bedrock default and may be a model this account
+  # cannot invoke --- or a dearer one.
+  MODEL: us.anthropic.claude-sonnet-5-5
+  AWS_REGION: us-east-2
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Should this run at all, and against what?
+  #
+  # Every guard here earns its place, and the reasons are not interchangeable
+  # --- see the comment on each. This job holds no credentials and writes
+  # nothing; it decides.
+  # --------------------------------------------------------------------------
+  guard:
+    name: Decide
+    runs-on: ubuntu-latest
+    # Spelled out, because a `permissions:` block anywhere resets every scope
+    # it does not list to `none` --- so the workflow-level `contents: read`
+    # above is the whole of what this job would otherwise get. `gh pr view`
+    # needs more, and fails with "Resource not accessible by integration"
+    # without it. dorny/paths-filter used to need it here too, for the same
+    # reason cli.yml still does --- on a pull_request event it asks the API
+    # for the changed file list rather than diffing locally --- but this
+    # workflow no longer uses it.
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      ports: ${{ steps.decide.outputs.ports }}
+      pr: ${{ steps.pr.outputs.number }}
+      head_ref: ${{ steps.pr.outputs.head_ref }}
+      head_sha: ${{ steps.pr.outputs.head_sha }}
+      base_ref: ${{ steps.pr.outputs.base_ref }}
+      dry_run: ${{ steps.decide.outputs.dry_run }}
+      why: ${{ steps.decide.outputs.why }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # The pull request under translation, from whichever trigger fired.
+      - name: Read the pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.pull_request.number || inputs.pr }}
+        run: |
+          gh pr view "$NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json number,headRefName,headRefOid,baseRefName,isCrossRepository,labels,state \
+            > pr.json
+          {
+            echo "number=$(jq -r .number pr.json)"
+            echo "head_ref=$(jq -r .headRefName pr.json)"
+            echo "head_sha=$(jq -r .headRefOid pr.json)"
+            echo "base_ref=$(jq -r .baseRefName pr.json)"
+            echo "fork=$(jq -r .isCrossRepository pr.json)"
+            echo "state=$(jq -r .state pr.json)"
+            echo "labelled=$(jq -r '[.labels[].name] | index("ai-sync") != null' pr.json)"
+          } >> "$GITHUB_OUTPUT"
+
+      # Did *this push* touch an authority path? The `paths:` filter above
+      # asks whether the pull request as a whole does, which stays true for
+      # every later push --- so without this, a typo fix in a comment would
+      # re-run three agents.
+      #
+      # Done with git rather than dorny/paths-filter, which this used to call
+      # with `base` and `ref` set to the push's endpoints. The action
+      # documents both inputs as ignored on a `pull_request` event: it asks
+      # the API for the pull request's changed files instead. So the filter
+      # answered the same question the workflow-level `paths:` already had,
+      # was true for every push once the pull request had touched the
+      # reference at all, and re-ran three agents for the comment typo this
+      # step exists to skip.
+      #
+      # Only the two endpoints are fetched, not the history between them: a
+      # diff of two commits needs their trees and nothing else, and the
+      # checkout above is shallow.
+      - name: Did this push touch an authority path
+        id: pushed
+        if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        run: |
+          # A force-push leaves `before` unreachable, and an unanswerable
+          # question is answered the expensive way: translate, rather than
+          # silently skip a reference change because its predecessor was
+          # rewritten.
+          if ! git fetch --no-tags --depth=1 origin "$BEFORE" "$AFTER" 2>fetch.log; then
+            cat fetch.log
+            echo "::warning::Could not fetch $BEFORE..$AFTER; assuming the push touched an authority path."
+            echo "authority=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed=$(git diff --name-only "$BEFORE" "$AFTER" -- \
+                      'DocFiltersCli/design' \
+                      'DocFiltersCli/tests/conformance' \
+                      'DocFiltersCli/csharp' \
+                      'DocFiltersCli/tests/csharp')
+
+          if [ -n "$changed" ]; then
+            echo "authority=true" >> "$GITHUB_OUTPUT"
+            echo "This push touched:"
+            printf '  %s\n' $changed
+          else
+            echo "authority=false" >> "$GITHUB_OUTPUT"
+            echo "This push touched no authority path."
+          fi
+
+      # Write access, checked explicitly rather than assumed from the trigger.
+      # On a public repository anyone can comment and anyone can open a pull
+      # request; `labeled` can only come from someone with triage rights, but
+      # `workflow_dispatch` and the other events are worth confirming.
+      - name: Check the actor has write access
+        id: actor
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Through the environment, not interpolated into the script.
+          ACTOR: ${{ github.actor }}
+        run: |
+          # Belt and braces over what GitHub already enforces: only someone
+          # with triage or above can apply a label, and only someone with
+          # write access can dispatch a workflow. Checked anyway, because this
+          # run can read a cloud credential and the cost of being wrong is not
+          # symmetric.
+          #
+          # A failed call is reported as `unknown`, not as `none`. They are
+          # different facts --- "this person has no access" and "the token
+          # could not find out" --- and collapsing them into a denial sends
+          # whoever hits it looking at the wrong thing.
+          if level=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$ACTOR/permission" \
+                       --jq .permission 2>error.txt); then
+            echo "$ACTOR has '$level' access."
+          else
+            level=unknown
+            echo "::warning::Could not read $ACTOR's permission level."
+            cat error.txt
+          fi
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+
+      - name: Decide
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          ACTOR: ${{ github.actor }}
+          FORK: ${{ steps.pr.outputs.fork }}
+          STATE: ${{ steps.pr.outputs.state }}
+          LABELLED: ${{ steps.pr.outputs.labelled }}
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+          PERMISSION: ${{ steps.actor.outputs.level }}
+          PUSHED_AUTHORITY: ${{ steps.pushed.outputs.authority }}
+          WANT_CPP17: ${{ inputs.cpp17 }}
+          WANT_PYTHON: ${{ inputs.python }}
+          WANT_JAVA: ${{ inputs.java }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          stop() {
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "why=$1" >> "$GITHUB_OUTPUT"
+            echo "Not running: $1"
+            exit 0
+          }
+
+          # A closed pull request has nothing to translate into.
+          if [ "$STATE" != "OPEN" ]; then
+            stop "the pull request is $STATE"
+          fi
+
+          # Write access. Anything less and the run does not happen, whoever
+          # asked and however they asked.
+          case "$PERMISSION" in
+            admin|write|maintain)
+              ;;
+            unknown)
+              stop "could not read $ACTOR's permission level; see the warning above"
+              ;;
+            *)
+              stop "$ACTOR has '$PERMISSION' access, not write"
+              ;;
+          esac
+
+          # Fork code must never reach a run that can read a cloud credential.
+          # GitHub already withholds `id-token: write` from a fork's pull
+          # request, so the role could not be assumed anyway --- this makes the
+          # refusal explicit and legible rather than a confusing OIDC failure.
+          #
+          # No maintainer override, and this is checked before the event is:
+          # a dispatch lands here too. There used to be a note sending whoever
+          # hit this to dispatch the run instead, which led straight back to
+          # this same line. The honest answer is that forks are unsupported
+          # --- running one would mean checking a fork's head out into the one
+          # job that can read the role, which is the thing this guard exists
+          # to prevent. Port a fork's change by hand, or push its branch to
+          # this repository and label that pull request.
+          if [ "$FORK" = "true" ]; then
+            stop "the head branch is on a fork, which is not supported; push the branch here and label that pull request"
+          fi
+
+          # The agent's own pull requests must not start the agent.
+          case "$HEAD_REF" in
+            ai-sync/*)
+              stop "this is an ai-sync branch"
+              ;;
+          esac
+
+          if [ "$EVENT" = "pull_request" ]; then
+            # The label is the sanction. Without it nothing automatic happens,
+            # which is what makes a public repository safe to leave this on.
+            if [ "$LABELLED" != "true" ]; then
+              stop "the 'ai-sync' label is not applied"
+            fi
+            if [ "$ACTION" = "synchronize" ] && [ "$PUSHED_AUTHORITY" != "true" ]; then
+              stop "this push touched no authority path"
+            fi
+            # An automatic run always does the real thing; a dispatch chooses.
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "dry_run=${DRY_RUN:-true}" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Which ports. An automatic run takes all of them; a dispatch takes
+          # the boxes that were ticked. Written out rather than read from
+          # languages.yml because the inputs above already name them, and
+          # parsing the registry would remove one copy and leave the other.
+          if [ "$EVENT" = "pull_request" ]; then
+            ports='["cpp17","python","java"]'
+          else
+            wanted=""
+            for port in cpp17 python java; do
+              case "$port" in
+                cpp17)  ticked="$WANT_CPP17" ;;
+                python) ticked="$WANT_PYTHON" ;;
+                java)   ticked="$WANT_JAVA" ;;
+              esac
+              if [ "$ticked" = "true" ]; then
+                wanted="$wanted${wanted:+,}\"$port\""
+              fi
+            done
+            if [ -z "$wanted" ]; then
+              stop "no port was selected"
+            fi
+            ports="[$wanted]"
+          fi
+          echo "ports=$ports" >> "$GITHUB_OUTPUT"
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "Translating into $ports"
+
+  # --------------------------------------------------------------------------
+  # One job per port. Each is independent: a failure to translate into C++17
+  # says nothing about Python, and a half-finished port is still worth opening.
+  # --------------------------------------------------------------------------
+  sync:
+    name: Translate into ${{ matrix.port }}
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Per port, not per run: a second authority push supersedes the C++17
+    # translation in flight and leaves Python's and Java's alone, and a push
+    # the guard rejects never reaches this job, so it cancels nothing. That is
+    # the whole reason the grouping is here rather than at workflow level.
+    concurrency:
+      group: ai-sync-${{ github.event.pull_request.number || inputs.pr }}-${{ matrix.port }}
+      cancel-in-progress: true
+    # The reviewer gate, and the only scope from which the role ARN is
+    # readable. A run waits here until a maintainer approves it.
+    environment: claude-sync
+    permissions:
+      contents: write        # push the ai-sync branch
+      pull-requests: write   # open or update the port pull request
+      id-token: write        # mint the OIDC token Bedrock trusts
+    strategy:
+      fail-fast: false
+      matrix:
+        port: ${{ fromJSON(needs.guard.outputs.ports) }}
+    env:
+      PR: ${{ needs.guard.outputs.pr }}
+      HEAD_REF: ${{ needs.guard.outputs.head_ref }}
+      BASE_REF: ${{ needs.guard.outputs.base_ref }}
+      SYNC_BRANCH: ai-sync/pr-${{ needs.guard.outputs.pr }}/${{ matrix.port }}
+    steps:
+      # The pull request's head, with history, because the agent diffs against
+      # the base to establish what changed.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ needs.guard.outputs.head_sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        if: matrix.port == 'java'
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            DocFiltersCli/java/*.gradle.kts
+            DocFiltersCli/java/gradle/wrapper/gradle-wrapper.properties
+            DocFiltersCli/tests/java/build.gradle.kts
+
+      # Every toolchain the verification rings need is installed above, so the
+      # agent can walk them itself --- and so the verification step below can
+      # walk ring 1 again without taking its word for it.
+      #
+      # Both caches use cli.yml's keys character-for-character, so the two
+      # workflows warm each other on a branch; drift in a key splits the
+      # entry. Gradle is already cached by setup-java above. This job builds
+      # each port twice, once under the agent and once under verification, so
+      # a cold fetch is paid for twice.
+      #
+      # Not cached, measured: build/DocumentFiltersBinaries. At 361 MB it
+      # holds the archives and what was unpacked from them both, against a
+      # 113 MB download --- the entry would move more bytes than it saves.
+      - name: Cache NuGet packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.nuget/packages
+          # The three projects that feed this build, not **/*.csproj: the
+          # repository holds one per sample.
+          key: nuget-${{ runner.os }}-${{ hashFiles('DocFiltersCli/csharp/DocFiltersCli.csproj', 'DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Cache FetchContent dependencies
+        if: matrix.port == 'cpp17'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: DocFiltersCli/tests/cpp17/build/_deps
+          key: cmake-deps-${{ runner.os }}-${{ hashFiles('DocFiltersCli/tests/cpp17/CMakeLists.txt', 'DocFiltersCli/cpp17/CMakeLists.txt') }}
+          restore-keys: cmake-deps-${{ runner.os }}-
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # The instructions are a reviewed file in the repository rather than a
+      # string in this workflow, and the prompt below names that file by path
+      # instead of invoking `/propagate-delta`.
+      #
+      # Slash commands are discovered under `<project root>/.claude/commands`,
+      # and this one lives in `DocFiltersCli/.claude/commands` --- a directory
+      # down from where the action starts. Rather than bet a 45-minute run on
+      # how far discovery reaches, the prompt reads the file and says what the
+      # command's `$1` and `$2` would have been. The file is unchanged and
+      # still works as `/propagate-delta cpp17` by hand from `DocFiltersCli`.
+      #
+      # --allowedTools is an allowlist: read, edit, and the build and test
+      # commands of the four implementations. Deliberately absent are `gh` and
+      # `git push` --- the branch, the commit and the pull request are made by
+      # the steps below, where the names and the target are fixed and visible,
+      # not by the agent.
+      #
+      # Every Bash entry answers a command in `languages.yml`, kept in step by
+      # hand. The match is on the *start* of a command, so a `cd X && ...` is
+      # denied on its first word and a `$(...)` defeats prefix matching
+      # outright --- seven of the ten build and test commands were unrunnable
+      # here for those two reasons, leaving the agent told to walk rings it
+      # could not be given permission for. They are now each one program with
+      # arguments; adding a `cd` or a substitution takes the ring away again.
+      #
+      # Note what that list is and is not. It is a guardrail against an agent
+      # wandering, not a security boundary: `Bash(python:*)` is on it because
+      # three of the five verification rings are Python scripts, and anything
+      # reachable from Python is reachable from here whatever the other
+      # entries say. What actually stands between a hostile diff and this
+      # job's credentials is upstream --- the actor needs write access, the
+      # label is explicit, and `claude-sync` holds the run for a reviewer.
+      #
+      # Where HEAD was before the agent ran. The action can commit by itself
+      # in some modes, so "did anything change" is asked against this rather
+      # than against the working tree alone --- otherwise an agent that
+      # committed would be reported as having produced nothing.
+      - name: Mark the starting point
+        id: before
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # AI_SYNC_REPORT tells the prompt where to leave its account of what it
+      # did: which rings it ran, what it deviated on, whether it finished.
+      # Posted as a comment on the port pull request below, because a draft
+      # pull request whose only description is a template leaves a reviewer to
+      # dig through the run log to find out whether it even builds.
+      #
+      # Outside $GITHUB_WORKSPACE so the file cannot be swept up by
+      # `git add -A` and committed into the translation.
+      #
+      # github_token is passed explicitly, although the action would fall back
+      # to the same workflow token on its own. Left empty, the action takes a
+      # GitHub App token when one is available and revokes it in a post step
+      # --- and the push below runs on whatever credentials are in
+      # .git/config by then. Naming the token keeps one credential in play
+      # from checkout to push, and the revoke step's own condition
+      # (`inputs.github_token == ''`) means it no longer fires at all.
+      - name: Translate
+        id: claude
+        env:
+          AI_SYNC_REPORT: ${{ runner.temp }}/report-${{ matrix.port }}.md
+        uses: anthropics/claude-code-action@16f9f71ab9c490faf367f94dd294897edc25be33 # v1
+        with:
+          use_bedrock: "true"
+          github_token: ${{ github.token }}
+          prompt: >-
+            Read `DocFiltersCli/.claude/commands/propagate-delta.md` and carry out
+            the procedure it describes, reading its `$1` as `${{ matrix.port }}`
+            and its `$2` as `origin/${{ env.BASE_REF }}`.
+          claude_args: >-
+            --model ${{ env.MODEL }}
+            --max-turns 60
+            --allowedTools "Read,Write,Edit,Glob,Grep,TodoWrite,Bash(dotnet:*),Bash(cmake:*),Bash(ctest:*),Bash(python:*),Bash(DocFiltersCli/java/gradlew:*),Bash(DocFiltersCli/tests/cpp17/build/bin/docfilters_tests:*),Bash(git diff:*),Bash(git log:*),Bash(git status:*),Bash(ls:*),Bash(cat:*)"
+            --disallowedTools "WebSearch,WebFetch,Bash(git push:*),Bash(gh:*),Bash(curl:*),Bash(aws:*)"
+
+      # Runs even when the step above failed, which is the case this exists
+      # for. The agent hits the turn limit, or the SDK errors, and what is on
+      # disk is a half-finished translation --- which the prompt itself calls
+      # a normal and useful outcome, worth more to a reviewer than nothing.
+      # With the default success() condition that work was collected nowhere,
+      # published nowhere, and not even reported, because `changed` was never
+      # set and every step below keys off it.
+      #
+      # !cancelled() rather than always(): a cancelled run should stop, not
+      # push a branch on its way out. The job still fails overall, because the
+      # Translate step failed and nothing here can undo that.
+      - name: Collect what changed
+        id: diff
+        if: ${{ !cancelled() }}
+        env:
+          BEFORE: ${{ steps.before.outputs.sha }}
+          PORT: ${{ matrix.port }}
+        run: |
+          # Whole repository, not just DocFiltersCli. Narrowing the `git add`
+          # was never a containment measure --- a commit the agent made itself
+          # is pushed by the branch whatever the index holds --- and it made
+          # anything written outside that directory invisible here rather than
+          # harmless. Everything is staged so that everything can be checked.
+          git add -A
+          staged=$(git diff --cached --quiet && echo no || echo yes)
+          committed=$([ "$(git rev-parse HEAD)" = "$BEFORE" ] && echo no || echo yes)
+
+          if [ "$staged" = no ] && [ "$committed" = no ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "The agent produced no change."
+            exit 0
+          fi
+
+          # Stay in your lane. CLAUDE.md gives the port its own source, its
+          # own tests and its own traps file, and nothing else: not the
+          # reference, not the fixtures, not another port, not the agent rules
+          # that told it so. Reviewing a
+          # draft pull request is the wrong place to notice that the rule was
+          # broken, because the port diff is the one thing a reviewer reads
+          # closely and an edit to `csharp/` riding along in it is the one
+          # thing they are not looking for. Worse, it would pass `Ports
+          # landed`: that check compares the newest reference commit with the
+          # newest port commit, and here they would be the same commit.
+          #
+          # The traps file is in the lane deliberately --- the prompt tells
+          # the agent to record every deviation there, so forbidding it would
+          # forbid following the instructions.
+          #
+          # The index against the starting point, so this sees commits the
+          # agent made as well as what it left in the working tree.
+          allowed="^DocFiltersCli/($PORT|tests/$PORT)/|^DocFiltersCli/design/porting/traps-$PORT\.md$"
+          stray=$(git diff --cached --name-only "$BEFORE" | grep -Ev "$allowed" || true)
+          if [ -n "$stray" ]; then
+            echo "::error::The translation wrote outside the $PORT port."
+            {
+              echo "### The translation wrote outside its lane"
+              echo ""
+              echo "A \`$PORT\` translation may touch \`DocFiltersCli/$PORT/\`,"
+              echo "\`DocFiltersCli/tests/$PORT/\` and its own traps file, and nothing"
+              echo "else. These paths are outside that set:"
+              echo ""
+              echo '```'
+              printf '%s\n' "$stray"
+              echo '```'
+              echo ""
+              echo "Nothing was pushed. If one of these is a defect in the reference,"
+              echo "it goes through the contract as its own change --- see"
+              echo "\`DocFiltersCli/CLAUDE.md\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          # Everything since the starting point, committed or not, so the
+          # patch and the branch below agree on what the translation is.
+          # `--cached` and no path limiter, both so that this is the same set
+          # of files the check above just passed: a patch drawn differently
+          # from what was inspected is a patch nobody inspected.
+          git diff --cached "$BEFORE" --stat
+          git diff --cached "$BEFORE" > "${{ runner.temp }}/${{ matrix.port }}.patch"
+
+      # Ring 1, measured here rather than taken on trust. /propagate-delta
+      # asks the agent to report which rings it walked, and that report was
+      # the only evidence any of them ran --- a claim in prose written by the
+      # thing being checked, where skipping the build reads exactly like
+      # running it. Run against the tree about to be pushed, and reported
+      # beside the agent's own account of it; the two disagreeing is itself
+      # worth seeing.
+      #
+      # Not a gate: the prompt calls a half-finished translation a normal
+      # outcome, so this records the answer and the push goes ahead either
+      # way.
+      #
+      # Ring 1 is also the only ring that can run here. The outer four compare
+      # a port against the reference, which means they want all four
+      # implementations in one tree --- that is the source pull request after
+      # the port pull requests have been merged into it, not a port branch
+      # holding one translation. cli.yml runs them there, on the merge that
+      # DF-3106 exists to produce.
+      #
+      # Which is just as well, because the port pull request opened below gets
+      # no CI of its own: GitHub does not trigger workflows for a pull request
+      # created with the workflow token, cli.yml does not listen for
+      # `ready_for_review`, and it watches pushes only on the long-lived
+      # branches. So this step is not a stand-in for a check that would
+      # otherwise run on that branch --- for ring 1, it is the only check
+      # there is.
+      #
+      # Commands from `languages.yml`, kept in step by hand. Nothing here is
+      # staged: `Collect what changed` froze the index above, so the build
+      # output stays out of the commit.
+      - name: Verify the port builds and its suite passes
+        id: verify
+        if: ${{ !cancelled() && steps.diff.outputs.changed == 'true' }}
+        env:
+          PORT: ${{ matrix.port }}
+          LOG: ${{ runner.temp }}/verify-${{ matrix.port }}.log
+        run: |
+          # Every command's output to the log as well as the job, so the
+          # report below can quote the end of it without the reviewer having
+          # to open the run.
+          ran() { "$@" 2>&1 | tee -a "$LOG"; }
+
+          set -o pipefail
+          : > "$LOG"
+
+          result=pass
+          case "$PORT" in
+            cpp17)
+              ran cmake --no-warn-unused-cli -S DocFiltersCli/tests/cpp17 \
+                    -B DocFiltersCli/tests/cpp17/build -DCMAKE_BUILD_TYPE=Release \
+                && ran cmake --build DocFiltersCli/tests/cpp17/build --config Release --parallel \
+                && ran ctest --test-dir DocFiltersCli/tests/cpp17/build -C Release --output-on-failure \
+                || result=fail
+              ;;
+            python)
+              ran python DocFiltersCli/tests/python/run_tests.py || result=fail
+              ;;
+            java)
+              ran DocFiltersCli/java/gradlew -p DocFiltersCli/java \
+                    --no-daemon --console=plain check \
+                || result=fail
+              ;;
+          esac
+
+          # Always a clean exit. A red ring is a finding to publish, not a
+          # reason to abandon the branch it was found on --- every step below
+          # still has to run.
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+          echo "Ring 1 for $PORT: $result"
+
+      # A dry run stops here. The patch is the artifact, nothing is pushed and
+      # no pull request is opened.
+      # `!cancelled()` on this and every step below, for the same reason the
+      # collection step has it: the work a failed agent left behind is worth
+      # preserving, and the default success() condition would skip all of it
+      # because the Translate step is already red.
+      - name: Upload the patch (dry run)
+        if: ${{ !cancelled() && needs.guard.outputs.dry_run == 'true' && steps.diff.outputs.changed == 'true' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ai-sync-${{ env.PR }}-${{ matrix.port }}
+          path: ${{ runner.temp }}/${{ matrix.port }}.patch
+          if-no-files-found: warn
+
+      # The port branch is derived state: "the translation of #PR into this
+      # port, at its current head". Every run re-translates the whole pull
+      # request delta from scratch --- /propagate-delta diffs against the base
+      # branch, not against the previous run --- so each run produces a
+      # complete replacement, not an increment.
+      #
+      # An ordinary merge is not an option, and not for a subtle reason:
+      # measured, two independent whole-delta translations of the same change
+      # conflict in every file they both touch, because relative to the common
+      # ancestor both sides rewrote the same regions. Where one does resolve
+      # cleanly it is additive, preserving text from an earlier attempt that
+      # this one deliberately did not produce --- the branch would drift
+      # towards the union of every attempt rather than being the current
+      # translation.
+      #
+      # So the branch update is a replacement too, and the way to do that
+      # without rewriting history is to commit this run's whole tree on top of
+      # whatever the branch currently holds. That is why the diff below is
+      # taken against the remote tip rather than against BEFORE: one commit
+      # carries the entire translation, and the previous tree is discarded as
+      # thoroughly as a force push would discard it, just more quietly. The
+      # branch only ever moves forward, so the guard below still matters:
+      # once a human has pushed to this branch, the run refuses to touch it
+      # and says so. Comments on changed lines still go stale when the tree is
+      # replaced. That is the cost of regenerating, and the refusal is what
+      # bounds it.
+      #
+      # The commit itself is not made here. The organisation requires verified
+      # signatures on every branch, and this runner has no signing key ---
+      # deliberately, because a signing key in repository secrets is a key any
+      # workflow edit can borrow, which is most of what the rule exists to
+      # prevent. `createCommitOnBranch` makes the commit on GitHub's side
+      # instead, and GitHub signs what it creates with its own key: "Commits
+      # made using this mutation are automatically signed by GitHub if
+      # supported and will be marked as verified in the user interface."
+      # Nothing is stored for this --- the credential is the job's own
+      # `github.token`, which it already has.
+      #
+      # Two consequences this step is written around. The mutation takes file
+      # contents rather than a commit object, so the tree has to be expressed
+      # as additions and deletions; `Collect what changed` froze the index,
+      # and `git diff --cached <commit>` is that commit against the index, so
+      # the change set is exactly the translation and not what the build left
+      # behind. And the mutation gives the commit one parent, the branch head,
+      # so there is no merge commit to make: what used to be a `-s ours` merge
+      # is now the choice of what to diff against, above.
+      - name: Commit the translation
+        id: push
+        if: ${{ !cancelled() && needs.guard.outputs.dry_run != 'true' && steps.diff.outputs.changed == 'true' }}
+        env:
+          BEFORE: ${{ steps.before.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+          PORT: ${{ matrix.port }}
+        run: |
+          set -euo pipefail
+
+          # Does the branch already exist on the remote, and if so does it
+          # carry anything this workflow did not write?
+          #
+          # Keyed on the author login reported by the API rather than on
+          # `%an`: the commit is authored by whoever owns the credential that
+          # made it, and the display name that produces is not something to
+          # guess at from here. The login is stable and is what the compare
+          # endpoint reports.
+          if git ls-remote --exit-code --heads origin "$SYNC_BRANCH" >/dev/null 2>&1; then
+            foreign=$(gh api "repos/$GITHUB_REPOSITORY/compare/$BEFORE...$SYNC_BRANCH" \
+                        --jq '.commits[].author.login // "unknown"' \
+                      | grep -v '^github-actions\[bot\]$' | sort -u || true)
+            if [ -n "$foreign" ]; then
+              echo "pushed=false" >> "$GITHUB_OUTPUT"
+              echo "::warning::$SYNC_BRANCH carries commits by $(echo "$foreign" | paste -sd', ')."
+              echo "Leaving it alone rather than replacing someone's work."
+              echo "This run's translation is in its logs and artifacts."
+              exit 0
+            fi
+          else
+            # Create the branch at a commit the repository already has. The
+            # push introduces no commit object, so the signature rule has
+            # nothing to check, and the mutation below needs the ref to exist.
+            git push origin "$BEFORE:refs/heads/$SYNC_BRANCH"
+          fi
+
+          git fetch --quiet origin "$SYNC_BRANCH"
+          head=$(git rev-parse "origin/$SYNC_BRANCH")
+
+          # --no-renames, because a rename would have to be turned into an
+          # addition and a deletion anyway and git will do it itself; -z,
+          # because a path may contain anything but NUL.
+          additions='[]'
+          deletions='[]'
+          while IFS= read -r -d '' status && IFS= read -r -d '' path; do
+            case "$status" in
+              D)
+                deletions=$(jq -c --arg p "$path" '. + [{path: $p}]' <<<"$deletions")
+                ;;
+              *)
+                additions=$(jq -c --arg p "$path" \
+                                  --arg c "$(git show ":$path" | base64 -w0)" \
+                                  '. + [{path: $p, contents: $c}]' <<<"$additions")
+                ;;
+            esac
+          done < <(git diff --cached --name-status --no-renames -z "$head")
+
+          if [ "$additions" = '[]' ] && [ "$deletions" = '[]' ]; then
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            echo "$SYNC_BRANCH already holds exactly this translation; nothing to commit."
+            exit 0
+          fi
+
+          jq -n \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg branch "$SYNC_BRANCH" \
+            --arg oid "$head" \
+            --arg headline "propagate the reference change into $PORT" \
+            --arg body "Translated from the change on #$PR by the /propagate-delta command.
+          Review it as a translation: see DocFiltersCli/.claude/commands/review-port.md." \
+            --argjson additions "$additions" \
+            --argjson deletions "$deletions" \
+            '{
+               query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+               variables: {
+                 input: {
+                   branch: { repositoryNameWithOwner: $repo, branchName: $branch },
+                   expectedHeadOid: $oid,
+                   message: { headline: $headline, body: $body },
+                   fileChanges: { additions: $additions, deletions: $deletions }
+                 }
+               }
+             }' > "$RUNNER_TEMP/commit-$PORT.json"
+
+          # expectedHeadOid makes this a compare-and-swap: if anything moved
+          # the branch between the fetch above and here, the mutation is
+          # refused rather than quietly overwriting it. The same protection a
+          # `git push` without --force gave, kept deliberately.
+          gh api graphql --input "$RUNNER_TEMP/commit-$PORT.json" \
+            > "$RUNNER_TEMP/commit-$PORT-result.json"
+
+          # A GraphQL error arrives as an HTTP 200 with an `errors` array, so
+          # a zero exit is not on its own evidence that the commit was made.
+          if jq -e '.errors' "$RUNNER_TEMP/commit-$PORT-result.json" >/dev/null; then
+            jq -r '.errors[].message' "$RUNNER_TEMP/commit-$PORT-result.json" >&2
+            exit 1
+          fi
+
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+          echo "Committed $(jq -r '.data.createCommitOnBranch.commit.oid' \
+                              "$RUNNER_TEMP/commit-$PORT-result.json") to $SYNC_BRANCH."
+
+      # Opened once, keyed by the branch name. A later run moves the branch
+      # on, and GitHub updates the open pull request's diff by itself --- so
+      # there is nothing to do here the second time. The body is generated
+      # from a template and would be rewritten identically; rewriting it would
+      # only clobber an edit a reviewer had made to it.
+      #
+      # Draft, always, and whether or not the agent reached green. A port that
+      # needs a human is a normal outcome; a silent skip is not.
+      - name: Open the port pull request
+        if: ${{ !cancelled() && steps.push.outputs.pushed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$SYNC_BRANCH" \
+                       --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            echo "#$existing already tracks $SYNC_BRANCH; the push updated it."
+            exit 0
+          fi
+          body=$(cat <<BODY
+          Translated from the reference change on #$PR into the **${{ matrix.port }}** port.
+
+          **Base is #$PR's own branch, not the default branch.** Merge this into
+          that branch so the contract change and all three ports land together.
+
+          Review it as a *translation*, against the reference diff beside it:
+          \`/review-port ${{ matrix.port }}\`. The question is whether it does the
+          same thing as \`csharp/\`, on every input, including the ones nobody
+          wrote a test for.
+
+          Written by Claude Code via \`/propagate-delta\`. It is a draft because a
+          machine translation of a contract change is a proposal, not a result.
+          BODY
+          )
+          gh pr create --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --base "$HEAD_REF" \
+            --head "$SYNC_BRANCH" \
+            --title "${{ matrix.port }} port of #$PR" \
+            --body "$body"
+
+      # The agent's own account of the run, as a comment rather than in the
+      # body: the body is written once and belongs to whoever edits it next,
+      # while this is rewritten on every run.
+      #
+      # Found by a marker in the comment, not with `gh pr comment
+      # --edit-last`. That flag edits "the last comment of the current user",
+      # and the current user here is `github-actions[bot]` --- an identity
+      # every workflow in the repository shares. It would happily overwrite
+      # another workflow's comment, and another workflow would happily
+      # overwrite this one. The marker names exactly one comment and includes
+      # the port, so nothing else can be mistaken for it.
+      #
+      # Posted whether or not the run reached green --- a translation that
+      # does not build is exactly the case a reviewer needs this for. On a dry
+      # run there is no pull request, so the step summary is the whole output.
+      - name: Post the agent's report
+        if: always() && steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT: ${{ runner.temp }}/report-${{ matrix.port }}.md
+          MARKER: <!-- ai-sync-report:${{ matrix.port }} -->
+          PUSHED: ${{ steps.push.outputs.pushed }}
+          AGENT: ${{ steps.claude.outcome }}
+          PORT: ${{ matrix.port }}
+          VERIFY: ${{ steps.verify.outputs.result }}
+          LOG: ${{ runner.temp }}/verify-${{ matrix.port }}.log
+        run: |
+          if [ -s "$REPORT" ]; then
+            body=$(printf '%s\n### %s translation report\n\n' "$MARKER" "${{ matrix.port }}"; cat "$REPORT")
+          else
+            body=$(printf '%s\n### %s translation report\n\n_The agent wrote no report. Read the [run log](%s/%s/actions/runs/%s) to see what happened._\n' \
+                     "$MARKER" "${{ matrix.port }}" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          fi
+
+          # The agent's own account of a run it did not finish is written
+          # before it knew it would not finish, so it cannot say this itself.
+          if [ "$AGENT" != success ]; then
+            body=$(printf '%s\n\n> **The agent did not finish** (`%s`): it ran out of turns or errored.\n> What is on the branch is as far as it got, kept deliberately rather than discarded.\n' \
+                     "$body" "$AGENT")
+          fi
+
+          # Appended after the agent's account rather than folded into it:
+          # everything above is what the translation says about itself, and
+          # this is what was observed.
+          case "$VERIFY" in
+            pass)
+              body=$(printf '%s\n\n> **Ring 1, measured by this workflow:** `%s` builds and its own suite passes.\n' \
+                       "$body" "$PORT")
+              ;;
+            fail)
+              body=$(printf '%s\n\n> **Ring 1, measured by this workflow: red.** `%s` does not build, or its suite fails.\n> The branch was pushed anyway --- a translation that needs a human is a normal outcome, and a silent skip is not.\n\n<details><summary>End of the build and test output</summary>\n\n```\n%s\n```\n\n</details>\n' \
+                       "$body" "$PORT" "$(tail -c 4000 "$LOG" 2>/dev/null)")
+              ;;
+            *)
+              body=$(printf '%s\n\n> **Ring 1 was not measured** --- the verification step did not run. See the [run log](%s/%s/actions/runs/%s).\n' \
+                       "$body" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+              ;;
+          esac
+
+          # The step summary gets it either way, which is the whole of the
+          # output on a dry run.
+          printf '%s\n' "$body" >> "$GITHUB_STEP_SUMMARY"
+
+          # Only the branch's own pull request gets the comment, and only when
+          # this run actually moved that branch. The lookup below finds the
+          # pull request an *earlier* run opened, which is the point on a
+          # normal re-translation --- but on a dry run, or when the push stood
+          # down rather than overwrite human commits, the branch still holds
+          # the earlier translation while this report describes a different
+          # one that was never published. Replacing the comment then makes the
+          # pull request lie about its own diff.
+          if [ "$PUSHED" != true ]; then
+            echo "Nothing was pushed to $SYNC_BRANCH; the report stays in the step summary so it cannot describe someone else's diff."
+            exit 0
+          fi
+
+          port_pr=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$SYNC_BRANCH" \
+                      --state open --json number --jq '.[0].number // empty')
+          if [ -z "$port_pr" ]; then
+            echo "No open pull request for $SYNC_BRANCH; the report is in the step summary."
+            exit 0
+          fi
+
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$port_pr/comments" --paginate \
+                       --jq "[.[] | select(.user.type == \"Bot\" and (.body | contains(\"$MARKER\")))] | .[-1].id // empty")
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing" \
+              -f body="$body" --silent
+            echo "Updated the report on #$port_pr."
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$port_pr/comments" \
+              -f body="$body" --silent
+            echo "Posted the report on #$port_pr."
+          fi
+
+  # --------------------------------------------------------------------------
+  # One comment on the source pull request, linking what was opened --- rather
+  # than one comment per port, three times per push.
+  # --------------------------------------------------------------------------
+  report:
+    name: Report
+    needs: [guard, sync]
+    if: always() && needs.guard.outputs.run == 'true' && needs.guard.outputs.dry_run != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.guard.outputs.pr }}
+          MARKER: <!-- ai-sync-ports -->
+        run: |
+          # Filtered with jq rather than `--search "head:..."`: that qualifier
+          # matches a branch name exactly, not as a prefix, so it would never
+          # find ai-sync/pr-<N>/<lang>.
+          lines=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 \
+                    --json number,headRefName \
+                    --jq "[.[] | select(.headRefName | startswith(\"ai-sync/pr-$PR/\"))] | .[] | \"- #\(.number) --- \`\(.headRefName)\`\"")
+          [ -n "$lines" ] || lines="_No port pull request was opened. Check the run log._"
+
+          body=$(cat <<BODY
+          $MARKER
+          ### Port pull requests
+
+          $lines
+
+          Each targets this branch. Merge them here before merging this pull
+          request, so the four implementations land in one merge.
+          BODY
+          )
+
+          # Keyed by the marker, not by `--edit-last`: that edits the last
+          # comment by the current user, and `github-actions[bot]` is shared
+          # by every workflow in the repository.
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+                       --jq "[.[] | select(.user.type == \"Bot\" and (.body | contains(\"$MARKER\")))] | .[-1].id // empty")
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing" \
+              -f body="$body" --silent
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" \
+              -f body="$body" --silent
+          fi

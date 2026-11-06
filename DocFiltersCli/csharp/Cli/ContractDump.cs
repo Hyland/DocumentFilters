@@ -14,7 +14,7 @@
  */
 
 using System.Text;
-using System.Text.Json;
+using Hyland.DocumentFilters.Cli.Runtime;
 
 namespace Hyland.DocumentFilters.Cli.Cli
 {
@@ -84,17 +84,33 @@ namespace Hyland.DocumentFilters.Cli.Cli
 		/// </remarks>
 		public static string RenderJson()
 		{
-			var commands = ArgumentTable.Commands.Select(command => new
+			// JsonWriter, not JsonSerializer. Every other --json report in the tool
+			// is built with this writer and comes out indented; this one reached for
+			// System.Text.Json and came out on a single line, so `help --json` was
+			// the one JSON surface shaped unlike all the others -- and unlike both
+			// ports, which mirror the writer rather than the serializer because the
+			// writer is what the rest of the reference uses.
+			var json = new JsonWriter().BeginArray();
+			foreach (string command in ArgumentTable.Commands)
 			{
-				command,
-				arguments = ArgumentTable.DescribeCommand(command).Select(argument => new
+				json.BeginObject()
+					.Property("command", command)
+					.Name("arguments")
+					.BeginArray();
+
+				foreach (IArgumentDescriptor argument in ArgumentTable.DescribeCommand(command))
 				{
-					template = argument.Template,
-					description = argument.Description,
-					arity = ArityText(argument.Arity)
-				})
-			});
-			return JsonSerializer.Serialize(commands) + "\n";
+					json.BeginObject()
+						.Property("template", argument.Template)
+						.Property("description", argument.Description)
+						.Property("arity", ArityText(argument.Arity))
+						.EndObject();
+				}
+
+				json.EndArray().EndObject();
+			}
+
+			return json.EndArray().ToString();
 		}
 
 		private static string ArityText(ArgumentArity arity)

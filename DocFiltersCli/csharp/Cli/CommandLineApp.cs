@@ -19,24 +19,30 @@ using Hyland.DocumentFilters.Cli.Planning;
 using Hyland.DocumentFilters.Cli.Engine;
 using Hyland.DocumentFilters.Cli.Execution;
 using Hyland.DocumentFilters.Cli.Runtime;
-using McMaster.Extensions.CommandLineUtils;
-
-// McMaster ships its own IConsole, and this is the one file that imports both.
-// The alias keeps our name unqualified here; nothing else in the project sees the
-// clash, because nothing else knows the parsing library exists.
-using IConsole = Hyland.DocumentFilters.Cli.Runtime.IConsole;
 
 namespace Hyland.DocumentFilters.Cli.Cli
 {
 	/// <summary>
-	/// Builds the McMaster command line application from <see cref="ArgumentTable"/> and
-	/// dispatches to the chosen command.
+	/// Binds a command line against <see cref="ArgumentTable"/> and dispatches to the
+	/// chosen command.
 	/// </summary>
 	/// <remarks>
-	/// This is the only class in the project that knows which CLI parsing library is
-	/// in use, and the whole of the stage 1 to stage 2 boundary. The Python, Java and
-	/// C++17 ports replace it with an equivalent over argparse, picocli and CLI11;
-	/// everything below it is shared logic.
+	/// The whole of the stage 1 to stage 2 boundary, and the only class that touches
+	/// argv at all.
+	///
+	/// There is no parsing library behind it. There was: this tool was built on
+	/// McMaster.Extensions.CommandLineUtils, and the ports on argparse, picocli and
+	/// CLI11, with this class as the wrapper that hid the differences. The four
+	/// disagreed on enough of the surface --- which tokens are options, what a
+	/// repeated option means, whether a value may look like a path, what an unknown
+	/// argument costs --- that every one of those decisions ended up here, hand
+	/// written and shared, with the library left holding only the matching of a
+	/// token to a row of the table. Holding four libraries in that role bought
+	/// nothing and cost a dependency each, so the matching is written out too. See
+	/// <see cref="PartitionTokens"/>, which is all of it.
+	///
+	/// What that means for a reader who came for the API: this class is plumbing,
+	/// and deliberately dull. <c>Execution/</c> is the sample.
 	/// </remarks>
 	public sealed class CommandLineApp
 	{
@@ -44,18 +50,6 @@ namespace Hyland.DocumentFilters.Cli.Cli
 		private readonly Interruption _interruption;
 		private readonly IFileSystem _fileSystem;
 		private readonly IDocumentFiltersEngine _engine;
-
-		/// <summary>
-		/// Deferred setter calls, one per registered argument, collected during
-		/// <see cref="RegisterArguments{T}"/> and run by <see cref="ApplyArguments"/> once the
-		/// command line has been parsed.
-		/// </summary>
-		/// <remarks>
-		/// Holding them as closures is what lets one non-generic list carry arguments that
-		/// write into different targets — <c>SharedOptions</c> for the shared options, a
-		/// per-verb options object for the rest.
-		/// </remarks>
-		private readonly List<Action> _appliers = new List<Action>();
 
 		/// <param name="engine">
 		/// The Document Filters engine, or null to build the real one on first use.
@@ -253,17 +247,16 @@ namespace Hyland.DocumentFilters.Cli.Cli
 		/// path, into <paramref name="shared"/> and <paramref name="ownOptions"/>.
 		/// </summary>
 		/// <remarks>
-		/// Tokens are validated by hand, against the same descriptors that get
-		/// registered with McMaster, before <see cref="CommandLineApplication.Execute(string[])"/>
-		/// ever sees them. Two of McMaster's default behaviours do not match this
-		/// tool's contract closely enough to rely on: it accepts a value-taking option
-		/// a second time by throwing rather than letting the later one win, and it
-		/// does not reliably reject "--to --out-dir out" — a value-taking option
-		/// followed immediately by another option with nothing in between — the way
-		/// argparse and CLI11 do. Validating first, with our own messages, sidesteps
-		/// both rather than post-processing whatever McMaster's own exception says.
+		/// Two passes over the same descriptors, and the split between them is the
+		/// point. <see cref="ValidateTokens"/> decides whether the line is well formed
+		/// and says so in this tool's own words; <see cref="PartitionTokens"/> then
+		/// walks a line already known to be good, so every lookup in it succeeds and
+		/// it has no error path of its own to get wrong. A parsing library could not
+		/// be given that division: it validates as it parses, in its own vocabulary,
+		/// and the message a user sees is the thing four implementations have to
+		/// agree on down to the byte.
 		/// </remarks>
-		private void BindVerb<TOptions>(
+		private static void BindVerb<TOptions>(
 			string command,
 			string[] args,
 			IReadOnlyList<ArgumentDefinition<SharedOptions>> sharedDefinitions,
@@ -271,19 +264,18 @@ namespace Hyland.DocumentFilters.Cli.Cli
 			SharedOptions sharedOptions,
 			TOptions ownOptions)
 		{
-			ValidateTokens(command, args, sharedDefinitions.Cast<IArgumentDescriptor>().Concat(ownDefinitions).ToList());
+			IReadOnlyList<IArgumentDescriptor> descriptors =
+				sharedDefinitions.Cast<IArgumentDescriptor>().Concat(ownDefinitions).ToList();
 
-			var app = new CommandLineApplication { Name = command }; // McMaster app
+			ValidateTokens(command, args, descriptors);
 
-			_appliers.Clear();
-			RegisterArguments(app, sharedDefinitions, sharedOptions);
-			RegisterArguments(app, ownDefinitions, ownOptions);
-			CommandArgument paths = app.Argument("paths", "Files or directories to process", multipleValues: true);
+			var values = new Dictionary<IArgumentDescriptor, List<string>>();
+			var paths = new List<string>();
+			PartitionTokens(args, descriptors, values, paths);
 
-			app.Execute(args);
-
-			ApplyArguments();
-            sharedOptions.Input.Paths.AddRange(paths.Values);
+			Apply(sharedDefinitions, sharedOptions, values);
+			Apply(ownDefinitions, ownOptions, values);
+			sharedOptions.Input.Paths.AddRange(paths);
 		}
 
 		/// <summary>
@@ -327,17 +319,17 @@ namespace Hyland.DocumentFilters.Cli.Cli
 
 		/// <summary>
 		/// Rejects an unknown argument, or one missing the value its arity requires,
-		/// with this tool's own message rather than McMaster's.
+		/// in this tool's own words.
 		/// </summary>
+		/// <remarks>
+		/// Separate from <see cref="PartitionTokens"/> so that exactly one of the two
+		/// has an error path: everything malformed is turned down here, and the walk
+		/// that follows can assume a good line. The messages are contract, checked
+		/// byte for byte against <c>plan-corpus.txt</c> in all four implementations.
+		/// </remarks>
 		private static void ValidateTokens(string command, IReadOnlyList<string> args, IReadOnlyList<IArgumentDescriptor> descriptors)
 		{
-			var byToken = new Dictionary<string, IArgumentDescriptor>(StringComparer.Ordinal);
-			foreach (IArgumentDescriptor descriptor in descriptors)
-			{
-				byToken["--" + descriptor.LongName] = descriptor;
-				if (!string.IsNullOrEmpty(descriptor.ShortName))
-					byToken["-" + descriptor.ShortName] = descriptor;
-			}
+			var byToken = DescriptorsByToken(descriptors);
 
             char[] optionValueSeparators = { '=', ':' };
             int i = 0;
@@ -357,9 +349,11 @@ namespace Hyland.DocumentFilters.Cli.Cli
 
 				// A switch takes no value, so an attached one is a mistake and not a value
 				// to ignore. Accepting it left the flag enabled and "false" behind as a
-				// positional — and McMaster then threw a CommandParsingException, which is
-				// not a CliError, so `--overwrite=false` ended the process with an
-				// unhandled exception rather than a usage error.
+				// positional. When this tool still had a parsing library under it, that
+				// library then threw its own parse exception, which was not a CliError,
+				// so `--overwrite=false` ended the process with an unhandled exception
+				// rather than a usage error. The check stays because the message is
+				// contract, not because there is still an exception to head off.
 				if (descriptor.Arity == ArgumentArity.NoValue && kvSeparator >= 0)
 					throw new UsageError(ErrorCodes.BadValue, $"--{descriptor.LongName} takes no value");
 
@@ -374,6 +368,83 @@ namespace Hyland.DocumentFilters.Cli.Cli
 
 				i += 2;
 			}
+		}
+
+		/// <summary>
+		/// Splits the command line into each argument's values and the positional
+		/// paths.
+		/// </summary>
+		/// <remarks>
+		/// The whole of what a parsing library used to do here, and the reason none is
+		/// needed: match a token to a row of the table, take its value from the token
+		/// itself after an <c>=</c> or a <c>:</c> or else from the token after it, and
+		/// put everything else in the path list.
+		///
+		/// Walks by the same rules as <see cref="ValidateTokens"/>, which has already
+		/// run and rejected everything malformed — so the lookup below is known to
+		/// succeed, and anything <see cref="LooksLikeOption"/> turns down here is a
+		/// path by that method's own definition rather than by elimination. A value
+		/// may itself look like a path, or like stdin (<c>--out-file -</c>); what
+		/// follows a value-taking option is its value either way. Paths keep their
+		/// positions relative to each other, which <c>--combine</c> depends on.
+		///
+		/// A switch is recorded with an empty list rather than being skipped: the
+		/// entry is what says it was given at all, and <see cref="Apply{T}"/> reads
+		/// presence, not count. Dropping it would make <c>--silent</c> indistinguishable
+		/// from an absent one.
+		/// </remarks>
+		private static void PartitionTokens(IReadOnlyList<string> args, IReadOnlyList<IArgumentDescriptor> descriptors,
+											Dictionary<IArgumentDescriptor, List<string>> values, List<string> paths)
+		{
+			var byToken = DescriptorsByToken(descriptors);
+
+			char[] optionValueSeparators = { '=', ':' };
+			int i = 0;
+			while (i < args.Count)
+			{
+				string token = args[i];
+				int kvSeparator = token.IndexOfAny(optionValueSeparators);
+				string name = kvSeparator < 0 ? token : token.Substring(0, kvSeparator);
+				if (!LooksLikeOption(name))
+				{
+					paths.Add(token);
+					i += 1;
+					continue;
+				}
+
+				IArgumentDescriptor descriptor = byToken[name];
+				if (!values.TryGetValue(descriptor, out List<string> given))
+					values[descriptor] = given = new List<string>();
+
+				if (descriptor.Arity == ArgumentArity.NoValue)
+				{
+					i += 1;
+					continue;
+				}
+
+				if (kvSeparator >= 0)
+				{   // the value is in the token itself
+					given.Add(token.Substring(kvSeparator + 1));
+					i += 1;
+					continue;
+				}
+
+				given.Add(args[i + 1]);
+				i += 2;
+			}
+		}
+
+		/// <summary>Indexes a verb's arguments by every token that selects one.</summary>
+		private static Dictionary<string, IArgumentDescriptor> DescriptorsByToken(IReadOnlyList<IArgumentDescriptor> descriptors)
+		{
+			var byToken = new Dictionary<string, IArgumentDescriptor>(StringComparer.Ordinal);
+			foreach (IArgumentDescriptor descriptor in descriptors)
+			{
+				byToken["--" + descriptor.LongName] = descriptor;
+				if (!string.IsNullOrEmpty(descriptor.ShortName))
+					byToken["-" + descriptor.ShortName] = descriptor;
+			}
+			return byToken;
 		}
 
 		/// <summary>
@@ -402,105 +473,49 @@ namespace Hyland.DocumentFilters.Cli.Cli
 		}
 
 		/// <summary>
-		/// Registers a table of arguments against a McMaster command, remembering how to
-		/// write each one into <paramref name="target"/> after parsing.
+		/// Runs the setter for every argument the user actually supplied, writing into
+		/// <paramref name="target"/>.
 		/// </summary>
 		/// <remarks>
-		/// This plus <see cref="ApplyArguments"/> is the entire translation from command
-		/// line text to the options model. Everything fallible in that translation
-		/// happens inside the setters, in <c>ValueParsers</c>, which is shared with
-		/// the other three language implementations.
+		/// This plus <see cref="PartitionTokens"/> is the entire translation from
+		/// command line text to the options model. Everything fallible in that
+		/// translation happens inside the setters, in <c>ValueParsers</c>, which is
+		/// shared with the other three language implementations.
 		///
-		/// Every value-taking argument is registered as McMaster's
-		/// <see cref="CommandOptionType.MultipleValue"/> regardless of its own
-		/// <see cref="ArgumentArity"/> — see <see cref="ToOptionType"/> — so
-		/// <see cref="ApplyArguments"/> is what actually enforces "one value, last one
-		/// wins" for <see cref="ArgumentArity.SingleValue"/>, simply by calling the
-		/// setter once per occurrence in the order given: a plain assignment setter
-		/// naturally ends up holding the last one.
-		/// </remarks>
-		private void RegisterArguments<T>(CommandLineApplication command, IReadOnlyList<ArgumentDefinition<T>> definitions, T target)
-		{
-			foreach (ArgumentDefinition<T> definition in definitions)
-			{
-				CommandOption option = command.Option(definition.Template, definition.Description, ToOptionType(definition.Arity));
-				_appliers.Add(() =>
-				{
-					if (definition.Arity == ArgumentArity.NoValue)
-					{
-						if (option.HasValue())
-							definition.Setter(target, null);
-					}
-					else
-					{
-						foreach (string value in option.Values)
-							definition.Setter(target, value);
-					}
-				});
-			}
-		}
-
-		/// <summary>
-		/// Runs the setter for every argument the user actually supplied.
-		/// </summary>
-		/// <remarks>
 		/// A <see cref="ArgumentArity.NoValue"/> argument calls its setter once with null; a
 		/// <see cref="ArgumentArity.SingleValue"/> argument once with the value; a
 		/// <see cref="ArgumentArity.MultipleValue"/> argument once per occurrence, which is how
 		/// <c>--redact</c> and <c>-p</c> accumulate.
 		///
+		/// "One value, last one wins" for <see cref="ArgumentArity.SingleValue"/> is
+		/// not enforced anywhere: calling a plain assignment setter once per
+		/// occurrence, in the order given, leaves it holding the last one.
+		///
 		/// Two arguments that write the same setting never race: a contradictory pair
 		/// is rejected by <c>OptionsValidator</c> rather than resolved by precedence.
-		/// No precedence rule is possible here — McMaster records values per option,
-		/// not the relative order of different options, and neither do all of argparse,
-		/// picocli and CLI11.
+		/// No precedence rule is possible here, because <paramref name="values"/> is
+		/// keyed by argument and records each one's occurrences, not the relative
+		/// order of two different arguments. Recording that order would be easy now
+		/// and is still not done: the contract says a contradiction is an error, and a
+		/// tie-break would quietly answer a question the other three ports would each
+		/// have to be taught to answer the same way.
 		/// </remarks>
 		/// <exception cref="UsageError">A value failed to parse.</exception>
-		private void ApplyArguments()
+		private static void Apply<T>(IReadOnlyList<ArgumentDefinition<T>> definitions, T target,
+									 Dictionary<IArgumentDescriptor, List<string>> values)
 		{
-			foreach (Action applier in _appliers)
-				applier();
-		}
-
-		/// <summary>Translates our arity to McMaster's equivalent.</summary>
-		/// <remarks>
-		/// <see cref="ArgumentArity.SingleValue"/> maps to McMaster's own
-		/// <see cref="CommandOptionType.MultipleValue"/>, not its
-		/// <c>SingleValue</c>: McMaster's <c>SingleValue</c> throws
-		/// <c>CommandParsingException</c> if the option is given a second time, where
-		/// this tool's contract says the later one silently wins. Collecting every
-		/// occurrence and letting <see cref="ApplyArguments"/> replay them in order
-		/// gets "last one wins" for free.
-		/// </remarks>
-		internal static CommandOptionType ToOptionType(ArgumentArity arity)
-		{
-			switch (arity)
+			foreach (ArgumentDefinition<T> definition in definitions)
 			{
-				case ArgumentArity.NoValue:
-					return CommandOptionType.NoValue;
-				case ArgumentArity.SingleValue:
-				case ArgumentArity.MultipleValue:
-					return CommandOptionType.MultipleValue;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(arity));
+				if (!values.TryGetValue(definition, out List<string> given))
+					continue;
+
+				if (definition.Arity == ArgumentArity.NoValue)
+					definition.Setter(target, null);
+				else
+					foreach (string value in given)
+						definition.Setter(target, value);
 			}
 		}
 
-		/// <summary>Prints top-level usage, or usage for one command.</summary>
-		internal void ShowHelp(string command)
-		{
-			_console.WriteLine(command == null ? ContractDump.Render() : ContractDump.RenderCommand(command));
-		}
-
-		/// <summary>Prints the library version and build information.</summary>
-		internal void ShowVersion()
-		{
-            new VersionCommand().Execute(new CommandContext
-            {
-                SharedOptions = new SharedOptions(),
-                Console = _console,
-                FileSystem = _fileSystem
-            });
-		}
 	}
 }

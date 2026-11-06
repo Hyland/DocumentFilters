@@ -146,6 +146,53 @@ namespace Hyland.DocumentFilters.Cli.Tests.Unit
 			Assert.Equal(new[] { "a.docx", "b.docx" }, shared.Input.Paths);
 		}
 
+		// A token that starts with a dash but is not one of this tool's own option
+		// spellings is a path. LooksLikeOption is the whole rule, and these four
+		// shapes are the ones a parsing library reads differently: a cluster of
+		// short options, the end-of-options separator, a long option, and a long
+		// option whose name begins with a dash. Each of them used to reach
+		// McMaster, which threw UnrecognizedCommandParsingException -- not a
+		// CliError, so the tool exited with a .NET stack trace rather than
+		// reporting anything. Reported from the field against 1.0.0-prerelease.1
+		// as `-tsv`. The library is gone and these cases stay: they are the
+		// contract, and what made them wrong was never the library's fault.
+		[Theory]
+		[InlineData("-tsv")]
+		[InlineData("-ab")]
+		[InlineData("--")]
+		[InlineData("---weird")]
+		[InlineData("----")]
+		public void A_dash_token_that_is_not_an_option_spelling_is_a_path(string token)
+		{
+			SharedOptions shared = Bind("convert", "--to", "text", "--out-dir", "out", token).SharedOptions;
+
+			Assert.Equal(new[] { token }, shared.Input.Paths);
+		}
+
+		[Fact]
+		public void A_dash_shaped_path_keeps_its_position_among_the_others()
+		{
+			// Order is load-bearing: --combine writes the inputs in the order given.
+			// Collecting the odd tokens separately and appending them would pass the
+			// test above and still get this wrong.
+			SharedOptions shared = Bind("convert", "--to", "text", "--out-dir", "out",
+										"a.docx", "-tsv", "b.docx").SharedOptions;
+
+			Assert.Equal(new[] { "a.docx", "-tsv", "b.docx" }, shared.Input.Paths);
+		}
+
+		[Fact]
+		public void An_option_value_may_look_like_a_path()
+		{
+			// The partition walks by arity, not by shape: --out-name takes a value, so
+			// the next token is that value however it is spelled.
+			SharedOptions shared = Bind("convert", "--to", "text", "--out-dir", "out",
+										"--out-name", "-{stem}.txt", "a.docx").SharedOptions;
+
+			Assert.NotNull(shared.Output.NameTemplate);
+			Assert.Equal(new[] { "a.docx" }, shared.Input.Paths);
+		}
+
 		[Fact]
 		public void Files_from_writes_its_path()
 		{
@@ -811,14 +858,15 @@ namespace Hyland.DocumentFilters.Cli.Tests.Unit
 		[Fact]
 		public void Prefix_abbreviation_does_not_resolve()
 		{
-			// argparse allows this by default and the other three do not, so it is
-			// switched off everywhere. Without this test the Python port silently
-			// accepts command lines the others reject.
+			// --out-d must not resolve to --out-dir. Prefix abbreviation is a common
+			// parsing-library default, and exactly the kind of convenience a
+			// hand-written matcher grows by accident; plan-corpus.txt pins the same
+			// case for all four.
 			Assert.Throws<UsageError>(() => Bind("convert", "--to", "text", "--out-d", "out", "a.docx"));
 		}
 
 		[Fact]
-		public void A_argument_from_another_verb_is_rejected()
+		public void An_argument_from_another_verb_is_rejected()
 		{
 			// --combine belongs to convert; extract must not quietly accept it.
 			Assert.Throws<UsageError>(() => Bind("extract", "--combine", "-o", "out", "a.zip"));
@@ -827,8 +875,10 @@ namespace Hyland.DocumentFilters.Cli.Tests.Unit
 		[Fact]
 		public void A_bad_value_is_reported_by_us_and_not_by_the_parsing_library()
 		{
-			// The error code proves the message came from ValueParsers rather than
-			// McMaster, which is what keeps stderr identical across the four ports.
+			// The error code proves the message came from ValueParsers, which is what
+			// keeps stderr identical across the four ports. The name of this test is
+			// from when there was a parsing library to be distinguished from; it is
+			// kept because the four suites share their test names.
 			UsageError error = Assert.Throws<UsageError>(
 				() => Bind("convert", "--to", "text", "--max-depth", "abc", "-o", "out", "a.docx"));
 

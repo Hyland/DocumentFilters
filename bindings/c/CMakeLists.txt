@@ -41,6 +41,11 @@ add_library(DocumentFilters::DocumentFilters ALIAS DocumentFilters)
 add_library(DocumentFilters::C ALIAS DocumentFilters)
 
 if (WIN32)
+    # Existing binaries come with their own import library, which has to win
+    # over the copy committed here: it is the one that matches the DLL.
+    if (NOT DOCFILTERS_DOWNLOAD_BINARIES AND NOT "${DOCFILTERS_RUNTIME_BINARIES_DIRECTORY}" STREQUAL "")
+        target_link_directories(${LIBRARY_NAME} INTERFACE "${DOCFILTERS_RUNTIME_BINARIES_DIRECTORY}")
+    endif()
 	target_link_directories(${LIBRARY_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/lib)
 	if(${CMAKE_CXX_COMPILER_ARCHITECTURE_ID} MATCHES "X86")
         target_link_directories(${LIBRARY_NAME} INTERFACE "${CMAKE_CURRENT_LIST_DIR}/lib/x86")
@@ -89,25 +94,25 @@ function(fetch_latest_version LATEST_VERSION_VAR)
     set(${LATEST_VERSION_VAR} "${CMAKE_MATCH_1}" PARENT_SCOPE)
 endfunction()
 
-if("${DOCFILTERS_RELEASES_URL}" STREQUAL "")
-    # If DOCFILTERS_VERSION is empty, get the latest version
-    if(NOT DOCFILTERS_VERSION)
-        fetch_latest_version(LATEST_VERSION)
-        set(DOCFILTERS_VERSION ${LATEST_VERSION})
-    elseif (NOT DOCFILTERS_VERSION MATCHES "^v")
-        # If the value in DOCFILTERS_VERSION does not start with v, add it
-        set(DOCFILTERS_VERSION "v${DOCFILTERS_VERSION}")
+if(DOCFILTERS_DOWNLOAD_BINARIES)
+    # Resolved only when downloading: with existing binaries there is nothing to
+    # fetch, so the configure must not need the network or the GitHub API.
+    if("${DOCFILTERS_RELEASES_URL}" STREQUAL "")
+        # If DOCFILTERS_VERSION is empty, get the latest version
+        if(NOT DOCFILTERS_VERSION)
+            fetch_latest_version(LATEST_VERSION)
+            set(DOCFILTERS_VERSION ${LATEST_VERSION})
+        elseif (NOT DOCFILTERS_VERSION MATCHES "^v")
+            # If the value in DOCFILTERS_VERSION does not start with v, add it
+            set(DOCFILTERS_VERSION "v${DOCFILTERS_VERSION}")
+        endif()
+
+        message(STATUS "Using version: ${DOCFILTERS_VERSION}")
+        set(DOCFILTERS_RELEASES_URL "https://github.com/Hyland/DocumentFilters/releases/download/${DOCFILTERS_VERSION}")
     endif()
 
-    message(STATUS "Using version: ${DOCFILTERS_VERSION}")
-    set(DOCFILTERS_RELEASES_URL "https://github.com/Hyland/DocumentFilters/releases/download/${DOCFILTERS_VERSION}")
-endif()
+    message(STATUS "Downloading release binaries from: ${DOCFILTERS_RELEASES_URL}")
 
-message(STATUS "Downloading release binaries from: ${DOCFILTERS_RELEASES_URL}")
-
-# Set the URL of the ZIP file you want to download
-
-if(DOCFILTERS_DOWNLOAD_BINARIES)
     if (CMAKE_SYSTEM_NAME MATCHES "Windows")
         set(DOCFILTERS_BINARIES_URL ${DOCFILTERS_RELEASES_URL}/windows-intel-msvc-64.zip)
     elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")

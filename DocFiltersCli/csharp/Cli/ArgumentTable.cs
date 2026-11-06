@@ -17,8 +17,9 @@
 //  WHY THIS FILE LOOKS THE WAY IT DOES
 //
 //  If you are reading this to learn how to build a CLI on Document Filters in
-//  C#, the idiomatic approach is McMaster's attributes, and it is what the other
-//  samples in this repository use:
+//  C#, do not copy this file. The idiomatic approach is a parsing library's
+//  attributes --- McMaster.Extensions.CommandLineUtils is what the other C#
+//  samples in this repository use, and what this tool itself used to use:
 //
 //      class Program
 //      {
@@ -34,20 +35,29 @@
 //
 //  That is shorter and perfectly good. Reach for it in your own code.
 //
-//  This sample uses McMaster's builder API and a table of setters instead, for a
-//  reason specific to this project: the same CLI is implemented four times, in
-//  C#, Python, Java and C++17, and the four must stay byte-for-byte identical.
+//  This sample uses a table of setters instead, for a reason specific to this
+//  project: the same CLI is implemented four times, in C#, Python, Java and
+//  C++17, and the four must stay byte-for-byte identical.
 //
 //    * C# attributes cannot hold a lambda — they only take compile-time
 //      constants — so an attribute cannot say where its value ends up. Neither
-//      can picocli's annotations, which the Java port uses.
+//      can picocli's annotations, which the Java port would otherwise use.
 //    * A table where each row is (argument, help, arity, setter) says the whole
-//      mapping on one line, ports directly to argparse, picocli and CLI11, and
-//      can be enumerated to emit `--print-contract` for the conformance tests.
+//      mapping on one line, reads the same in all four languages, and can be
+//      enumerated to emit `--print-contract` for the conformance tests.
 //    * Values that can fail to convert are parsed in ValueParsers, shared with
 //      every other language, so a bad `--max-depth` gives the same message and
-//      the same exit code in all four builds rather than four different ones
-//      written by four different parsing libraries.
+//      the same exit code in all four builds rather than four different ones.
+//
+//  The table was originally fed to a parsing library in each language, with
+//  Cli/ as the wrapper that hid their differences. It no longer is, anywhere:
+//  the libraries disagreed about which tokens are options, what a repeated
+//  option means and what an unknown argument costs, so every one of those
+//  decisions had already moved into shared hand-written code, leaving each
+//  library holding only the match from a token to a row of this table. See the
+//  class remarks on Cli/CommandLineApp. The table is unchanged by that --- it
+//  was always the source of truth, and it is still the only place an argument
+//  is declared.
 //
 //  In short: the attribute form is better for one program, the table form is
 //  better for one program written four times.
@@ -83,10 +93,14 @@ namespace Hyland.DocumentFilters.Cli.Cli
 		/// <see cref="Commands"/> because they process no documents and accept no
 		/// shared options.
 		///
-		/// Note that <c>--help</c> and <c>-h</c> as *arguments* appear in neither list:
-		/// every parsing library provides them, and their rendering differs between
-		/// McMaster, argparse and CLI11, which is exactly why help text is not part
-		/// of the cross-language contract.
+		/// Note that <c>--help</c> and <c>-h</c> as *arguments* appear in neither list.
+		/// Each implementation's parsing library used to provide them and render them
+		/// its own way, which is why help text was left out of the cross-language
+		/// contract. None of the four has a parsing library now, so the rendering is
+		/// this tool's own and identical everywhere --- but the contract has not been
+		/// widened to cover it, because help text is the one surface a reader is
+		/// expected to improve, and pinning it byte for byte would make a reworded
+		/// line a four-implementation change.
 		/// </remarks>
 		public static IReadOnlyList<string> AllVerbs => verbs;
 

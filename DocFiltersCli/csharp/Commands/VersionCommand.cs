@@ -37,7 +37,18 @@ namespace Hyland.DocumentFilters.Cli.Commands
 		{
 			return CommandExecution.WithSession(context, () =>
 			{
-                string toolVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
+				// The informational version, not GetName().Version. An assembly
+				// version is always four components, so <Version>1.0.0</Version>
+				// comes back as "1.0.0.0" -- a shape no other implementation can
+				// reproduce, because none of them has a fourth component to print.
+				// The informational version is the <Version> string verbatim.
+				//
+				// Trimmed at '+' because a build with source-link metadata appends
+				// one, as "1.0.0+<commit>", and that would differ between every
+				// checkout rather than between every language.
+				string toolVersion = Assembly.GetExecutingAssembly()
+					.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+					.InformationalVersion.Split('+')[0] ?? "unknown";
 				context.Console.WriteLine($"docfilters {toolVersion}");
 				context.Console.WriteLine($"Document Filters {context.Session.DescribeVersion()}");
 				return ExitCode.Success;

@@ -10,15 +10,31 @@
 # workflow, and ending in a gate job that always runs, gives the same saved
 # minutes without the deadlock.
 #
-# Adding a language is three edits: a `filters` entry in the `changes` job, one
-# build job modelled on `csharp`, and one line in `ci-gate`'s `needs`. The build
-# steps themselves are irreducibly per-language, which is why this is three
-# small edits rather than one registry row.
+# Adding a language means, in order: a `filters` entry in the `changes` job and
+# the narrower `<lang>_src` / `<lang>_tests` pair beside it, a build job
+# modelled on `csharp`, a `check` line in `contract-order`, a build-record-list
+# trio in `parity`, a `package-<lang>` job, and the new jobs named in
+# `ci-gate`'s `needs`. The steps themselves are irreducibly per-language, which
+# is why this is a handful of small edits rather than one registry row.
 
 name: CLI
 
 on:
+  # `labeled` and `unlabeled` are here because `contract-order` reads the
+  # labels, and the default trigger set --- opened, synchronize, reopened ---
+  # does not include them. Without these, adding `contract-unchanged` to a red
+  # pull request leaves it red until someone pushes a commit, and the author is
+  # told to "add the label and re-run" by a check that re-running does not
+  # reach. Removing the label has to put the failure back for the same reason,
+  # or a green check outlives the claim that earned it.
+  #
+  # The cost is a full run per label change, including the builds, which the
+  # concurrency group below will cancel and restart if one is in flight. That
+  # is deliberate: the alternative --- skipping the build jobs when the event
+  # is a label --- would let a label flip `ci-gate` green over a build that
+  # failed, because the gate reads a skipped dependency as a pass.
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main, master, develop]
   # Manual run. Leave `release` unticked for a plain build-and-test; tick it and
@@ -30,7 +46,7 @@ on:
         type: boolean
         default: false
       version:
-        description: Release version, e.g. 1.2.3 or 1.2.3-rc.1. Leave empty to use DocFiltersCli/VERSION.txt. Tag becomes v<version>
+        description: Release version, e.g. 1.2.3 or 1.2.3-rc.1. Leave empty to use DocFiltersCli/VERSION.txt. Tag becomes cli-v<version>
         type: string
         required: false
 
@@ -86,7 +102,20 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       csharp: ${{ steps.decide.outputs.csharp }}
+      cpp17: ${{ steps.decide.outputs.cpp17 }}
+      python: ${{ steps.decide.outputs.python }}
+      java: ${{ steps.decide.outputs.java }}
+      harness: ${{ steps.decide.outputs.harness }}
       os_matrix: ${{ steps.decide.outputs.os_matrix }}
+      conformance: ${{ steps.order.outputs.conformance }}
+      csharp_src: ${{ steps.order.outputs.csharp_src }}
+      csharp_tests: ${{ steps.order.outputs.csharp_tests }}
+      cpp17_src: ${{ steps.order.outputs.cpp17_src }}
+      cpp17_tests: ${{ steps.order.outputs.cpp17_tests }}
+      python_src: ${{ steps.order.outputs.python_src }}
+      python_tests: ${{ steps.order.outputs.python_tests }}
+      java_src: ${{ steps.order.outputs.java_src }}
+      java_tests: ${{ steps.order.outputs.java_tests }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
@@ -99,22 +128,80 @@ jobs:
           filters: |
             # Each language's own source and tests, plus every path that is an
             # input to its build. Those dependency edges are the part that is
-            # easy to miss: the C# project reaches outside DocFiltersCli/ for
-            # its packages, and the C++ project reaches outside it for the
-            # Document Filters binding.
+            # easy to miss: the C++ project reaches outside DocFiltersCli/ for
+            # the Document Filters binding. The C# project no longer reaches
+            # outside it at all --- it used to build against
+            # samples/csharp/DfSamplesCommon, and now declares its packages
+            # itself.
             csharp:
               - 'DocFiltersCli/csharp/**'
               - 'DocFiltersCli/tests/csharp/**'
               - 'DocFiltersCli/tests/conformance/**'
-              - 'samples/csharp/DfSamplesCommon/**'
-              - 'samples/csharp/DocumentFiltersLicense.cs'
-              - '.github/workflows/cli.yml'
-              # Selects the engine version this build links against.
-              - 'samples/DF_VERSION.txt'
               # The CLI's own version, read by the build.
               - 'DocFiltersCli/VERSION.txt'
               - 'DocFiltersCli/Directory.Build.props'
               - '.github/workflows/cli.yml'
+            # The shared harness: the recorder, the comparison tools, their
+            # exemptions, and the engine settings and input document every
+            # implementation is measured against. Nothing here belongs to one
+            # language, and a change to any of it can invalidate the parity
+            # result -- so it has to trigger the job that produces that result,
+            # or a PR editing only the checks would skip every job and pass.
+            harness:
+              - 'DocFiltersCli/tests/e2e/**'
+              - 'DocFiltersCli/tests/parity/**'
+              - '.github/workflows/cli.yml'
+            python:
+              - 'DocFiltersCli/python/**'
+              - 'DocFiltersCli/tests/python/**'
+              - 'DocFiltersCli/tests/conformance/**'
+              # The CLI's own version, read at import.
+              - 'DocFiltersCli/VERSION.txt'
+              - '.github/workflows/cli.yml'
+            cpp17:
+              - 'DocFiltersCli/cpp17/**'
+              - 'DocFiltersCli/tests/cpp17/**'
+              - 'DocFiltersCli/tests/conformance/**'
+              - 'bindings/c/**'
+              - 'bindings/cpp17/**'
+              - 'CMakeLists.txt'
+              # Selects the engine version this build links against.
+              - 'samples/DF_VERSION.txt'
+              # The CLI's own version, read by the build.
+              - 'DocFiltersCli/VERSION.txt'
+              - '.github/workflows/cli.yml'
+            java:
+              - 'DocFiltersCli/java/**'
+              - 'DocFiltersCli/tests/java/**'
+              - 'DocFiltersCli/tests/conformance/**'
+              # The binding jar the port compiles against.
+              - 'bindings/java/**'
+              # The CLI's own version, read by the Gradle build.
+              - 'DocFiltersCli/VERSION.txt'
+              - '.github/workflows/cli.yml'
+
+            # Narrower views of the same paths, for the ordering rule below.
+            # Separate from the build filters because those deliberately
+            # conflate a language's source with everything that feeds it, and
+            # the ordering rule has to tell those apart.
+            conformance:
+              - 'DocFiltersCli/tests/conformance/**'
+            csharp_src:
+              - 'DocFiltersCli/csharp/**'
+            csharp_tests:
+              - 'DocFiltersCli/tests/csharp/**'
+            cpp17_src:
+              - 'DocFiltersCli/cpp17/**'
+            cpp17_tests:
+              - 'DocFiltersCli/tests/cpp17/**'
+            python_src:
+              - 'DocFiltersCli/python/**'
+            python_tests:
+              - 'DocFiltersCli/tests/python/**'
+            java_src:
+              - 'DocFiltersCli/java/**'
+            java_tests:
+              - 'DocFiltersCli/tests/java/**'
 
       - name: Decide
         id: decide
@@ -122,9 +209,30 @@ jobs:
           echo "os_matrix=$OS_MATRIX" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "csharp=${{ steps.filter.outputs.csharp }}" >> "$GITHUB_OUTPUT"
+            echo "cpp17=${{ steps.filter.outputs.cpp17 }}"   >> "$GITHUB_OUTPUT"
+            echo "python=${{ steps.filter.outputs.python }}" >> "$GITHUB_OUTPUT"
+            echo "java=${{ steps.filter.outputs.java }}"     >> "$GITHUB_OUTPUT"
+            echo "harness=${{ steps.filter.outputs.harness }}" >> "$GITHUB_OUTPUT"
           else
             echo "csharp=true" >> "$GITHUB_OUTPUT"
+            echo "cpp17=true"  >> "$GITHUB_OUTPUT"
+            echo "python=true" >> "$GITHUB_OUTPUT"
+            echo "java=true"   >> "$GITHUB_OUTPUT"
+            echo "harness=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Record the ordering inputs
+        id: order
+        run: |
+          echo "conformance=${{ steps.filter.outputs.conformance }}"     >> "$GITHUB_OUTPUT"
+          echo "csharp_src=${{ steps.filter.outputs.csharp_src }}"       >> "$GITHUB_OUTPUT"
+          echo "csharp_tests=${{ steps.filter.outputs.csharp_tests }}"   >> "$GITHUB_OUTPUT"
+          echo "cpp17_src=${{ steps.filter.outputs.cpp17_src }}"         >> "$GITHUB_OUTPUT"
+          echo "cpp17_tests=${{ steps.filter.outputs.cpp17_tests }}"     >> "$GITHUB_OUTPUT"
+          echo "python_src=${{ steps.filter.outputs.python_src }}"       >> "$GITHUB_OUTPUT"
+          echo "python_tests=${{ steps.filter.outputs.python_tests }}"   >> "$GITHUB_OUTPUT"
+          echo "java_src=${{ steps.filter.outputs.java_src }}"           >> "$GITHUB_OUTPUT"
+          echo "java_tests=${{ steps.filter.outputs.java_tests }}"       >> "$GITHUB_OUTPUT"
 
   # --------------------------------------------------------------------------
   # C# --- the reference implementation.
@@ -141,9 +249,10 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      # Both versions on purpose. The projects target net8.0 today and move to
-      # net10.0 when DfSamplesCommon is multi-targeted; installing both means
-      # that change does not also have to be a CI change.
+      # The projects target net10.0. 8.0.x stays installed because the rest of
+      # the repository's C# samples still target net8.0, and a contributor who
+      # runs one of those from the same checkout should not have to install an
+      # SDK this workflow could have pinned for them.
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: |
@@ -158,19 +267,22 @@ jobs:
           # **/*.csproj --- the repository holds a csproj per sample, and
           # hashing all of them would throw the cache away whenever an
           # unrelated sample changed.
-          key: nuget-${{ runner.os }}-${{ hashFiles('DocFiltersCli/csharp/DocFiltersCli.csproj', 'DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj', 'samples/csharp/DfSamplesCommon/DfSamplesCommon.csproj') }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('DocFiltersCli/csharp/DocFiltersCli.csproj', 'DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
       # The test project rather than DocFiltersCli.slnx, deliberately.
       #
-      # A .slnx needs SDK 9.0.200 or newer to be read at all --- on an SDK 8
-      # machine `dotnet restore` fails with "The element <Solution> is
-      # unrecognized", which is what a contributor with only the net8.0 the
-      # projects actually target would hit. Targeting the test project keeps
-      # CI working on any SDK the code supports, and loses nothing: its
-      # ProjectReference chain builds DocFiltersCli and DfSamplesCommon too,
-      # so the shipped tool is still compiled and the solution file's contents
-      # are still covered.
+      # The original reason was that a .slnx needs SDK 9.0.200 or newer to be
+      # read at all, and the projects targeted net8.0, so an SDK 8 machine ---
+      # everything the code supported --- would fail restore with "The element
+      # <Solution> is unrecognized". net10.0 retires that reason: anyone who
+      # can build this at all now has an SDK that reads a .slnx.
+      #
+      # It stays because the second half still holds. The test project's
+      # ProjectReference chain builds DocFiltersCli too, so the shipped tool is
+      # compiled and the solution file's contents are covered either way, and
+      # naming the project keeps this job independent of whether a future
+      # change adds something to the solution that CI should not build.
       - name: Restore
         run: dotnet restore DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj
 
@@ -199,6 +311,450 @@ jobs:
           path: ${{ runner.temp }}/test-results
           if-no-files-found: warn
 
+
+  # --------------------------------------------------------------------------
+  # C++17.
+  #
+  # The test project is the entry point, not cpp17/: tests/cpp17/CMakeLists.txt
+  # adds cpp17/ as a subdirectory, so configuring the tests configures and
+  # builds the tool as well. That mirrors how the C# test project reaches the
+  # tool through a ProjectReference.
+  #
+  # Note that even the no-engine unit tests need the Document Filters shared
+  # library present, because docfilters_lib links the C++17 binding. No license
+  # is needed --- only the binary, which bindings/c/CMakeLists.txt downloads.
+  # --------------------------------------------------------------------------
+  cpp17:
+    name: C++17 (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.cpp17 == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.changes.outputs.os_matrix) }}
+    env:
+      BUILD_DIR: DocFiltersCli/tests/cpp17/build
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # CLI11 and Catch2 are fetched by tag, so a content hash of the CMake
+      # files is a sound cache key for them.
+      #
+      # Not cached here: the Document Filters binaries, which land in
+      # $BUILD_DIR/DocumentFiltersBinaries. They are a separate download and a
+      # much larger one, so if build time becomes a problem they want their own
+      # cache entry keyed on samples/DF_VERSION.txt rather than being folded
+      # into this one.
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ env.BUILD_DIR }}/_deps
+          key: cmake-deps-${{ runner.os }}-${{ hashFiles('DocFiltersCli/tests/cpp17/CMakeLists.txt', 'DocFiltersCli/cpp17/CMakeLists.txt') }}
+          restore-keys: cmake-deps-${{ runner.os }}-
+
+      # Which engine version to build against, taken from the repository rather
+      # than from the network.
+      #
+      # Left to itself, bindings/c/CMakeLists.txt resolves "latest" by calling
+      # api.github.com *anonymously*. The anonymous API budget is per source IP,
+      # and the macOS runner pool is small and heavily shared, so that call
+      # reliably comes back HTTP 4xx there --- CMake reports it as
+      # `Status=22;"HTTP response code said error"` and fails the configure
+      # outright. Ubuntu and Windows happen to get away with it.
+      #
+      # samples/DF_VERSION.txt is the answer rather than an authenticated
+      # lookup because it is the version the rest of the repository already
+      # builds against: DocFiltersCli/csharp/DocFiltersCli.csproj and
+      # samples/csharp/DfSamplesCommon/DfSamplesCommon.csproj each pin every
+      # Hyland.DocumentFilters package to it. Resolving "latest"
+      # here would have left C++ on a different engine from C#, which is
+      # unsound the moment the two are compared against each other.
+      #
+      # DOCFILTERS_VERSION takes the bare "26.3.0"; CMake prepends the "v" for
+      # the release tag itself.
+      - name: Read the Document Filters version
+        id: dfrelease
+        run: |
+          tag=$(tr -d '[:space:]' < samples/DF_VERSION.txt)
+          if [ -z "$tag" ]; then
+            echo "::error::samples/DF_VERSION.txt is empty."
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "### Document Filters $tag (from samples/DF_VERSION.txt)" >> "$GITHUB_STEP_SUMMARY"
+
+      # --no-warn-unused-cli because CMAKE_BUILD_TYPE is how single-config
+      # generators (Makefiles, Ninja) pick the configuration and is meaningless
+      # to multi-config ones (Visual Studio, Xcode), which take it at build time
+      # instead. Passing it everywhere keeps one command line for all three
+      # platforms; the flag stops Windows and macOS warning that they ignored it.
+      - name: Configure
+        run: >
+          cmake --no-warn-unused-cli
+          -S DocFiltersCli/tests/cpp17 -B ${{ env.BUILD_DIR }}
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_CONFIG }}
+          -DDOCFILTERS_VERSION=${{ steps.dfrelease.outputs.tag }}
+
+      - name: Build
+        run: cmake --build ${{ env.BUILD_DIR }} --config ${{ env.BUILD_CONFIG }} --parallel
+
+      # --output-junit gives this suite the same kind of machine-readable
+      # result file the C# suite gets from its trx logger, so a failure can be
+      # read from the artifact without scrolling the job log. ctest writes it
+      # whether the run passed or failed.
+      - name: Test
+        run: >
+          ctest --test-dir ${{ env.BUILD_DIR }} -C ${{ env.BUILD_CONFIG }}
+          --output-on-failure
+          --output-junit "${{ runner.temp }}/test-results/cpp17-${{ matrix.os }}.xml"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: test-results-cpp17-${{ matrix.os }}
+          # The JUnit summary, plus ctest's own LastTest.log, which carries the
+          # full per-case output that the summary truncates.
+          path: |
+            ${{ runner.temp }}/test-results
+            ${{ env.BUILD_DIR }}/Testing/Temporary
+          if-no-files-found: warn
+
+
+      - name: Report the Document Filters version that was used
+        if: always()
+        run: |
+          # The library is unpinned by choice: bindings/c/CMakeLists.txt
+          # resolves the latest release unless DOCFILTERS_VERSION says
+          # otherwise. So when a green build turns red with no code change, the
+          # first question is "against which version?" --- answer it in the
+          # summary rather than in a log nobody keeps.
+          #
+          # `docfilters version` reports the engine rather than the tool, which
+          # is exactly the fact wanted here, and it doubles as a check that the
+          # binary runs at all and can load the shared library beside it.
+          echo "### Document Filters engine" >> "$GITHUB_STEP_SUMMARY"
+          "${{ env.BUILD_DIR }}/bin/docfilters" version 2>&1 | sed 's/^/    /' >> "$GITHUB_STEP_SUMMARY" || \
+            echo "    (could not run the tool)" >> "$GITHUB_STEP_SUMMARY"
+
+  # --------------------------------------------------------------------------
+  # Python. Standard library only, so there is nothing to install and nothing
+  # to cache -- the suite drives a fake engine and never loads the binding.
+  # --------------------------------------------------------------------------
+  python:
+    name: Python (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.changes.outputs.os_matrix) }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Test
+        working-directory: DocFiltersCli/tests/python
+        run: python run_tests.py
+
+  # --------------------------------------------------------------------------
+  # Java.
+  #
+  # The build is DocFiltersCli/java, through its Gradle wrapper; settings.gradle.kts
+  # includes tests/java as a subproject, so `check` compiles the tool and runs
+  # the suite in one invocation. The suite is the port's own JDK-only runner,
+  # not JUnit, and prints one summary line rather than writing a report file,
+  # so there is no artifact to upload: the job log is the result.
+  #
+  # Unlike C++17, nothing here needs the Document Filters native library. The
+  # port compiles against the binding jar in bindings/java/lib, and the suite
+  # runs on fakes, so no download and no license.
+  # --------------------------------------------------------------------------
+  java:
+    name: Java (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.java == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.changes.outputs.os_matrix) }}
+    defaults:
+      run:
+        working-directory: DocFiltersCli/java
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # A current JDK running the build, compiling with --release 8: the port
+      # targets Java 8, and the build's own -Xlint -Werror on --release 8 is
+      # what holds it there. Gradle 8.6, the wrapper's version, runs on 21.
+      #
+      # `cache: gradle` is setup-java's own cache of the wrapper distribution
+      # and ~/.gradle, keyed on the files named below, so no third-party
+      # Gradle action is needed.
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            DocFiltersCli/java/*.gradle.kts
+            DocFiltersCli/java/gradle/wrapper/gradle-wrapper.properties
+            DocFiltersCli/tests/java/build.gradle.kts
+
+      # installDist as well as check, so the distribution the tool is run
+      # from --- bin/docfilters and its lib/ --- is proven to assemble, not
+      # only the classes the suite loads.
+      - name: Build and test
+        run: ./gradlew --no-daemon --console=plain installDist check
+
+
+  # --------------------------------------------------------------------------
+  # The contract moves first.
+  #
+  # DF-3106's rule is that a CLI change is made in the design, then in the
+  # shared fixtures, then in the reference, then in the ports. A change to one
+  # language's behaviour that carries nothing shared with the others is how the
+  # four drift apart, and it is invisible in review because every suite still
+  # passes --- each one only checks its own language.
+  #
+  # So: changing a language's source without touching either the shared
+  # fixtures or that language's own tests fails this check. Its own tests
+  # count, not just the fixtures, because a translated test is a translatable
+  # artefact too --- that is what the port agent carries across.
+  #
+  # Soft on purpose. Refactors, crash fixes and comment edits legitimately
+  # change no contract, so the `contract-unchanged` label overrides it. The
+  # point is to make the rule visible at the moment it is being broken, not to
+  # win an argument with the author.
+  # --------------------------------------------------------------------------
+  contract-order:
+    name: Contract moves first
+    needs: changes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that behaviour changes carry something shared
+        run: |
+          labels=$(GH_TOKEN="${{ github.token }}" gh api \
+            "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+            --jq '.labels[].name')
+          if printf '%s\n' "$labels" | grep -qx 'contract-unchanged'; then
+            echo "Overridden by the 'contract-unchanged' label."
+            exit 0
+          fi
+
+          conformance='${{ needs.changes.outputs.conformance }}'
+          problems=0
+
+          check() {
+            local language="$1" src="$2" tests="$3"
+            if [ "$src" = "true" ] && [ "$conformance" != "true" ] && [ "$tests" != "true" ]; then
+              echo "::error::$language source changed, but neither DocFiltersCli/tests/conformance/ nor its own test suite did."
+              problems=$((problems + 1))
+            fi
+          }
+
+          check "C#"    '${{ needs.changes.outputs.csharp_src }}' '${{ needs.changes.outputs.csharp_tests }}'
+          check "C++17" '${{ needs.changes.outputs.cpp17_src }}'  '${{ needs.changes.outputs.cpp17_tests }}'
+          check "Python" '${{ needs.changes.outputs.python_src }}' '${{ needs.changes.outputs.python_tests }}'
+          check "Java"  '${{ needs.changes.outputs.java_src }}'   '${{ needs.changes.outputs.java_tests }}'
+
+          if [ "$problems" -gt 0 ]; then
+            cat >> "$GITHUB_STEP_SUMMARY" <<'NOTE'
+          ### The contract moves first
+
+          A change to one implementation's behaviour should carry something the
+          other implementations can be moved by: a case in
+          `DocFiltersCli/tests/conformance/`, or a test in that language's own
+          suite that the ports can translate.
+
+          If this change really alters no behaviour --- a refactor, a crash fix,
+          a comment --- add the **`contract-unchanged`** label and re-run.
+          NOTE
+            exit 1
+          fi
+
+          echo "Every changed implementation carries a shared or translatable change."
+
+  # --------------------------------------------------------------------------
+  # Cross-implementation parity: the same command lines through every build,
+  # compared byte for byte.
+  #
+  # This is the only job that compares the implementations to *each other*.
+  # tests/conformance/ compares each one to the shared contract but stops at
+  # the plan; tests/<lang>/ covers execution through each language's own
+  # translated copy of the tests, so a case dropped in translation is simply
+  # gone; and the end-to-end checks assert properties, which two
+  # implementations can both satisfy while disagreeing byte for byte.
+  #
+  # Windows rather than Ubuntu: on Linux the C# build currently reports its
+  # engine version as "unknown", so the two implementations are not equally
+  # functional there and the comparison would be measuring that instead.
+  # TODO: move to ubuntu-latest, which is cheaper, once that is understood.
+  #
+  # A real gate. It passes: all four implementations agree byte for byte on
+  # every command end2end.py runs for them. A check an implementation cannot
+  # run at all is skipped with a reason, below, and the transcript carries
+  # that reason into the comparison rather than leaving the missing commands
+  # to look like a port that stopped doing them.
+  # --------------------------------------------------------------------------
+  parity:
+    name: Cross-implementation parity
+    needs: changes
+    if: >
+      needs.changes.outputs.csharp == 'true' || needs.changes.outputs.cpp17 == 'true'
+      || needs.changes.outputs.python == 'true' || needs.changes.outputs.java == 'true'
+      || needs.changes.outputs.harness == 'true'
+    runs-on: windows-latest
+    env:
+      BUILD_DIR: DocFiltersCli/tests/cpp17/build
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            DocFiltersCli/java/*.gradle.kts
+            DocFiltersCli/java/gradle/wrapper/gradle-wrapper.properties
+            DocFiltersCli/tests/java/build.gradle.kts
+
+      # The test project, not the tool project: its ProjectReference builds the
+      # tool too, so one build serves both halves of this job.
+      - name: Build the C# implementation and its suite
+        run: >
+          dotnet build DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj
+          --configuration ${{ env.BUILD_CONFIG }}
+
+      - name: Read the Document Filters version
+        id: dfrelease
+        run: echo "tag=$(tr -d '[:space:]' < samples/DF_VERSION.txt)" >> "$GITHUB_OUTPUT"
+
+      # tests/cpp17/ rather than cpp17/: it adds cpp17/ as a subdirectory, so
+      # one configure and build produces the tool this job compares *and* the
+      # test binary it lists names from.
+      - name: Build the C++17 implementation and its suite
+        run: |
+          cmake --no-warn-unused-cli -S DocFiltersCli/tests/cpp17 -B "$BUILD_DIR" \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_CONFIG }} \
+            -DDOCFILTERS_VERSION=${{ steps.dfrelease.outputs.tag }}
+          cmake --build "$BUILD_DIR" --config ${{ env.BUILD_CONFIG }} --parallel
+
+      # installDist rather than `build`: end2end.py starts the Java port from
+      # the installed distribution's jars, so that is what has to exist. The
+      # native library it loads is the one the C++17 build above unpacked,
+      # which end2end.py finds on its own -- hence the ordering.
+      - name: Build the Java implementation and its suite
+        working-directory: DocFiltersCli/java
+        run: ./gradlew --no-daemon --console=plain installDist :tests:classes
+
+      # The commands come from end2end.py rather than a list of their own: that
+      # suite already drives every verb against a real document, and a second
+      # corpus would be a second thing to keep in step. --record writes down
+      # what it ran; compare.py diffs the transcripts.
+      #
+      # --binding names the Document Filters Python binding carried in this
+      # repository. end2end.py otherwise guesses a sibling `docfilters`
+      # checkout that exists on a developer's disk and not here. The native
+      # library is found automatically beside the C# build, which is why that
+      # is built first.
+      - name: Record each implementation
+        run: |
+          record() {
+            name="$1"; shift
+            python DocFiltersCli/tests/e2e/end2end.py --cli "$@"               --binding "$PWD/bindings/python/src"               --record "${{ runner.temp }}/$name.txt"
+          }
+
+          # The Java port cannot write a docpack against this engine release.
+          # bindings/java/lib/ISYS11df.jar declares MakeDocPack, but the
+          # ISYS11dfjava of the release samples/DF_VERSION.txt pins exports no
+          # entry point for it, so the call fails at run time -- see "The
+          # binding's gaps" in design/porting/traps-java.md. Nothing in the
+          # port can close that, so the two checks that write one are skipped
+          # here rather than failing. The transcript records the skip and its
+          # reason, which is what keeps compare.py from reading the missing
+          # commands as a port that has quietly stopped doing them.
+          #
+          # Delete both lines when DF_VERSION.txt moves past 26.3.0: the
+          # checks will pass, and leaving them skipped would be a hole in the
+          # comparison that nothing reports.
+          no_docpack=(
+            --skip "docpack describes the document=the 26.3.0 Java native library exports no MakeDocPack entry point"
+            --skip "a missing output directory is created=its docpack leg needs MakeDocPack, which the 26.3.0 Java native library does not export"
+          )
+
+          record csharp "DocFiltersCli/csharp/bin/${{ env.BUILD_CONFIG }}/net10.0/docfilters.exe"
+          record cpp17  "$BUILD_DIR/bin/docfilters.exe"
+          record python python
+          record java   DocFiltersCli/java "${no_docpack[@]}"
+          # A second run of the reference. Whatever differs between the two is
+          # nondeterminism rather than disagreement, and compare.py excludes it.
+          record csharp-repeat "DocFiltersCli/csharp/bin/${{ env.BUILD_CONFIG }}/net10.0/docfilters.exe"
+
+      - name: Compare implementations
+        run: >
+          python DocFiltersCli/tests/parity/compare.py
+          "${{ runner.temp }}/csharp.txt"
+          "${{ runner.temp }}/cpp17.txt"
+          "${{ runner.temp }}/python.txt"
+          "${{ runner.temp }}/java.txt"
+          --repeat "${{ runner.temp }}/csharp-repeat.txt"
+          | tee "${{ runner.temp }}/parity.txt"
+
+      # The inventory comparison lives here rather than in a job of its own.
+      # As a separate job it had to wait on every language job succeeding, and
+      # a single-language PR leaves the others *skipped* rather than
+      # successful -- so the check was skipped exactly on the change shape it
+      # exists to police, a test quietly dropped from one port. This job builds
+      # them all regardless, so the listings are always available and the
+      # artifact round-trip disappears with the dependency.
+      - name: Compare the test inventories
+        run: |
+          dotnet test DocFiltersCli/tests/csharp/DocFiltersCli.Tests.csproj             --configuration ${{ env.BUILD_CONFIG }} --no-build --list-tests             > "${{ runner.temp }}/inventory-csharp.txt"
+          # --reporter xml: Catch2's plain listing wraps a long name onto a
+          # second line at the console width, and nothing distinguishes a
+          # continuation from a short name of its own.
+          # bin/, not the configuration directory: the test target sets its own
+          # output directory so that one path names it under every generator,
+          # which is what languages.yml documents. That puts it beside the
+          # shared library, so the loader would find it either way -- the PATH
+          # entry stays because the library's location is the tool's business,
+          # not this job's, and without it a listing that cannot start comes
+          # back empty and exits 0.
+          PATH="$PWD/$BUILD_DIR/bin:$PATH"             "$BUILD_DIR/bin/docfilters_tests.exe"             --list-tests --reporter xml > "${{ runner.temp }}/inventory-cpp17.txt"
+          (cd DocFiltersCli/tests/python             && python run_tests.py --list-tests) > "${{ runner.temp }}/inventory-python.txt"
+          # -q so Gradle prints the runner's output and nothing of its own.
+          (cd DocFiltersCli/java             && ./gradlew -q --no-daemon --console=plain :tests:runTests --args=--list-tests)             > "${{ runner.temp }}/inventory-java.txt"
+          python DocFiltersCli/tests/parity/compare_inventory.py             --impl csharp="${{ runner.temp }}/inventory-csharp.txt"             --impl cpp17="${{ runner.temp }}/inventory-cpp17.txt"             --impl python="${{ runner.temp }}/inventory-python.txt"             --impl java="${{ runner.temp }}/inventory-java.txt"
+
+      - name: Upload the comparison
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: parity-report
+          path: |
+            ${{ runner.temp }}/parity.txt
+            ${{ runner.temp }}/csharp.txt
+            ${{ runner.temp }}/cpp17.txt
+            ${{ runner.temp }}/python.txt
+            ${{ runner.temp }}/java.txt
+          if-no-files-found: warn
 
   # --------------------------------------------------------------------------
   # Release --- manual runs only, with `release` ticked.
@@ -240,43 +796,114 @@ jobs:
           fi
           # Accept an optional leading "v"; the tag always has it, the version never does.
           VERSION="${VERSION#v}"
-          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
             echo "::error::'$VERSION' is not a valid version. Expected MAJOR.MINOR.PATCH with an optional -prerelease suffix."
             exit 1
           fi
-          if gh api "repos/${{ github.repository }}/git/ref/tags/v$VERSION" >/dev/null 2>&1; then
-            echo "::error::Tag v$VERSION already exists."
+          if gh api "repos/${{ github.repository }}/git/ref/tags/cli-v$VERSION" >/dev/null 2>&1; then
+            echo "::error::Tag cli-v$VERSION already exists."
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-  package:
-    name: Package (${{ matrix.os }})
-    needs: [changes, csharp, release-check]
+  # The four package jobs share one rule: write the release version into
+  # DocFiltersCli/VERSION.txt before building. That file is the version every
+  # port reads, so stamping it is all it takes for the C#, C++17, Python and Java
+  # builds to carry the same number. The tag points at the dispatched commit,
+  # whose VERSION.txt may say something else; the archives are what carry the
+  # released version.
+  #
+  # They wait for every suite, not just C#, so a release is never cut from a
+  # build that did not pass its tests in any language.
+  # One archive per runtime identifier, not one per operating system.
+  #
+  # Without `-r`, a framework-dependent publish copies every `runtimes/<rid>/`
+  # the graph offers --- and the project references the Windows, Linux and
+  # macOS packages unconditionally, so each archive held six platforms: 1143
+  # MB under a name claiming one of them. `-r` resolves the natives at publish
+  # time instead and `runtimes/` disappears: 246 MB for win-x64.
+  # --self-contained false is explicit, or `-r` would silently change what is
+  # shipped; the .NET 8 runtime is still a prerequisite.
+  #
+  # Named by RID because that is what a reader matches against their machine:
+  # `-macOS` cannot tell an Intel Mac from an Apple Silicon one, and both ship.
+  #
+  # The unconditional references cover Windows, Linux and macOS; arm64 comes
+  # from references the project holds under a RuntimeIdentifier condition, so
+  # naming the RID is what brings it in. Not derived from
+  # `os_matrix`, which answers a different question --- which runners the
+  # suites are tested on.
+  #
+  # `include:` rather than two axes because each RID is published on the OS it
+  # targets: the apphost's executable bit is set by the host that writes it,
+  # and an osx-arm64 apphost zipped from Windows arrives without it.
+  #
+  # The operating system has to match; the architecture does not. `-r` only
+  # chooses which RID-specific assets are published, so linux-arm64 is
+  # cross-published from an x64 runner exactly as osx-x64 already is from an
+  # Apple Silicon one, and no arm64 runner is billed for it. Nothing here runs
+  # what it produced --- the C++17 job does, because it has to build on the
+  # target anyway.
+  #
+  # linux-ppc64le resolves the same way and is deliberately absent: no runner
+  # available to us can execute it, so it would be the one archive that could
+  # not be smoke-tested before it shipped.
+  #
+  # win-x86 is left out and nothing is lost: `runtimes/win-x86/native/` in
+  # Hyland.DocumentFilters 26.3.0 holds x64 binaries (PE machine 0x8664), so
+  # no 32-bit process can load them from today's archive either. Publishing
+  # them under a name promising x86 would turn a buried upstream mislabelling
+  # into a promise on the release page.
+  package-csharp:
+    name: Package C# (${{ matrix.rid }})
+    needs: [changes, csharp, cpp17, python, java, parity, release-check]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        os: ${{ fromJSON(needs.changes.outputs.os_matrix) }}
+        include:
+          - { os: windows-latest, rid: win-x64 }
+          - { os: ubuntu-latest,  rid: linux-x64 }
+          - { os: ubuntu-latest,  rid: linux-arm64 }
+          - { os: macos-latest,   rid: osx-x64 }
+          - { os: macos-latest,   rid: osx-arm64 }
+    env:
+      VERSION: ${{ needs.release-check.outputs.version }}
+      RID: ${{ matrix.rid }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
+      - name: Stamp version
+        run: echo "$VERSION" > DocFiltersCli/VERSION.txt
+
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
-      # Framework-dependent, one archive per build platform: the Document Filters
-      # native libraries are resolved per OS at publish time.
       - name: Publish
         run: >
           dotnet publish DocFiltersCli/csharp/DocFiltersCli.csproj
           --configuration ${{ env.BUILD_CONFIG }}
-          -p:Version=${{ needs.release-check.outputs.version }}
+          --runtime "$RID"
+          --self-contained false
           --output "${{ runner.temp }}/publish"
+
+      # A `runtimes/` directory means the RID did not take and all six
+      # platforms came along again. Asserted because that failure is silent:
+      # the archive still works and still carries one platform's name, so the
+      # release page is where it would otherwise be noticed.
+      - name: Check the archive holds one platform
+        run: |
+          if [ -d "${{ runner.temp }}/publish/runtimes" ]; then
+            echo "::error::The $RID publish left a runtimes/ directory; the runtime identifier did not take."
+            ls "${{ runner.temp }}/publish/runtimes"
+            exit 1
+          fi
+          echo "$RID: $(du -sm "${{ runner.temp }}/publish" | cut -f1) MB, no runtimes/ directory."
 
       - name: Archive
         run: |
-          name="docfilters-${{ needs.release-check.outputs.version }}-${{ runner.os }}"
+          name="docfilters-csharp-$VERSION-$RID"
           mkdir -p dist
           cd "${{ runner.temp }}/publish"
           if [ "${{ runner.os }}" = "Windows" ]; then
@@ -287,13 +914,251 @@ jobs:
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: release-${{ runner.os }}
+          name: release-csharp-${{ matrix.rid }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  # Five targets, each built on the machine it is for. The C# packages are
+  # cross-published; a C++ one cannot be, because bindings/c/CMakeLists.txt
+  # chooses a single Document Filters archive from CMAKE_SYSTEM_PROCESSOR and
+  # links against it --- the runner's own architecture is the product.
+  #
+  # Its own list rather than `os_matrix`, which answers a different question
+  # (which runners the suites are tested on) and holds three entries to these
+  # five. The two are free to differ and now do: nothing exercises the arm64
+  # or Intel-Mac builds beyond the `version` call below, which is the honest
+  # position until the suites run there too.
+  #
+  # macos-15-intel because GitHub retired macos-13 in December 2025, and
+  # macos-latest has been Apple Silicon since macOS 14. It is the last planned
+  # Intel image; when it goes, osx-x64 goes with it, and this row should be
+  # deleted rather than quietly repointed at something that is not Intel.
+  #
+  # `target` is an assertion, not the source of the name: the archive is named
+  # for what the runner turns out to be, and the step below fails the job when
+  # the two disagree. Writing the expectation down is what turns a runner
+  # image changing architecture into a red build rather than a renamed file.
+  package-cpp17:
+    name: Package C++17 (${{ matrix.target }})
+    needs: [changes, csharp, cpp17, python, java, parity, release-check]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { os: windows-latest,   target: win-x64 }
+          - { os: ubuntu-latest,    target: linux-x64 }
+          - { os: ubuntu-24.04-arm, target: linux-arm64 }
+          - { os: macos-latest,     target: osx-arm64 }
+          - { os: macos-15-intel,   target: osx-x64 }
+    env:
+      VERSION: ${{ needs.release-check.outputs.version }}
+      BUILD_DIR: build-release
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Stamp version
+        run: echo "$VERSION" > DocFiltersCli/VERSION.txt
+
+      # The tool project rather than the test project: nothing here needs
+      # Catch2. The engine version is pinned from the repository for the same
+      # reason as in the cpp17 job above.
+      - name: Configure
+        run: |
+          df=$(tr -d '[:space:]' < samples/DF_VERSION.txt)
+          cmake --no-warn-unused-cli -S DocFiltersCli/cpp17 -B "$BUILD_DIR"             -DCMAKE_BUILD_TYPE=${{ env.BUILD_CONFIG }} -DDOCFILTERS_VERSION="$df"
+
+      - name: Build
+        run: cmake --build "$BUILD_DIR" --config ${{ env.BUILD_CONFIG }} --parallel --target docfilters
+
+      # bin/ holds the tool and the Document Filters shared library it loads from
+      # beside itself, so the archive is that directory as it stands.
+      #
+      # Soft check: `version` needs the engine to initialise, which can fail for
+      # reasons unrelated to the stamp, so a mismatch warns rather than blocks.
+      - name: Check the stamped version
+        run: |
+          out=$("$BUILD_DIR/bin/docfilters" version 2>&1 || true)
+          echo "$out"
+          echo "$out" | grep -qx "docfilters $VERSION" ||             echo "::warning::'docfilters version' did not print 'docfilters $VERSION'."
+
+      # The archive is named for what it holds, which is one architecture:
+      # bindings/c/CMakeLists.txt picks a single Document Filters build from
+      # CMAKE_SYSTEM_PROCESSOR, so there is no such thing as a "macOS" package
+      # here. Naming these after runner.os shipped an arm64-only build as
+      # docfilters-cpp17-1.0.0-macOS.zip, because macos-latest is Apple
+      # Silicon --- an Intel Mac user downloaded the file named for their
+      # operating system and got a binary that would not start.
+      #
+      # Read off the machine rather than taken from the matrix, so that a
+      # runner image changing architecture renames the asset instead of
+      # quietly making its name wrong again. That is how the bug above
+      # arrived: the name was right when it was written. The matrix entry is
+      # the expectation to check it against, so the same change now fails the
+      # job rather than publishing something nobody ordered.
+      #
+      # The vocabulary is .NET's runtime identifiers, because the C# packages
+      # on the same release page already use it, and one page should not spell
+      # the same target two ways.
+      - name: Name the target
+        run: |
+          case "$(uname -m)" in
+            x86_64|amd64)  arch=x64 ;;
+            arm64|aarch64) arch=arm64 ;;
+            *) echo "::error::No runtime identifier for machine '$(uname -m)'."; exit 1 ;;
+          esac
+          case "${{ runner.os }}" in
+            Windows) os=win ;;
+            Linux)   os=linux ;;
+            macOS)   os=osx ;;
+            *) echo "::error::No runtime identifier for runner OS '${{ runner.os }}'."; exit 1 ;;
+          esac
+          if [ "$os-$arch" != "${{ matrix.target }}" ]; then
+            echo "::error::${{ matrix.os }} is $os-$arch, but this job is declared ${{ matrix.target }}."
+            exit 1
+          fi
+          echo "RID=$os-$arch" >> "$GITHUB_ENV"
+          echo "Packaging $os-$arch."
+
+      - name: Archive
+        run: |
+          name="docfilters-cpp17-$VERSION-$RID"
+          mkdir -p dist
+          cd "$BUILD_DIR/bin"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a -tzip "$GITHUB_WORKSPACE/dist/$name.zip" .
+          else
+            zip -r "$GITHUB_WORKSPACE/dist/$name.zip" .
+          fi
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          # The target rather than runner.os: two runners of one operating
+          # system and different architectures are now in this matrix, and
+          # under the old name they would have collided.
+          name: release-cpp17-${{ matrix.target }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  # Pure Python, so one archive rather than one per platform. It keeps the
+  # repository layout (DocFiltersCli/python, DocFiltersCli/VERSION.txt,
+  # bindings/python) because the package finds VERSION.txt relative to itself
+  # and the README installs the binding from ../../bindings/python.
+  package-python:
+    name: Package Python
+    needs: [changes, csharp, cpp17, python, java, parity, release-check]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.release-check.outputs.version }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Stamp version
+        run: echo "$VERSION" > DocFiltersCli/VERSION.txt
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Stage
+        run: |
+          mkdir -p stage/DocFiltersCli stage/bindings
+          cp -r DocFiltersCli/python DocFiltersCli/VERSION.txt DocFiltersCli/README.md stage/DocFiltersCli/
+          cp -r bindings/python stage/bindings/
+          find stage -name __pycache__ -type d -prune -exec rm -rf {} +
+
+      # Deterministic, unlike running the tool: the staged package must report
+      # the stamped version.
+      #
+      # PYTHONDONTWRITEBYTECODE, because this check is an import and an import
+      # writes __pycache__. Staging prunes those, but this step runs after the
+      # prune and the archive runs after this, so 1.0.0 shipped with one
+      # __init__.cpython-312.pyc in it --- a compiled artefact of whichever
+      # interpreter the runner happened to have, inside a source distribution.
+      - name: Check the stamped version
+        run: |
+          got=$(PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=stage/DocFiltersCli/python python -c "import docfilters_cli; print(docfilters_cli.__version__)")
+          if [ "$got" != "$VERSION" ]; then
+            echo "::error::Staged package reports '$got', expected '$VERSION'."
+            exit 1
+          fi
+
+      - name: Archive
+        run: |
+          mkdir -p dist
+          cd stage
+          zip -r "$GITHUB_WORKSPACE/dist/docfilters-python-$VERSION.zip" .
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-python
+          path: dist/*.zip
+          if-no-files-found: error
+
+  # One archive rather than one per platform: the jar is bytecode and the start
+  # scripts cover both shells, so the distribution Gradle installs runs
+  # anywhere a JVM does. It carries no Document Filters native library, which
+  # is the opposite of what the C# and C++17 packages do --- each of those
+  # pins one platform's engine and is most of 250 MB because of it. The Java
+  # binding loads its native through java.library.path, which the JVM fixes at
+  # start-up, so the user points the launcher at their own installation; an
+  # engine baked in here is the one thing that would stop this archive running
+  # anywhere a JVM does.
+  package-java:
+    name: Package Java
+    needs: [changes, csharp, cpp17, python, java, parity, release-check]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.release-check.outputs.version }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # As for the other three: VERSION.txt is the one place the number lives,
+      # and DocFiltersCli/java/build.gradle.kts reads it.
+      - name: Stamp version
+        run: echo "$VERSION" > DocFiltersCli/VERSION.txt
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            DocFiltersCli/java/*.gradle.kts
+            DocFiltersCli/java/gradle/wrapper/gradle-wrapper.properties
+            DocFiltersCli/tests/java/build.gradle.kts
+
+      - name: Build the distribution
+        working-directory: DocFiltersCli/java
+        run: ./gradlew --no-daemon --console=plain installDist
+
+      # Deterministic, unlike running the tool, which would need a native
+      # library this job does not download: the jar the distribution ships has
+      # to be the stamped one.
+      - name: Check the stamped version
+        run: |
+          jar="DocFiltersCli/java/build/install/docfilters/lib/docfilters-cli-$VERSION.jar"
+          if [ ! -f "$jar" ]; then
+            echo "::error::No $jar; the build did not take the stamped version."
+            ls -1 DocFiltersCli/java/build/install/docfilters/lib
+            exit 1
+          fi
+
+      - name: Archive
+        run: |
+          mkdir -p dist
+          cd DocFiltersCli/java/build/install/docfilters
+          zip -r "$GITHUB_WORKSPACE/dist/docfilters-java-$VERSION.zip" .
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-java
           path: dist/*.zip
           if-no-files-found: error
 
   release:
     name: Publish GitHub release
-    needs: [release-check, package]
+    needs: [release-check, package-csharp, package-cpp17, package-python, package-java]
     runs-on: ubuntu-latest
     # The only job that writes; everything else stays read-only.
     permissions:
@@ -310,13 +1175,39 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.release-check.outputs.version }}
         run: |
+          repo="${{ github.repository }}"
           flags=()
           # A suffix such as -rc.1 marks it as a pre-release.
           case "$VERSION" in *-*) flags+=(--prerelease) ;; esac
-          gh release create "v$VERSION" dist/*.zip \
-            --repo "${{ github.repository }}" \
+
+          # This line of releases (cli-v*) is independent of the repository's
+          # other one (v*), so it must neither take the "Latest" badge nor
+          # build its notes against the other line's tags.
+          #
+          # Notes start from the newest existing cli-vX.Y.Z tag, or from the
+          # hand-made `cli-start` tag for the first release. Pre-release tags
+          # (cli-v1.2.3-rc.1) are skipped, so the notes of a final release
+          # cover everything since the previous final one, release candidates
+          # included. If no tag is found the flag is left out: naming a tag
+          # that is not there makes the notes request fail with 422 and the
+          # release is not created.
+          start=$(gh api "repos/$repo/git/matching-refs/tags/cli-v" --paginate --jq '.[].ref' \
+            | sed 's#^refs/tags/##' | grep -E '^cli-v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+          if [ -z "$start" ] && gh api "repos/$repo/git/ref/tags/cli-start" >/dev/null 2>&1; then
+            start=cli-start
+          fi
+          if [ -n "$start" ]; then
+            echo "Release notes start from $start"
+            flags+=(--notes-start-tag "$start")
+          else
+            echo "::warning::No cli-v* or cli-start tag found; release notes will use GitHub's default starting point."
+          fi
+
+          gh release create "cli-v$VERSION" dist/*.zip \
+            --repo "$repo" \
+            --latest=false \
             --target "${{ github.sha }}" \
-            --title "docfilters $VERSION" \
+            --title "Document Filters CLI $VERSION" \
             --generate-notes \
             "${flags[@]}"
 
@@ -330,7 +1221,7 @@ jobs:
   # --------------------------------------------------------------------------
   ci-gate:
     name: CI gate
-    needs: [changes, csharp, release-check, package, release]
+    needs: [changes, contract-order, csharp, cpp17, python, java, parity, release-check, package-csharp, package-cpp17, package-python, package-java, release]
     if: always()
     runs-on: ubuntu-latest
     steps:

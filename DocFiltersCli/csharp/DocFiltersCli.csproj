@@ -2,10 +2,18 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <AssemblyName>docfilters</AssemblyName>
+    <!--
+      The tool's own version, which `docfilters version` prints and every port
+      prints identically. Deliberately NOT declared here: <Version> comes from
+      ../VERSION.txt via ../Directory.Build.props, the one file every port reads.
+      A <Version> in this file would be evaluated after that import and silently
+      override it. See VersionCommand for why the informational version is the one
+      read back.
+    -->
     <RootNamespace>Hyland.DocumentFilters.Cli</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- The scaffold is deliberately full of unimplemented members; don't fail the
@@ -14,9 +22,34 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Brings in Document Filters and McMaster.Extensions.CommandLineUtils, exactly
-         as every other C# sample gets them. No new dependencies are introduced. -->
-    <ProjectReference Include="..\..\samples\csharp\DfSamplesCommon\DfSamplesCommon.csproj" />
+    <!--
+      Document Filters, and nothing else. This used to be a ProjectReference to
+      samples/csharp/DfSamplesCommon, which is how the other C# samples get the
+      engine; the packages below are that project's own list, minus
+      McMaster.Extensions.CommandLineUtils, which this tool no longer uses.
+
+      Referenced directly rather than through DfSamplesCommon because the tool
+      used no type from it. Its only code is DocumentFiltersLicense, and this
+      sample reads DF_LICENSE_KEY itself in Execution/DocumentFiltersSession.cs
+      so that the license-key argument and the environment variable are resolved
+      in one place the other three ports can mirror. (No double dash above: an
+      XML comment may not contain one.) What the reference bought was the
+      package list, and a package list is cheaper to copy than to inherit along
+      with a compiled-in license stub.
+
+      The conditions and the version pin are copied verbatim: a platform package
+      that disagreed with the core one would be a native library mismatch found
+      at run time, on one runner, in one job.
+    -->
+    <PackageReference Include="Hyland.DocumentFilters" Version="26.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux" Version="26.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-x64" Version="26.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-x64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-arm64" Version="26.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-arm64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-Musl-arm64" Version="26.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-musl-arm64'" />
+    <PackageReference Include="Hyland.DocumentFilters.Linux-ppc64le" Version="26.3.0" Condition="'$(RuntimeIdentifier)' == 'linux-ppc64le'" />
+    <PackageReference Include="Hyland.DocumentFilters.MacOS" Version="26.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.OCR" Version="26.3.0" />
+    <PackageReference Include="Hyland.DocumentFilters.Fonts" Version="26.3.0" />
   </ItemGroup>
 
 </Project>

@@ -8,11 +8,14 @@ real tool rather than the way you would demonstrate one call.
 
 ```bash
 dotnet build csharp/DocFiltersCli.csproj
-csharp/bin/Debug/net8.0/docfilters convert --to pdf --out-dir out/ report.docx
+csharp/bin/Debug/net10.0/docfilters convert --to pdf --out-dir out/ report.docx
 ```
 
 No license key needed to try it — [Licensing](#licensing) says what evaluation
 allows. Add `--dry-run` to any command to see the plan without writing anything.
+
+The Python port is the same tool with nothing to build:
+[python/README.md](./python/README.md).
 
 ## What it does
 
@@ -77,17 +80,29 @@ without opening a document.
 
 ```
 DocFiltersCli/
+├── CLAUDE.md        the rules for changing any of this — read before editing
+├── languages.yml    where each implementation lives, and how it is built
+├── design/
+│   └── porting/     how a port is made, and what each language gets wrong
 ├── csharp/          the reference implementation
+├── cpp17/           the C++17 port
+├── python/          the Python port — see python/README.md
+├── java/            the Java port
 └── tests/
     ├── conformance/ fixtures shared by every language — no language owns these
     ├── csharp/      the C# test suite
+    ├── cpp17/       the C++17 test suite
+    ├── python/      the Python test suite
+    ├── java/        the Java test suite
+    ├── e2e/         end-to-end tests: a built CLI, the real library, real files
+    └── parity/      the four implementations compared against each other
 ```
 
 Inside `csharp/`, the folders are the pipeline stages:
 
 | Folder | Holds |
 | --- | --- |
-| `Cli/` | the argument table and the parsing library — the only per-language folder |
+| `Cli/` | the argument table, and the hand-written binding of argv against it |
 | `Configuration/` | the options model, value parsers, cross-argument validation |
 | `Planning/` | format catalogue, output planner, name templates, page ranges |
 | `Discovery/` | the filesystem walk |
@@ -120,8 +135,20 @@ For smaller, single-purpose examples, see the [C# samples](../samples/csharp).
 
 ## One CLI, four implementations
 
-The same command line ships in C#, Python, Java and C++17, and must behave
-identically in all four. C# is the reference; the other three are ports. 
+The same command line ships in C#, C++17, Python and Java, and must behave
+identically in all four. C# is the reference; the other three are ports, in
+[`cpp17/`](./cpp17), [`python/`](./python) and [`java/`](./java). The Python
+one has its own README covering how to run it and the places it deliberately
+differs.
+
+How a port is made, and how a change reaches all four, is
+[`design/porting/workflow.md`](./design/porting/workflow.md). Each language has
+a list of the constructs that compile, pass a casual test and behave
+differently from the reference — including
+[one for C# itself](./design/porting/traps-csharp.md), which is read the other
+way round: what the reference's own constructs mean, for the ports to
+reproduce.
+
 Keeping them aligned is not left to discipline. `tests/conformance/` holds four
 fixtures, in one line-oriented format, that every implementation runs as part of
 its own test suite:
@@ -133,23 +160,71 @@ its own test suite:
 | `out-names.txt` | `--out-name` rendering, and templates that must be rejected |
 | `plan-corpus.txt` | argv → resolved plan, and every error, message and exit code |
 
-They are written from the specification rather than generated from any
-implementation — a file dumped from the reference could only prove the others
-agree with it, and would never catch an argument nobody implemented.
+They are written by hand from what the tool is meant to do, rather than
+generated from any implementation — a file dumped from the reference could only
+prove the others agree with it, and would never catch an argument nobody
+implemented.
 
 A change to the CLI is made in the fixtures first. Porting it then has a
 definition of done: *make these cases pass*.
 
+Two more checks apply to a port once it exists, and both caught real differences
+in the C++17 one:
+
+- `--print-contract` prints the whole argument surface as flat text. Diffing two
+  implementations' output compares every argument, short form, arity and
+  description in one step.
+- `tests/e2e/end2end.py --cli <path>` runs the end-to-end suite against any
+  built executable, so a port is exercised against the real engine by the same
+  checks as the reference.
+
 ### What is deliberately not compared
 
-`--help` text, because three parsing libraries format it three ways and none can
-be made to match without replacing the renderer. And `--time` / `--progress`
-output, whose figures differ every run. The tool's own version string is in the
-same category — the engine version it reports is not.
-A `--to docpack` pack is in the same
-position for a reason that is not about implementations at all: its `df-core.xml`
-stamps `<created>` to the millisecond, so two packs of one document are never
-byte-identical even from the same binary. Every other entry in the pack is.
+`--help` text, because each implementation renders usage its own way and
+matching them would mean writing a fifth renderer for all four to share. And
+`--time` / `--progress` output, whose figures differ every run. The tool's own
+version string is in the same category --- the engine version it reports is
+not. A `--to docpack` pack is in the same position for a reason that is not
+about implementations at all: its `df-core.xml` stamps `<created>` to the
+millisecond, so two packs of one document are never byte-identical even from
+the same binary. Every other entry in the pack is.
+
+### Moving a change into the three ports
+
+A change to the reference is not finished until the ports carry it.
+[`.github/workflows/ai-sync.yml`](../.github/workflows/ai-sync.yml) does that
+work: it runs Claude Code against the procedure checked in at
+[`.claude/commands/propagate-delta.md`](./.claude/commands/propagate-delta.md)
+and opens one draft pull request per port, each targeting **your** branch
+rather than the default one --- so the reference change and all three
+translations arrive in a single merge, and `master` is never in a state where
+the four disagree.
+
+Two ways to start it:
+
+| Way in | What it does |
+| --- | --- |
+| The **`ai-sync`** label | On a pull request touching an authority path: `design/`, `tests/conformance/`, `csharp/` or `tests/csharp/`. The label is the human sanction and nothing runs without it. Pushing to an authority path again re-runs the translation, updating the same port pull requests rather than opening more. |
+| **Actions -> AI port sync -> Run workflow** | Takes the pull request number, with one checkbox per port (all on by default) and `dry_run` **on** by default, which produces the patch as an artifact and pushes nothing. This is the way to try it. |
+
+Either way a maintainer approves the run before it starts. Inference goes
+through Amazon Bedrock in our own AWS account, reached with the workflow's
+OIDC token; the only stored secret is an IAM role ARN, scoped to the
+`claude-sync` environment, and that environment has a reviewer gate. Pull
+requests from forks are refused outright, with no override.
+
+The commits it makes are created through GitHub's `createCommitOnBranch` API
+rather than pushed, so GitHub signs them and they satisfy the organisation's
+"commits must have verified signatures" rule without a signing key being
+stored anywhere.
+
+**None of this is privileged.** The `Ports landed` check measures the commits
+on your branch, not the agent's run history, so porting by hand and committing
+it yourself satisfies it identically. The agent is a way of doing the work,
+not a different standard. See [what CI checks](#what-ci-checks) below for how
+that check decides, and
+[`design/porting/workflow.md`](./design/porting/workflow.md) for the full
+method, including what to verify and in what order.
 
 ## Building and testing
 
@@ -160,18 +235,189 @@ dotnet build csharp/DocFiltersCli.csproj
 dotnet test tests/csharp/DocFiltersCli.Tests.csproj
 ```
 
-**No new dependencies.** Each implementation uses only what the published
-samples in its own language already use: for C#, Document Filters and
-`McMaster.Extensions.CommandLineUtils`, both via `DfSamplesCommon`; for C++17,
-Document Filters and CLI11, which `samples/cpp17` already fetches at the same
-version. Both wrap that parser behind the same hand-written argument table, so
-the library is an implementation detail of one folder rather than a shape the
-rest of the code takes. xUnit and Catch2 are test-only and are never restored by
-anyone running the sample; the end-to-end script needs nothing beyond Python
-itself.
+C++:
+
+```bash
+cmake -S tests/cpp17 -B tests/cpp17/build
+cmake --build tests/cpp17/build --config Debug
+```
+
+C++17, which builds the tool and its suite together — configure once, then
+build. The test project links the tool's library target and adds Catch2 on its
+own, so building `cpp17/` alone never fetches a test framework. Both `cmake` and
+`ctest` must be on `PATH`; see [`cpp17/README.md`](cpp17/README.md) if your
+editor's build tasks fail before reaching CMake:
+
+Run the C++ suite from the build directory. The test binary is built into
+`bin/`, where the native library is copied beside the tool, so it starts
+without anything being put on the loader path first:
+
+```bash
+cd tests/cpp17/build && ./bin/docfilters_tests
+```
+
+`bin/` whichever generator you used: the test target sets its own output
+directory, so the path does not change between Visual Studio and Ninja. The
+tests are also registered with CTest, so `ctest -C Debug` works from the same
+directory.
+
+Python:
+
+The Python port needs no build, and its suite is the standard library's:
+
+```bash
+python tests/python/run_tests.py
+```
+
+All suites run anywhere — no license, no native library, no scratch directory,
+no filter to remember. They are fast enough to run on every save.
+
+That is possible because the engine sits behind `Engine/` and the filesystem
+behind `IFileSystem`, so the tests supply their own. It is not an option to
+point them at the real ones: a corpus backed by real files could not be
+byte-identical across four languages and three platforms, because directory
+listing order differs between ext4, NTFS and APFS.
+
+### End-to-end tests
+
+The suite above proves what the CLI *says* to the engine. It cannot prove what
+the engine hears — a call the engine rejects, an option that never reaches it,
+or a file that is written but blank. That needs the real thing:
+
+```bash
+python tests/e2e/end2end.py                     # no license needed
+python tests/e2e/end2end.py --license-key KEY   # everything
+python tests/e2e/end2end.py --cli python        # the Python port instead
+python tests/e2e/end2end.py --cli java          # the Java port instead
+```
+
+Python 3, standard library only, no test framework. It runs a built CLI as a
+subprocess, so it sees exactly what a user sees: exit codes, stderr and files on
+disk. It finds the most recently built binary on its own; `--cli` overrides.
+`--verbose` prints each command with the key redacted, and `--keep` leaves the
+output directory behind for inspection.
+
+`--cli` names any of the four implementations, and the shape of the value says
+which kind it is: a built executable for C# and C++17, the directory holding
+the package for Python, or the Gradle project directory for Java. The last two
+have no executable of ours to find, so they are named rather than discovered.
+`--cli python` runs the port in [`python/`](./python) through
+`python -m docfilters_cli`; `--cli java` runs the installed distribution from
+[`java/`](./java), so `gradlew installDist` has to have run first. Both take
+the native library out of a build that has one beside it — the same checks, the
+same skips, no exceptions for any of them. There is one script rather than one
+per language because these checks are about what the engine hears, which no
+port is allowed to differ on.
+
+`--skip "<check>=<reason>"` leaves out a check an implementation cannot run at
+all — a call its binding does not reach. The reason is required and is recorded
+in the transcript, so the parity comparison can tell a deliberate skip from a
+check that went missing, and says which it saw. It is a blunt instrument: a
+skip costs everything else that check covered, which is the argument for
+removing one as soon as it can be.
+
+Without a key, the checks that licenseless evaluation forbids are skipped, each
+printing which restriction it ran into, so a keyless run is green when the tool
+is correct. Run it with a key before relying on it as a gate — see
+[Licensing](#licensing).
+
+Several of these checks are regressions rather than smoke, and each says which
+bug it guards. They are worth reading before adding one: every bug they cover
+shipped green, and every one would still pass a check that only asserted "exit 0
+and the file exists".
+
+**No new dependencies, and one fewer than there were.** Each implementation
+uses only what the published samples in its own language already use, and none
+of the four has an argument-parsing library. All four once did: C# on
+`McMaster.Extensions.CommandLineUtils`, C++17 on CLI11, Python on `argparse`,
+each wrapped behind the same hand-written argument table. The four parsers
+disagreed about which tokens are options, what a repeated option means and what
+an unknown argument costs, so every one of those decisions had already moved
+into shared code --- leaving each library holding only the match from a token to
+a row of the table, which is twenty lines to write. So C# depends on Document
+Filters alone, and C++17 on Document Filters alone. xUnit and Catch2 are
+test-only and are never restored by anyone running the sample; the end-to-end
+script needs nothing beyond Python itself.
 
 The same rule applied again in [`python/`](./python): the published binding, and
-`argparse` and `unittest` from the standard library. Nothing from PyPI.
+`unittest` from the standard library. Nothing from PyPI.
+
+And again in [`java/`](./java), which never had a parser to lose: the published
+samples in `samples/java` bring in none, so this port was written against the
+hand-written table from the start --- and it is the shape the other three
+converged on. Its only dependency is the binding jar already vendored
+at `bindings/java/lib`, and its suite is a ~200-line runner on the JDK alone
+rather than JUnit. The build is Gradle through the wrapper, at the same
+version `samples/java` already pins.
+
+## What CI checks
+
+Two status checks are meant to be required on `master`. They ask different
+questions and neither substitutes for the other:
+
+| Check | Workflow | Asks |
+| --- | --- | --- |
+| `CI gate` | [`cli.yml`](../.github/workflows/cli.yml) | did every affected suite pass? |
+| `Ports landed` | [`ports-landed.yml`](../.github/workflows/ports-landed.yml) | did the three translations move with the reference? |
+
+**Why one gate and not one check per language.** A workflow skipped by a
+`paths:` filter reports no status at all, so a required check that gets
+filtered out leaves the pull request waiting forever for something that will
+never arrive. `cli.yml` therefore always runs, filters *inside* itself, and
+ends in a `ci-gate` job that reads every other job's result. A job skipped
+because nothing it covers changed counts as a pass; a failure or a
+cancellation anywhere fails the gate. `ci-gate` is the only context from that
+workflow branch protection should name.
+
+What runs inside it:
+
+| Job | What it proves |
+| --- | --- |
+| Detect affected suites | which languages this change touches; everything below is filtered on it |
+| C# / C++17 / Python / Java | each implementation builds and its own suite passes, on each OS in its matrix |
+| Contract moves first | a behaviour change carries something the ports can be moved by: a shared fixture, or a test in that language's own suite |
+| Cross-implementation parity | all four binaries run the same command lines and are compared byte for byte. The only job that compares the implementations to *each other* |
+| Validate release version, Package, Publish | the release path, which runs only on a manual dispatch with `release` ticked |
+| CI gate | the aggregate of all of the above, and the required check |
+
+### The two labels
+
+Both checks have an escape hatch, and they are easy to confuse:
+
+| Label | Says | Stands down |
+| --- | --- | --- |
+| `contract-unchanged` | this change needs no shared fixture and no new test | Contract moves first |
+| `ports-unaffected` | this reference change has no counterpart in the ports | `Ports landed` |
+
+A refactor needs both halves understood. It pins nothing new, so
+`contract-unchanged` is right --- and it still has to be mirrored in the three
+ports, because the whole value of the mirror is that two implementations can
+be diffed by eye, and a rename landing only in `csharp/` destroys that. So
+`contract-unchanged` deliberately does **not** stand down `Ports landed`.
+`ports-unaffected` is the narrow case: a C#-only build detail, or a `csharp/`
+construct the other three already express correctly their own way. It is a
+claim you sign for.
+
+### How `Ports landed` decides
+
+It looks at the commits on your branch, not at any agent's run history ---
+porting by hand and committing it yourself satisfies it identically. A check
+only a bot could turn green would make the bot mandatory, and it is not.
+
+It goes red while a port pull request is still open against your branch, and
+while any port's newest commit is not a descendant of the reference's newest
+commit. "After" is ancestry rather than timestamps, which a rebase rewrites.
+Push a further change to `csharp/` and the ports are stale again, so the
+check reopens until they catch up.
+
+### Running the same checks locally
+
+The five verification rings, run outward --- each port's own suite, the shared
+fixtures inside it, `compare_inventory.py`, `end2end.py`, then `compare.py`
+--- are what CI runs and are all runnable here. Stop at the first failure and
+fix it there: an inner ring's failure explains itself, an outer one does not.
+The commands, and the table of what each ring is blind to, are in
+[`design/porting/workflow.md`](./design/porting/workflow.md).
 
 ## Exit codes
 
