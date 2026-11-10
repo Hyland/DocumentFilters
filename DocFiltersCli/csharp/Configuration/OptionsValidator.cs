@@ -41,6 +41,7 @@ namespace Hyland.DocumentFilters.Cli.Configuration
 			CheckStdoutHasNoFileTarget(shared);
 			CheckLogAliasesConsistent(shared);
 			CheckRecursionDepthConsistent(shared);
+			CheckSubfileDepthNeedsSubfiles(shared);
 			CheckVerbosityConsistent(shared);
 			CheckPatternLanguagesExclusive(shared);
 			CheckErrorPolicyConsistent(shared);
@@ -207,6 +208,33 @@ namespace Hyland.DocumentFilters.Cli.Configuration
 		{
 			if (shared.Input.MaxDepth.HasValue && shared.Input.MaxDepth.Value != 1 && shared.Input.NoRecurseWasGiven)
 				throw Contradiction("--max-depth", "--no-recurse");
+		}
+
+		/// <summary>
+		/// <c>--subfile-depth</c> limits how deep <c>--subfiles</c> descends and means
+		/// nothing without it.
+		/// </summary>
+		/// <remarks>
+		/// Rejected rather than ignored, which is what it used to be. The two arguments
+		/// write separate fields --- <c>Enabled</c> and <c>MaxDepth</c> --- so a depth
+		/// given without <c>-s</c> left the walk disabled and the depth unread, and the
+		/// run reported success having descended into nothing. That is the failure mode
+		/// worth spending a rule on: not a crash, which is noticed, but a command line
+		/// that asks for one thing, does another, and exits 0.
+		///
+		/// Decidable only because the fields are separate; if <c>--subfile-depth</c>
+		/// also enabled the walk, the user's intent and the resulting state would be
+		/// indistinguishable and this rule could not exist. That is the same property
+		/// <see cref="CheckRecursionDepthConsistent"/> depends on, one directory level
+		/// up.
+		/// </remarks>
+		internal static void CheckSubfileDepthNeedsSubfiles(SharedOptions shared)
+		{
+			if (shared.Subfiles.MaxDepth.HasValue && !shared.Subfiles.Enabled)
+			{
+				throw new UsageError(ErrorCodes.SubfileDepthNeedsSubfiles,
+					"--subfile-depth limits how deep --subfiles descends and has no meaning without it");
+			}
 		}
 
 		/// <summary><c>--verbose</c> and <c>--silent</c> contradict each other.</summary>
