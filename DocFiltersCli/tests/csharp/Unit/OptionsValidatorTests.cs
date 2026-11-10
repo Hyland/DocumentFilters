@@ -63,6 +63,31 @@ namespace Hyland.DocumentFilters.Cli.Tests.Unit
 		}
 
 		[Fact]
+		public void Subfile_depth_without_subfiles_is_a_usage_error()
+		{
+			// The depth limits a descent that is not happening, so accepting it would
+			// exit 0 having done none of what was asked.
+			var shared = new SharedOptions();
+			shared.Subfiles.MaxDepth = 3;
+
+			UsageError error = Assert.Throws<UsageError>(() => OptionsValidator.Validate(shared));
+
+			Assert.Equal(ErrorCodes.SubfileDepthNeedsSubfiles, error.Code);
+		}
+
+		[Fact]
+		public void Subfiles_without_a_depth_is_an_unlimited_descent()
+		{
+			// The rule is one-directional: it is the depth that needs the flag.
+			var shared = new SharedOptions();
+			shared.Subfiles.Enabled = true;
+
+			OptionsValidator.Validate(shared);
+
+			Assert.Null(shared.Subfiles.MaxDepth);
+		}
+
+		[Fact]
 		public void Stdout_with_out_dir_is_a_usage_error()
 		{
 			var shared = new SharedOptions();

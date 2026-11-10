@@ -920,6 +920,24 @@ $ convert --to text --out-dir out --sort --max-depth 2 --subfile-depth 3 -s corp
 = target        out/sub/b.txt
 = exit          0
 
+# A depth without the walk it limits is rejected, not ignored. The two write
+# separate fields, so accepting it would leave subfiles disabled, the depth
+# unread, and the run exiting 0 having descended into nothing.
+
+$ convert --to text --out-dir out --subfile-depth 3 a.docx
+= error         E_SUBFILE_DEPTH_NEEDS_SUBFILES
+= message       --subfile-depth limits how deep --subfiles descends and has no meaning without it
+= exit          2
+
+# The same rule on every command carrying the pair, so a port cannot satisfy
+# it by special-casing convert. It is one-directional: the depth needs the
+# flag and not the reverse, which `list -s bundle.pst` below already pins.
+
+$ extract --out-dir out --subfile-depth 2 bundle.zip
+= error         E_SUBFILE_DEPTH_NEEDS_SUBFILES
+= message       --subfile-depth limits how deep --subfiles descends and has no meaning without it
+= exit          2
+
 # === selection =============================================================
 
 $ convert --to text --out-dir out --sort -g **/*.pdf corpus
