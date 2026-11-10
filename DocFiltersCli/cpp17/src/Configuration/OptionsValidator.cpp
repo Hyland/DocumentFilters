@@ -136,6 +136,33 @@ namespace Hyland
 								throwContradiction("--max-depth", "--no-recurse");
 						}
 
+						/// <summary>
+						/// <c>--subfile-depth</c> limits how deep <c>--subfiles</c> descends and means
+						/// nothing without it.
+						/// </summary>
+						/// <remarks>
+						/// Rejected rather than ignored, which is what it used to be. The two arguments
+						/// write separate fields --- <c>enabled</c> and <c>maxDepth</c> --- so a depth
+						/// given without <c>-s</c> left the walk disabled and the depth unread, and the
+						/// run reported success having descended into nothing. That is the failure mode
+						/// worth spending a rule on: not a crash, which is noticed, but a command line
+						/// that asks for one thing, does another, and exits 0.
+						///
+						/// Decidable only because the fields are separate; if <c>--subfile-depth</c>
+						/// also enabled the walk, the user's intent and the resulting state would be
+						/// indistinguishable and this rule could not exist. That is the same property
+						/// <c>checkRecursionDepthConsistent</c> depends on, one directory level
+						/// up.
+						/// </remarks>
+						void checkSubfileDepthNeedsSubfiles(const SharedOptions& shared)
+						{
+							if (shared.subfiles.maxDepth.has_value() && !shared.subfiles.enabled)
+							{
+								throw UsageError(ErrorCodes::subfileDepthNeedsSubfiles,
+									"--subfile-depth limits how deep --subfiles descends and has no meaning without it");
+							}
+						}
+
 						/// <summary><c>--verbose</c> and <c>--silent</c> contradict each other.</summary>
 						void checkVerbosityConsistent(const SharedOptions& shared)
 						{
@@ -386,6 +413,7 @@ namespace Hyland
 						checkStdoutHasNoFileTarget(shared);
 						checkLogAliasesConsistent(shared);
 						checkRecursionDepthConsistent(shared);
+						checkSubfileDepthNeedsSubfiles(shared);
 						checkVerbosityConsistent(shared);
 						checkPatternLanguagesExclusive(shared);
 						checkErrorPolicyConsistent(shared);
