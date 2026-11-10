@@ -38,6 +38,7 @@ def validate(shared):
     check_stdout_has_no_file_target(shared)
     check_log_aliases_consistent(shared)
     check_recursion_depth_consistent(shared)
+    check_subfile_depth_needs_subfiles(shared)
     check_verbosity_consistent(shared)
     check_pattern_languages_exclusive(shared)
     check_error_policy_consistent(shared)
@@ -187,6 +188,26 @@ def check_recursion_depth_consistent(shared):
     """
     if shared.input.max_depth is not None and shared.input.max_depth != 1 and shared.input.no_recurse_was_given:
         raise _contradiction("--max-depth", "--no-recurse")
+
+
+def check_subfile_depth_needs_subfiles(shared):
+    """
+    --subfile-depth limits how deep --subfiles descends and means nothing without it.
+
+    Rejected rather than ignored, which is what it used to be. The two arguments write
+    separate fields — enabled and max_depth — so a depth given without -s left the walk
+    disabled and the depth unread, and the run reported success having descended into
+    nothing. That is the failure mode worth spending a rule on: not a crash, which is
+    noticed, but a command line that asks for one thing, does another, and exits 0.
+
+    Decidable only because the fields are separate; if --subfile-depth also enabled the
+    walk, the user's intent and the resulting state would be indistinguishable and this
+    rule could not exist. That is the same property check_recursion_depth_consistent
+    depends on, one directory level up.
+    """
+    if shared.subfiles.max_depth is not None and not shared.subfiles.enabled:
+        raise UsageError(ErrorCodes.SUBFILE_DEPTH_NEEDS_SUBFILES,
+                         "--subfile-depth limits how deep --subfiles descends and has no meaning without it")
 
 
 def check_verbosity_consistent(shared):
