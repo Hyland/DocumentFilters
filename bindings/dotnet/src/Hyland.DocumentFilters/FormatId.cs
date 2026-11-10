@@ -208,7 +208,7 @@ namespace Hyland.DocumentFilters
         /// <summary>Text (UTF16). C: <c>IGR_FORMATID_TEXT_UTF16</c></summary>
         TextUTF16 = 75,
 
-        /// <summary>Open Document Format. C: <c>IGR_FORMATID_OPENDOCUMENT</c></summary>
+        /// <summary>Open Document Format (type not determined). C: <c>IGR_FORMATID_OPENDOCUMENT</c></summary>
         OpenDocument = 76,
 
         /// <summary>XML document file. C: <c>IGR_FORMATID_XML</c></summary>
@@ -801,5 +801,23 @@ namespace Hyland.DocumentFilters
 
         /// <summary>Tab-Separated Values. C: <c>IGR_FORMATID_TSV</c></summary>
         TSV = 275,
+
+        /// <summary>OpenDocument Text. C: <c>IGR_FORMATID_OPENDOCUMENT_ODT</c></summary>
+        OpenDocumentODT = 276,
+
+        /// <summary>OpenDocument Presentation. C: <c>IGR_FORMATID_OPENDOCUMENT_ODP</c></summary>
+        OpenDocumentODP = 277,
+
+        /// <summary>OpenDocument Spreadsheet. C: <c>IGR_FORMATID_OPENDOCUMENT_ODS</c></summary>
+        OpenDocumentODS = 278,
+
+        /// <summary>OpenDocument Drawing. C: <c>IGR_FORMATID_OPENDOCUMENT_ODG</c></summary>
+        OpenDocumentODG = 279,
+
+        /// <summary>MATLAB. C: <c>IGR_FORMATID_MATLAB</c></summary>
+        MATLAB = 280,
+
+        /// <summary>Stata DTA. C: <c>IGR_FORMATID_STATA_DTA</c></summary>
+        StataDTA = 281,
     }
 }

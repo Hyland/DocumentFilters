@@ -371,7 +371,7 @@ jobs:
       # here would have left C++ on a different engine from C#, which is
       # unsound the moment the two are compared against each other.
       #
-      # DOCFILTERS_VERSION takes the bare "26.3.0"; CMake prepends the "v" for
+      # DOCFILTERS_VERSION takes the bare "26.4.0"; CMake prepends the "v" for
       # the release tag itself.
       - name: Read the Document Filters version
         id: dfrelease
@@ -681,28 +681,10 @@ jobs:
             python DocFiltersCli/tests/e2e/end2end.py --cli "$@"               --binding "$PWD/bindings/python/src"               --record "${{ runner.temp }}/$name.txt"
           }
 
-          # The Java port cannot write a docpack against this engine release.
-          # bindings/java/lib/ISYS11df.jar declares MakeDocPack, but the
-          # ISYS11dfjava of the release samples/DF_VERSION.txt pins exports no
-          # entry point for it, so the call fails at run time -- see "The
-          # binding's gaps" in design/porting/traps-java.md. Nothing in the
-          # port can close that, so the two checks that write one are skipped
-          # here rather than failing. The transcript records the skip and its
-          # reason, which is what keeps compare.py from reading the missing
-          # commands as a port that has quietly stopped doing them.
-          #
-          # Delete both lines when DF_VERSION.txt moves past 26.3.0: the
-          # checks will pass, and leaving them skipped would be a hole in the
-          # comparison that nothing reports.
-          no_docpack=(
-            --skip "docpack describes the document=the 26.3.0 Java native library exports no MakeDocPack entry point"
-            --skip "a missing output directory is created=its docpack leg needs MakeDocPack, which the 26.3.0 Java native library does not export"
-          )
-
           record csharp "DocFiltersCli/csharp/bin/${{ env.BUILD_CONFIG }}/net10.0/docfilters.exe"
           record cpp17  "$BUILD_DIR/bin/docfilters.exe"
           record python python
-          record java   DocFiltersCli/java "${no_docpack[@]}"
+          record java   DocFiltersCli/java
           # A second run of the reference. Whatever differs between the two is
           # nondeterminism rather than disagreement, and compare.py excludes it.
           record csharp-repeat "DocFiltersCli/csharp/bin/${{ env.BUILD_CONFIG }}/net10.0/docfilters.exe"
@@ -849,11 +831,7 @@ jobs:
   # available to us can execute it, so it would be the one archive that could
   # not be smoke-tested before it shipped.
   #
-  # win-x86 is left out and nothing is lost: `runtimes/win-x86/native/` in
-  # Hyland.DocumentFilters 26.3.0 holds x64 binaries (PE machine 0x8664), so
-  # no 32-bit process can load them from today's archive either. Publishing
-  # them under a name promising x86 would turn a buried upstream mislabelling
-  # into a promise on the release page.
+we
   package-csharp:
     name: Package C# (${{ matrix.rid }})
     needs: [changes, csharp, cpp17, python, java, parity, release-check]
