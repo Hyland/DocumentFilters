@@ -831,7 +831,11 @@ jobs:
   # available to us can execute it, so it would be the one archive that could
   # not be smoke-tested before it shipped.
   #
-we
+  # win-x86 is left out and nothing is lost: `runtimes/win-x86/native/` in
+  # Hyland.DocumentFilters 26.4.0 holds x64 binaries (PE machine 0x8664), so
+  # no 32-bit process can load them from today's archive either. Publishing
+  # them under a name promising x86 would turn a buried upstream mislabelling
+  # into a promise on the release page.
   package-csharp:
     name: Package C# (${{ matrix.rid }})
     needs: [changes, csharp, cpp17, python, java, parity, release-check]
