@@ -179,7 +179,9 @@ Each is either composed from what it does expose, or reported.
   native library cannot write a docpack`, and the two end-to-end docpack
   checks fail; against a native library that has the entry point, both pass
   and the pack matches the reference's in everything but its `<created>`
-  stamp. See `docPack` in `engine/DocumentFiltersEngine.java`.
+  stamp. The 26.4.0 native library has the entry point, so the gap described
+  here is the 26.3 release's alone. See `docPack` in
+  `engine/DocumentFiltersEngine.java`.
 - **No native peak memory.** The reference reads `PeakWorkingSet64`. On Linux
   `VmHWM` is the same measure; elsewhere the fallback is the JVM's own pools,
   a lower bound, so `--max-memory` fires late, never spuriously. See

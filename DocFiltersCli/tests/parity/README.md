@@ -113,8 +113,14 @@ records that it did not, with the reason. `compare.py` then knows the missing
 commands are missing on purpose, and names them in its header:
 
 ```
-    java did not run 'docpack describes the document': the 26.3.0 Java native
-    library exports no MakeDocPack entry point
+    <port> did not run '<check name>': <why this port cannot run it>
+```
+
+For example, with a made-up check and reason:
+
+```
+    python did not run 'file locking is exclusive': the Python binding has no
+    call to open a stream with a share mode
 ```
 
 Without that line in the transcript, a skipped check and a check quietly lost

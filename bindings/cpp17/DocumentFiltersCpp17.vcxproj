@@ -28,6 +28,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\DocumentFilters.h" />
+    <ClInclude Include="include\DocumentFiltersFormatId.h" />
+    <ClInclude Include="include\DocumentFiltersFormats.h" />
     <ClInclude Include="include\DocumentFiltersObjects.h" />
     <ClInclude Include="src\DocFiltersAnnotations.h" />
     <ClInclude Include="src\DocFiltersCommon.h" />

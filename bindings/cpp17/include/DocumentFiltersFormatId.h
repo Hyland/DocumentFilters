@@ -151,7 +151,7 @@ namespace Hyland
 			TextUTF8 = IGR_FORMATID_TEXT_UTF8,
 			/// Text (UTF16).
 			TextUTF16 = IGR_FORMATID_TEXT_UTF16,
-			/// Open Document Format.
+			/// Open Document Format (type not determined).
 			OpenDocument = IGR_FORMATID_OPENDOCUMENT,
 			/// XML document file.
 			XML = IGR_FORMATID_XML,
@@ -547,10 +547,22 @@ namespace Hyland
 			CSV = IGR_FORMATID_CSV,
 			/// Tab-Separated Values.
 			TSV = IGR_FORMATID_TSV,
+			/// OpenDocument Text.
+			OpenDocumentODT = IGR_FORMATID_OPENDOCUMENT_ODT,
+			/// OpenDocument Presentation.
+			OpenDocumentODP = IGR_FORMATID_OPENDOCUMENT_ODP,
+			/// OpenDocument Spreadsheet.
+			OpenDocumentODS = IGR_FORMATID_OPENDOCUMENT_ODS,
+			/// OpenDocument Drawing.
+			OpenDocumentODG = IGR_FORMATID_OPENDOCUMENT_ODG,
+			/// MATLAB.
+			MATLAB = IGR_FORMATID_MATLAB,
+			/// Stata DTA.
+			StataDTA = IGR_FORMATID_STATA_DTA,
 		};
 
 		/// @brief Every FormatId member, in ascending order of value.
-		inline constexpr std::array<FormatId, 262> AllFormatIds = {
+		inline constexpr std::array<FormatId, 268> AllFormatIds = {
 			FormatId::Unknown,
 			FormatId::Bypass,
 			FormatId::TextASCII,
@@ -813,6 +825,12 @@ namespace Hyland
 			FormatId::Markdown,
 			FormatId::CSV,
 			FormatId::TSV,
+			FormatId::OpenDocumentODT,
+			FormatId::OpenDocumentODP,
+			FormatId::OpenDocumentODS,
+			FormatId::OpenDocumentODG,
+			FormatId::MATLAB,
+			FormatId::StataDTA,
 		};
 	} // namespace DocFilters
 } // namespace Hyland

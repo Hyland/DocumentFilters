@@ -100,7 +100,7 @@ typedef enum IGR_FORMATID
 	IGR_FORMATID_JPEG = 73,                    /**< JPEG Exif. Binding: JPEG */
 	IGR_FORMATID_TEXT_UTF8 = 74,               /**< Text (UTF8). Binding: TextUTF8 */
 	IGR_FORMATID_TEXT_UTF16 = 75,              /**< Text (UTF16). Binding: TextUTF16 */
-	IGR_FORMATID_OPENDOCUMENT = 76,            /**< Open Document Format. Binding: OpenDocument */
+	IGR_FORMATID_OPENDOCUMENT = 76,            /**< Open Document Format (type not determined). Binding: OpenDocument */
 	IGR_FORMATID_XML = 77,                     /**< XML document file. Binding: XML */
 	IGR_FORMATID_PST = 78,                     /**< Microsoft PST/OST. Binding: PST */
 	IGR_FORMATID_MBOX = 79,                    /**< Sendmail MBOX. Binding: Mbox */
@@ -299,7 +299,13 @@ typedef enum IGR_FORMATID
 	IGR_FORMATID_YAML = 272,                   /**< YAML. Binding: YAML */
 	IGR_FORMATID_MARKDOWN = 273,               /**< Markdown. Binding: Markdown */
 	IGR_FORMATID_CSV = 274,                    /**< Comma-Separated Values. Binding: CSV */
-	IGR_FORMATID_TSV = 275                     /**< Tab-Separated Values. Binding: TSV */
+	IGR_FORMATID_TSV = 275,                    /**< Tab-Separated Values. Binding: TSV */
+	IGR_FORMATID_OPENDOCUMENT_ODT = 276,       /**< OpenDocument Text. Binding: OpenDocumentODT */
+	IGR_FORMATID_OPENDOCUMENT_ODP = 277,       /**< OpenDocument Presentation. Binding: OpenDocumentODP */
+	IGR_FORMATID_OPENDOCUMENT_ODS = 278,       /**< OpenDocument Spreadsheet. Binding: OpenDocumentODS */
+	IGR_FORMATID_OPENDOCUMENT_ODG = 279,       /**< OpenDocument Drawing. Binding: OpenDocumentODG */
+	IGR_FORMATID_MATLAB = 280,                 /**< MATLAB. Binding: MATLAB */
+	IGR_FORMATID_STATA_DTA = 281               /**< Stata DTA. Binding: StataDTA */
 } IGR_FORMATID;
 
 #endif /* HYLAND_DOCFILTERS_FORMATS_H_DEF */
