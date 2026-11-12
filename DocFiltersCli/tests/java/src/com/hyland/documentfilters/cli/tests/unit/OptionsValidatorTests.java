@@ -88,6 +88,31 @@ public final class OptionsValidatorTests
 	}
 
 	@Test
+	public void subfileDepthWithoutSubfilesIsAUsageError()
+	{
+		// The depth limits a descent that is not happening, so accepting it would
+		// exit 0 having done none of what was asked.
+		SharedOptions shared = new SharedOptions();
+		shared.subfiles.maxDepth = 3;
+
+		UsageError error = assertThrows(UsageError.class, () -> OptionsValidator.validate(shared));
+
+		assertEquals(ErrorCodes.SUBFILE_DEPTH_NEEDS_SUBFILES, error.getCode());
+	}
+
+	@Test
+	public void subfilesWithoutADepthIsAnUnlimitedDescent()
+	{
+		// The rule is one-directional: it is the depth that needs the flag.
+		SharedOptions shared = new SharedOptions();
+		shared.subfiles.enabled = true;
+
+		OptionsValidator.validate(shared);
+
+		assertNull(shared.subfiles.maxDepth);
+	}
+
+	@Test
 	public void stdoutWithOutDirIsAUsageError()
 	{
 		SharedOptions shared = new SharedOptions();

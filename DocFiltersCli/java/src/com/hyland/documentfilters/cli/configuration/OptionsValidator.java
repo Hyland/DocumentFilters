@@ -49,6 +49,7 @@ public final class OptionsValidator
 		checkStdoutHasNoFileTarget(shared);
 		checkLogAliasesConsistent(shared);
 		checkRecursionDepthConsistent(shared);
+		checkSubfileDepthNeedsSubfiles(shared);
 		checkVerbosityConsistent(shared);
 		checkPatternLanguagesExclusive(shared);
 		checkErrorPolicyConsistent(shared);
@@ -214,6 +215,31 @@ public final class OptionsValidator
 	{
 		if (shared.input.maxDepth != null && shared.input.maxDepth != 1 && shared.input.noRecurseWasGiven)
 			throw contradiction("--max-depth", "--no-recurse");
+	}
+
+	/**
+	 * {@code --subfile-depth} limits how deep {@code --subfiles} descends and means
+	 * nothing without it.
+	 *
+	 * <p>Rejected rather than ignored, which is what it used to be. The two arguments
+	 * write separate fields --- {@code enabled} and {@code maxDepth} --- so a depth
+	 * given without {@code -s} left the walk disabled and the depth unread, and the
+	 * run reported success having descended into nothing. That is the failure mode
+	 * worth spending a rule on: not a crash, which is noticed, but a command line
+	 * that asks for one thing, does another, and exits 0.
+	 *
+	 * <p>Decidable only because the fields are separate; if {@code --subfile-depth}
+	 * also enabled the walk, the user's intent and the resulting state would be
+	 * indistinguishable and this rule could not exist. That is the same property
+	 * {@link #checkRecursionDepthConsistent} depends on, one directory level up.
+	 */
+	public static void checkSubfileDepthNeedsSubfiles(SharedOptions shared)
+	{
+		if (shared.subfiles.maxDepth != null && !shared.subfiles.enabled)
+		{
+			throw new UsageError(ErrorCodes.SUBFILE_DEPTH_NEEDS_SUBFILES,
+				"--subfile-depth limits how deep --subfiles descends and has no meaning without it");
+		}
 	}
 
 	/** {@code --verbose} and {@code --silent} contradict each other. */
