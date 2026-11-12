@@ -33,6 +33,7 @@ namespace Hyland
 							unknownCommand, unknownArgument, missingValue, missingArgument, badValue, badPageRange,
 							badTemplate, unknownFormat, mutuallyExclusive, combineUnsupported,
 							stdoutNeedsSingleFile, outFileNeedsSingleFile, outNameNeedsOutDir, templateNeedsPage, reportNeedsHiDef,
+							subfileDepthNeedsSubfiles,
 							outFileMultiInput, outputExists, outputCollision, unsafeOutput, outputIsInput, noInputs, initFailed,
 							limitExceeded, documentFailed, interrupted
 						};

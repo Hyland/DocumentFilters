@@ -82,6 +82,28 @@ TEST_CASE("out-name without out-dir is a usage error", "[OptionsValidator]")
 	CHECK(error.code() == ErrorCodes::outNameNeedsOutDir);
 }
 
+TEST_CASE("subfile depth without subfiles is a usage error", "[OptionsValidator]")
+{
+	// The depth limits a descent that is not happening, so accepting it would
+	// exit 0 having done none of what was asked.
+	SharedOptions shared;
+	shared.subfiles.maxDepth = 3;
+
+	UsageError error = expectUsageError([&] { OptionsValidator::validate(shared); });
+	CHECK(error.code() == ErrorCodes::subfileDepthNeedsSubfiles);
+}
+
+TEST_CASE("subfiles without a depth is an unlimited descent", "[OptionsValidator]")
+{
+	// The rule is one-directional: it is the depth that needs the flag.
+	SharedOptions shared;
+	shared.subfiles.enabled = true;
+
+	OptionsValidator::validate(shared);
+
+	CHECK_FALSE(shared.subfiles.maxDepth.has_value());
+}
+
 TEST_CASE("stdout with out-dir is a usage error", "[OptionsValidator]")
 {
 	SharedOptions shared;
