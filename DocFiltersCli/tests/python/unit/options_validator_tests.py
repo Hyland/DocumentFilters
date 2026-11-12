@@ -61,6 +61,26 @@ class OptionsValidatorTests(unittest.TestCase):
 
         self.assertEqual(ErrorCodes.OUTNAME_NEEDS_OUTDIR, caught.exception.code)
 
+    def test_subfile_depth_without_subfiles_is_a_usage_error(self):
+        # The depth limits a descent that is not happening, so accepting it would
+        # exit 0 having done none of what was asked.
+        shared = SharedOptions()
+        shared.subfiles.max_depth = 3
+
+        with self.assertRaises(UsageError) as caught:
+            options_validator.validate(shared)
+
+        self.assertEqual(ErrorCodes.SUBFILE_DEPTH_NEEDS_SUBFILES, caught.exception.code)
+
+    def test_subfiles_without_a_depth_is_an_unlimited_descent(self):
+        # The rule is one-directional: it is the depth that needs the flag.
+        shared = SharedOptions()
+        shared.subfiles.enabled = True
+
+        options_validator.validate(shared)
+
+        self.assertIsNone(shared.subfiles.max_depth)
+
     def test_stdout_with_out_dir_is_a_usage_error(self):
         shared = SharedOptions()
         shared.output.use_stdout = True
