@@ -12,6 +12,12 @@
     <ClInclude Include="include\DocumentFilters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\DocumentFiltersFormatId.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DocumentFiltersFormats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\DocumentFiltersObjects.h">
       <Filter>Header Files</Filter>
     </ClInclude>

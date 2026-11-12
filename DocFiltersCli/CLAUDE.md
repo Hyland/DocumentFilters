@@ -142,9 +142,7 @@ up. Say so, at the point of the decision:
   of the suite.** `tests/e2e/end2end.py` takes
   `--skip "<check name>=<reason>"`, repeatable; the reason is required, and it
   is printed and written into the recorded transcript so the parity comparison
-  can tell a deliberate skip from a check that vanished. The skips in force
-  are in the "Record each implementation" step of
-  `.github/workflows/cli.yml` --- that is the list to read and to add to.
+  can tell a deliberate skip from a check that vanished.
 - Both are checked in both directions: a waiver that stops being needed fails
   the build, so neither can outlive what it was for.
 

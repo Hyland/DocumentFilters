@@ -76,7 +76,7 @@ namespace Hyland
 		 * @brief Converts a wide string to an unsigned 32-bit integer, or returns a default value if conversion fails.
 		 *
 		 * @param s The wide string to convert.
-		 * @param getDefaultValue The default value to return if conversion fails.
+		 * @param default_value The default value to return if conversion fails.
 		 * @return The converted unsigned 32-bit integer, or the default value if conversion fails.
 		 */
 		uint32_t stoul_or(const std::wstring& s, uint32_t default_value);
@@ -88,7 +88,7 @@ namespace Hyland
 		 * fails, it returns the specified default value.
 		 *
 		 * @param s The wide string to convert.
-		 * @param getDefaultValue The default value to return if conversion fails.
+		 * @param default_value The default value to return if conversion fails.
 		 * @return The converted double, or the default value if conversion fails.
 		 */
 		double stod_or(const std::wstring& s, double default_value);
@@ -115,17 +115,6 @@ namespace Hyland
 		 */
 		IGR_RETURN_CODE throw_on_error(IGR_RETURN_CODE code, const Error_Control_Block& ecb, const std::string& function_name,
 		                               const std::string& error_message = std::string());
-
-		/**
-		 * @brief Encodes the given data into a base64 string.
-		 *
-		 * This function takes a pointer to the data and its length, and returns a base64-encoded string.
-		 *
-		 * @param data A pointer to the data to be encoded.
-		 * @param length The length of the data in bytes.
-		 * @return A base64-encoded string.
-		 */
-		std::string base64_encode(const void* data, std::size_t length);
 
 
 		/**

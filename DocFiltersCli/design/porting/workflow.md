@@ -187,10 +187,7 @@ An **end-to-end check the port cannot run** --- because the call its binding
 needs does not exist --- is left out of the run instead. `end2end.py` takes
 `--skip "<check name>=<reason>"`, repeatable, and both the printed report and
 the recorded transcript carry the reason, so `compare.py` can tell a
-deliberate skip from a check that went missing. The skips in force today are
-in the "Record each implementation" step of `.github/workflows/cli.yml`, with
-a comment explaining each: at the time of writing, two Java checks that need a
-`MakeDocPack` entry point the pinned engine release does not export.
+deliberate skip from a check that went missing.
 
 A skip is verified rather than trusted. The check still runs, with its
 commands kept out of the transcript so they have nothing to be compared
