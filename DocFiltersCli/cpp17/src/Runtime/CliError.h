@@ -58,6 +58,7 @@ namespace Hyland
 					constexpr const char* outNameNeedsOutDir = "E_OUTNAME_NEEDS_OUTDIR";
 					constexpr const char* templateNeedsPage = "E_TEMPLATE_NEEDS_PAGE";
 					constexpr const char* reportNeedsHiDef = "E_REPORT_NEEDS_HIDEF";
+					constexpr const char* subfileDepthNeedsSubfiles = "E_SUBFILE_DEPTH_NEEDS_SUBFILES";
 					constexpr const char* outFileMultiInput = "E_OUTFILE_MULTI_INPUT";
 					constexpr const char* outputExists = "E_OUTPUT_EXISTS";
 					constexpr const char* outputCollision = "E_OUTPUT_COLLISION";
