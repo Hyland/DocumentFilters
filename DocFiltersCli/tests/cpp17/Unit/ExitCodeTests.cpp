@@ -98,7 +98,7 @@ TEST_CASE("a run-level error names no path", "[ExitCode]")
 TEST_CASE("every declared error code is distinct", "[ExitCode]")
 {
 	const std::vector<std::string>& codes = ErrorCodes::all();
-	CHECK(codes.size() == 25);
+	CHECK(codes.size() == 26);
 
 	std::set<std::string> unique(codes.begin(), codes.end());
 	CHECK(unique.size() == codes.size());

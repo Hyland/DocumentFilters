@@ -42,6 +42,7 @@ namespace Hyland.DocumentFilters.Cli.Runtime
 		public const string OutNameNeedsOutDir = "E_OUTNAME_NEEDS_OUTDIR";
 		public const string TemplateNeedsPage = "E_TEMPLATE_NEEDS_PAGE";
 		public const string ReportNeedsHiDef = "E_REPORT_NEEDS_HIDEF";
+		public const string SubfileDepthNeedsSubfiles = "E_SUBFILE_DEPTH_NEEDS_SUBFILES";
 		public const string OutFileMultiInput = "E_OUTFILE_MULTI_INPUT";
 		public const string OutputExists = "E_OUTPUT_EXISTS";
 		public const string OutputCollision = "E_OUTPUT_COLLISION";
@@ -72,6 +73,7 @@ namespace Hyland.DocumentFilters.Cli.Runtime
 			UnknownCommand, UnknownArgument, MissingValue, MissingArgument, BadValue, BadPageRange,
 			BadTemplate, UnknownFormat, MutuallyExclusive, CombineUnsupported,
 			StdoutNeedsSingleFile, OutFileNeedsSingleFile, OutNameNeedsOutDir, TemplateNeedsPage, ReportNeedsHiDef,
+			SubfileDepthNeedsSubfiles,
 			OutFileMultiInput, OutputExists, OutputCollision, UnsafeOutput, OutputIsInput, NoInputs, InitFailed,
 			LimitExceeded, DocumentFailed, Interrupted
 		};
